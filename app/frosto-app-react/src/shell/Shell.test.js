@@ -1,9 +1,13 @@
 import { render, screen } from "@testing-library/react";
-import App from "./App";
+import Shell from "./Shell";
 
 test("renders splash screen on startup", () => {
   // Given
-  const ui = <App />;
+  const props = {
+    status: "INIT",
+    location: undefined,
+  };
+  const ui = <Shell {...props} />;
 
   // When
   render(ui);
