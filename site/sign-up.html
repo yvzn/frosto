@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<meta name="description"
+		content="L'application alertes gelées vous envoie une notification si des températures négatives sont prévues dans les jours suivants" />
+	<title>Alerte gelées : inscription</title>
+</head>
+
+<body>
+	<header>
+		<nav class="navbar navbar-dark bg-dark shadow-sm">
+			<div class="container">
+				<a class="navbar-brand" href="/">Alerte gelées</a>
+			</div>
+		</nav>
+	</header>
+	<main>
+		<section class="py-5 text-center container">
+			<div class="row py-lg-5">
+				<article class="col-lg-6 text-center text-lg-start p-4 p-md-5">
+					<h1 class="fw-light mb-3">Inscription</h1>
+					<p class="lead text-muted col-lg-10">Renseignez vos coordonnées, vous serez alerté uniquement si des
+						températures négatives sont prévues.</p>
+					<p class="lead text-muted col-lg-10">Pas d'autres sollicitations commerciales de notre part.</p>
+				</article>
+				<article class="col-md-10 mx-auto col-lg-6">
+					<form class="p-4 p-md-5 border rounded-3 bg-light" action=import.meta.env.VITE_SIGNUP_URL method="post">
+						<div class="form-floating mb-3">
+							<input type="email" class="form-control" id="email" placeholder="name@exemple.com"
+								required="required" />
+							<label for="email">Adresse de courrier électronique</label>
+						</div>
+						<div class="form-floating mb-3">
+							<input type="text" class="form-control" id="city" placeholder="Password"
+								required="required" />
+							<label for="city">Ville</label>
+						</div>
+						<div class="form-floating mb-3">
+							<input type="text" class="form-control" id="country" placeholder="Password"
+								required="required" />
+							<label for="country">Pays</label>
+						</div>
+						<div class="checkbox mb-3">
+							<label for="userConsent">
+								<input type="checkbox" id="userConsent" value="yes" required="required" />
+								<small class="text-muted">J'accepte que mes coordonnées personnelles soient utilisées
+									dans le cadre de ce service.</small></label>
+						</div>
+						<button class="w-100 btn btn-lg btn-primary" type="submit">S'inscrire</button>
+					</form>
+				</article>
+			</div>
+		</section>
+	</main>
+
+	<script type="module" src="./main.js"></script>
+</body>
+
+</html>
