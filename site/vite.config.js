@@ -3,7 +3,6 @@ import { defineConfig } from 'vite';
 
 const config = defineConfig({
 	build: {
-		outDir: '../docs',
 		emptyOutDir: true,
 		rollupOptions: {
 			input: {

@@ -5,7 +5,7 @@
 		"dev": "vite",
 		"build": "vite build",
 		"preview": "vite preview",
-		"postbuild": "purgecss --content ../docs/index.html ../docs/sign-up.html --css ../docs/assets/*.css --output ../docs/assets/"
+		"postbuild": "purgecss --content dist/index.html dist/sign-up.html --css dist/assets/*.css --output dist/assets/"
 	},
 	"devDependencies": {
 		"purgecss": "^4.1.3",
