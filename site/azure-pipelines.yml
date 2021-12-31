@@ -1,0 +1,42 @@
+variables:
+- group: "production"
+
+trigger:
+  branches:
+    include:
+    - main
+  paths:
+    include:
+    - site
+
+pool:
+  # Windows is required for AzureFileCopy
+  vmImage: windows-latest
+
+steps:
+- task: PowerShell@2
+  displayName: 'build .env.production file'
+  inputs:
+    targetType: 'inline'
+    # npm will not pick environment variables, use .env files instead
+    script: './build-env-production.ps1 -SignUpUrl $(signUpUrl)'
+    workingDirectory: 'site'
+- task: Npm@1
+  displayName: 'npm install'
+  inputs:
+    command: 'install'
+    workingDir: 'site'
+- task: Npm@1
+  displayName: 'npm build'
+  inputs:
+    command: 'custom'
+    workingDir: 'site'
+    customCommand: 'run build'
+- task: AzureFileCopy@4
+  displayName: 'upload files to Azure'
+  inputs:
+    SourcePath: 'docs/*'
+    azureSubscription: '$(azureSubscription)'
+    Destination: 'AzureBlob'
+    storage: '$(storageAccountName)'
+    ContainerName: '$web'
