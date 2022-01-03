@@ -15,3 +15,16 @@ The _Azure Logic App_ source code is not available yet, it takes some time to ex
 ## Licensing
 
 This open source software is distributed under MIT license, please refer to [LICENSE](LICENSE) file.
+
+### Third party licenses
+
+The wallpaper themselves are hosted by Bing.com and copyrighted by their respective owners. **Use of these images is restricted to wallpaper only**, as per Bing terms of use.
+
+This project uses open-source, third party software:
+
+- [ViteJS](https://github.com/vitejs/vite): MIT License, Copyright (c) 2019-present Evan You & Vite Contributors
+
+This project uses graphics under Creative Commons licence:
+
+- Illustrations by [unDraw](https://undraw.co/license)
+- Fav icon by [Oh Rian](https://thenounproject.com/ohrianid/): Creative Commons license  (CCBY)
