@@ -18,8 +18,6 @@ This open source software is distributed under MIT license, please refer to [LIC
 
 ### Third party licenses
 
-The wallpaper themselves are hosted by Bing.com and copyrighted by their respective owners. **Use of these images is restricted to wallpaper only**, as per Bing terms of use.
-
 This project uses open-source, third party software:
 
 - [ViteJS](https://github.com/vitejs/vite): MIT License, Copyright (c) 2019-present Evan You & Vite Contributors
