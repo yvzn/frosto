@@ -10,33 +10,54 @@ trigger:
     - site
 
 pool:
-  # Windows is required for AzureFileCopy
-  vmImage: windows-latest
+  vmImage: ubuntu-latest
 
-steps:
-- task: PowerShell@2
-  displayName: 'build .env.production file'
-  inputs:
-    targetType: 'inline'
-    # npm will not pick environment variables, use .env files instead
-    script: './build-env-production.ps1 -SignUpUrl $(signUpUrl)'
-    workingDirectory: 'site'
-- task: Npm@1
-  displayName: 'npm install'
-  inputs:
-    command: 'install'
-    workingDir: 'site'
-- task: Npm@1
-  displayName: 'npm build'
-  inputs:
-    command: 'custom'
-    workingDir: 'site'
-    customCommand: 'run build'
-- task: AzureFileCopy@4
-  displayName: 'upload files to Azure'
-  inputs:
-    SourcePath: 'site/dist/*'
-    azureSubscription: '$(azureSubscription)'
-    Destination: 'AzureBlob'
-    storage: '$(storageAccountName)'
-    ContainerName: '$web'
+jobs:
+- job: CI
+  steps:
+  - task: PowerShell@2
+    displayName: 'build .env.production file'
+    inputs:
+      targetType: 'inline'
+      # npm will not pick environment variables, use .env files instead
+      script: './build-env-production.ps1 -SignUpUrl $(signUpUrl)'
+      workingDirectory: 'site'
+  - task: Npm@1
+    displayName: 'npm install'
+    inputs:
+      command: 'ci'
+      workingDir: 'site'
+  - task: Npm@1
+    displayName: 'npm build'
+    inputs:
+      command: 'custom'
+      workingDir: 'site'
+      customCommand: 'run build'
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: 'site/dist'
+      publishLocation: 'pipeline'
+      artifact: 'site'
+
+- deployment: CD
+  dependsOn: CI
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+  environment: 'Azure'
+  strategy:
+    runOnce:
+      deploy:
+        steps:
+        - task: DownloadPipelineArtifact@2
+          inputs:
+            buildType: 'current'
+            artifactName: 'site'
+            targetPath: 'site/dist'
+        - task: AzureCLI@2
+          displayName: 'upload files to Azure'
+          inputs:
+            azureSubscription: '$(azureSubscription)'
+            scriptType: 'pscore'
+            scriptLocation: 'inlineScript'
+            inlineScript: |
+              az storage blob delete-batch --account-key $(storageAccountKey) --account-name $(storageAccountName) --source `$web --delete-snapshots include
+              az storage blob upload-batch --account-key $(storageAccountKey) --account-name $(storageAccountName) --destination `$web --source site/dist
