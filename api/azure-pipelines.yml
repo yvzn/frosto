@@ -1,0 +1,64 @@
+variables:
+- group: "production"
+
+trigger:
+  branches:
+    include:
+    - main
+  paths:
+    include:
+    - site
+
+pool:
+  vmImage: ubuntu-latest
+
+jobs:
+- job: CI
+  steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: '10.x'
+    displayName: 'Install Node.js'
+  - script: |
+      if [ -f extensions.csproj ]
+      then
+          dotnet build extensions.csproj --runtime ubuntu.16.04-x64 --output ./bin
+      fi
+    displayName: 'Build extensions'
+    workingDirectory: 'api'
+  - script: |
+      npm install
+      npm run build --if-present
+      npm run test --if-present
+    displayName: 'Prepare binaries'
+    workingDirectory: 'api'
+  - task: ArchiveFiles@2
+    displayName: 'Archive files'
+    inputs:
+      rootFolderOrFile: '$(System.DefaultWorkingDirectory)/api'
+      includeRootFolder: false
+      archiveType: zip
+      archiveFile: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+      replaceExistingArchive: true
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+      publishLocation: 'pipeline'
+      artifact: 'api'
+
+- deployment: CD
+  dependsOn: CI
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+  environment: 'Azure'
+  strategy:
+    runOnce:
+      deploy:
+        steps:
+        - task: AzureFunctionApp@1
+          displayName: 'Azure Functions App Deploy'
+          inputs:
+            azureSubscription: '$(azureSubscription)'
+            appType: 'functionAppLinux'
+            appName: '$(functionAppName)'
+            package: '$(System.DefaultWorkingDirectory)/$(Build.BuildId).zip'
+            runtimeStack: 'NODE|16'
