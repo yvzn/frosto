@@ -7,7 +7,7 @@ trigger:
     - main
   paths:
     include:
-    - site
+    - app
 
 pool:
   vmImage: ubuntu-latest
@@ -15,29 +15,22 @@ pool:
 jobs:
 - job: CI
   steps:
-  - task: PowerShell@2
-    displayName: 'build .env.production file'
-    inputs:
-      targetType: 'inline'
-      # npm will not pick environment variables, use .env files instead
-      script: './build-env-production.ps1 -SignUpUrl $(signUpUrl)'
-      workingDirectory: 'site'
   - task: Npm@1
     displayName: 'npm install'
     inputs:
       command: 'ci'
-      workingDir: 'site'
+      workingDir: 'app'
   - task: Npm@1
     displayName: 'npm build'
     inputs:
       command: 'custom'
-      workingDir: 'site'
+      workingDir: 'app'
       customCommand: 'run build'
   - task: PublishPipelineArtifact@1
     inputs:
-      targetPath: 'site/dist'
+      targetPath: 'app/dist'
       publishLocation: 'pipeline'
-      artifact: 'site'
+      artifact: 'app'
 
 - deployment: CD
   dependsOn: CI
@@ -50,8 +43,8 @@ jobs:
         - task: DownloadPipelineArtifact@2
           inputs:
             buildType: 'current'
-            artifactName: 'site'
-            targetPath: 'site/dist'
+            artifactName: 'app'
+            targetPath: 'app/dist/app'
         - task: AzureCLI@2
           displayName: 'upload files to Azure'
           inputs:
@@ -59,5 +52,5 @@ jobs:
             scriptType: 'pscore'
             scriptLocation: 'inlineScript'
             inlineScript: |
-              az storage blob delete-batch --account-key $(storageAccountKey) --account-name $(storageAccountName) --source `$web --delete-snapshots include --pattern ?[!p][!p]*
-              az storage blob upload-batch --account-key $(storageAccountKey) --account-name $(storageAccountName) --destination `$web --source site/dist
+              az storage blob delete-batch --account-key $(storageAccountKey) --account-name $(storageAccountName) --source `$web --delete-snapshots include --pattern app/*
+              az storage blob upload-batch --account-key $(storageAccountKey) --account-name $(storageAccountName) --destination `$web --source app/dist
