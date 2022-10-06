@@ -1,0 +1,10 @@
+{
+	"name": "frosto-api",
+	"version": "1.0.0",
+	"scripts": {
+		"lint": "eslint . --ext .js --fix --ignore-path .gitignore"
+	},
+	"devDependencies": {
+		"eslint": "^8.24.0"
+	}
+}
