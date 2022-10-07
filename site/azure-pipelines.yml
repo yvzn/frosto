@@ -47,11 +47,6 @@ jobs:
     runOnce:
       deploy:
         steps:
-        - task: DownloadPipelineArtifact@2
-          inputs:
-            buildType: 'current'
-            artifactName: 'site'
-            targetPath: 'site/dist'
         - task: AzureCLI@2
           displayName: 'upload files to Azure'
           inputs:
@@ -60,4 +55,4 @@ jobs:
             scriptLocation: 'inlineScript'
             inlineScript: |
               az storage blob delete-batch --account-key $(storageAccountKey) --account-name $(storageAccountName) --source `$web --delete-snapshots include --pattern ?[!p][!p]*
-              az storage blob upload-batch --account-key $(storageAccountKey) --account-name $(storageAccountName) --destination `$web --source site/dist
+              az storage blob upload-batch --account-key $(storageAccountKey) --account-name $(storageAccountName) --destination `$web --source $(Pipeline.Workspace)/site
