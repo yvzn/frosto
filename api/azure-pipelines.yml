@@ -7,7 +7,7 @@ trigger:
     - main
   paths:
     include:
-    - site
+    - api
 
 pool:
   vmImage: ubuntu-latest
@@ -60,5 +60,5 @@ jobs:
             azureSubscription: '$(azureSubscription)'
             appType: 'functionAppLinux'
             appName: '$(functionAppName)'
-            package: '$(System.DefaultWorkingDirectory)/$(Build.BuildId).zip'
+            package: '$(Pipeline.Workspace)/api/$(Build.BuildId).zip'
             runtimeStack: 'NODE|16'
