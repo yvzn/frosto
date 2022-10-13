@@ -1,7 +1,12 @@
 import { defineStore } from "pinia";
 
+interface SearchState {
+	query: string | undefined;
+	status: "IDLE" | "SEARCHING";
+}
+
 export const useSearchStore = defineStore("search", {
-	state: () => {
+	state: (): SearchState => {
 		return { query: undefined, status: "IDLE" };
 	},
 	actions: {

@@ -1,9 +1,9 @@
-<script setup>
+<script setup lang="ts">
 import { useSearchStore } from "../stores/search";
 
 const searchStore = useSearchStore();
 
-function submitSearch(event) {
+function submitSearch(event: Event) {
 	searchStore.search(/* searchStore.query */);
 	event.preventDefault();
 }
