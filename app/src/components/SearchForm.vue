@@ -1,17 +1,11 @@
 <script setup>
-import { ref } from "vue";
-import router from "../router";
+import { useSearchStore } from "../stores/search";
 
-const query = ref("");
+const searchStore = useSearchStore();
 
-function search(event) {
-	console.log(`Search for ${query.value}`);
-	router.push({ path: "/search", query: { query: query.value } });
+function submitSearch(event) {
+	searchStore.search(/* searchStore.query */);
 	event.preventDefault();
-}
-
-function focusOnQuery(event) {
-	event.currentTarget.select();
 }
 </script>
 
@@ -20,17 +14,16 @@ function focusOnQuery(event) {
 		<section class="container py-5">
 			<form
 				class="d-flex align-items-center p-3 rounded shadow-sm bg-body"
-				@submit="search"
+				@submit="submitSearch"
 			>
 				<div class="form-floating flex-grow-1">
 					<input
 						class="form-control"
 						id="query"
 						name="query"
-						v-model="query"
+						v-model="searchStore.query"
 						placeholder="Nantes, 44130"
 						required="true"
-						@click="focusOnQuery"
 					/>
 					<label for="query">Ville ou code postal</label>
 				</div>
