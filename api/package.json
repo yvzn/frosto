@@ -2,9 +2,20 @@
 	"name": "frosto-api",
 	"version": "1.0.0",
 	"scripts": {
-		"lint": "eslint . --ext .js --fix --ignore-path .gitignore"
+		"build": "tsc",
+		"build:production": "npm run prestart && npm prune --production && func pack",
+		"watch": "tsc --w",
+		"prestart": "npm run build && func extensions install",
+		"start:host": "func start",
+		"start": "npm-run-all --parallel start:host watch",
+		"lint": "eslint . --ext .js,.ts --fix --ignore-path .gitignore"
 	},
 	"devDependencies": {
-		"eslint": "^8.24.0"
+		"@azure/functions": "^1.0.1-beta1",
+		"@typescript-eslint/eslint-plugin": "^5.40.0",
+		"@typescript-eslint/parser": "^5.40.0",
+		"eslint": "^8.25.0",
+		"npm-run-all": "^4.1.5",
+		"typescript": "^3.3.3"
 	}
 }

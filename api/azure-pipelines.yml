@@ -28,21 +28,12 @@ jobs:
     workingDirectory: 'api'
   - script: |
       npm install
-      npm run build --if-present
-      npm run test --if-present
+      npm run build:production
     displayName: 'Prepare binaries'
     workingDirectory: 'api'
-  - task: ArchiveFiles@2
-    displayName: 'Archive files'
-    inputs:
-      rootFolderOrFile: '$(System.DefaultWorkingDirectory)/api'
-      includeRootFolder: false
-      archiveType: zip
-      archiveFile: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
-      replaceExistingArchive: true
   - task: PublishPipelineArtifact@1
     inputs:
-      targetPath: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+      targetPath: 'api/api.zip'
       publishLocation: 'pipeline'
       artifact: 'api'
 
@@ -60,5 +51,5 @@ jobs:
             azureSubscription: '$(azureSubscription)'
             appType: 'functionAppLinux'
             appName: '$(functionAppName)'
-            package: '$(Pipeline.Workspace)/api/$(Build.BuildId).zip'
+            package: '$(Pipeline.Workspace)/api/api.zip'
             runtimeStack: 'NODE|16'
