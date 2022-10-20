@@ -27,6 +27,7 @@ jobs:
     displayName: 'Build extensions'
     workingDirectory: 'api'
   - script: |
+      npm i -g azure-functions-core-tools@4
       npm install
       npm run build:production
     displayName: 'Prepare binaries'

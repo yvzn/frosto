@@ -1,7 +1,8 @@
-*.js.map
-*.ts
+**/*.js.map
+**/*.ts
 .git*
 .vscode
 local.settings.json
-test
-getting_started.md
+azure-pipelines.yml
+tsconfig.json
+.eslintrc.js
