@@ -1,0 +1,50 @@
+variables:
+- group: "production"
+
+trigger:
+  branches:
+    include:
+    - main
+  paths:
+    include:
+    - api
+
+pool:
+  vmImage: windows-latest
+
+jobs:
+- job: CI
+  steps:
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'build'
+      projects: 'api/*.csproj'
+      arguments: '--configuration Release --arch x64 --os win --no-self-contained'
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'publish'
+      publishWebProjects: false
+      projects: 'api/*.csproj'
+      nobuild: true
+      arguments: '--configuration Release --arch x64 --os win --no-self-contained'
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: 'api/bin/Release/net6.0/win-x64/publish.zip'
+      publishLocation: 'pipeline'
+      artifact: 'api'
+
+- deployment: CD
+  dependsOn: CI
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+  environment: 'Azure'
+  strategy:
+    runOnce:
+      deploy:
+        steps:
+        - task: AzureFunctionApp@1
+          inputs:
+            azureSubscription: '$(azureSubscription)'
+            appType: 'functionApp'
+            appName: '$(functionAppName)'
+            package: '$(Pipeline.Workspace)/api/*.zip'
+            runtimeStack: 'DOTNET|6.0'
