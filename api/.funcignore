@@ -1,8 +1,0 @@
-**/*.js.map
-**/*.ts
-.git*
-.vscode
-local.settings.json
-azure-pipelines.yml
-tsconfig.json
-.eslintrc.js
