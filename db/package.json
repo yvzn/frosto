@@ -1,0 +1,13 @@
+{
+	"name": "frosto-dev-db",
+	"version": "1.0.0",
+	"private": "true",
+	"scripts": {
+		"dev": "azurite --location ./azurite"
+	},
+	"author": "Yvan Razafindramanana",
+	"license": "MIT",
+	"dependencies": {
+		"azurite": "^3.20.1"
+	}
+}
