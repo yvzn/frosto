@@ -4,13 +4,14 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using api.Data;
 
 namespace api;
 
-public static class Location
+public static class AddTestLocation
 {
 #if DEBUG
-	[FunctionName("Location")]
+	[FunctionName("AddTestLocation")]
 	public static IActionResult Run(
 		[HttpTrigger(AuthorizationLevel.Function, "post", Route = "location")]
 		HttpRequest request,

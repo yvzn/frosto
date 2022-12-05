@@ -1,15 +1,26 @@
+using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Net.Http;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
+using api.Data;
 using Azure.Data.Tables;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 
 namespace api;
 
-public class Main
+public static class Main
 {
+	private static readonly decimal threshold = 1.0m;
+
+	private static HttpClient httpClient = new();
+
 	[FunctionName("Main")]
-	public async Task RunAsync(
+	public static async Task RunAsync(
 		[TimerTrigger("0 30 6 * * *"
 #if DEBUG
 			, RunOnStartup=true
@@ -20,10 +31,155 @@ public class Main
 		TableClient tableClient,
 		ILogger log)
 	{
-		var allLocations = tableClient.QueryAsync<LocationEntity>(filter: e => e.PartitionKey != null);
+		var allLocations = tableClient.QueryAsync<LocationEntity>(filter: e => e.PartitionKey != null && e.uat.HasValue && e.uat.Value);
 		await foreach (var location in allLocations)
 		{
-			log.LogInformation(location.users);
+			var forecasts = await GetWeatherForecastsAsync(location.coordinates);
+			if (forecasts is null)
+			{
+				log.LogError("Failed to get weather forecast for {City} ({Coordinates})", location.city, location.coordinates);
+				continue;
+			}
+
+			var forecastsBelowThreshold = forecasts.Where(f => f.Minimum <= threshold).ToList();
+			if (forecastsBelowThreshold.Any())
+			{
+				var subject = FormatNotificationSubject(forecastsBelowThreshold);
+				var body = FormatNotificationBody(forecastsBelowThreshold, location);
+				var success = await SendNotificationAsync(subject, body, location.users);
+
+				if (!success)
+				{
+					log.LogError("Failed to send notification to {Users}", location.users);
+				}
+			}
+		}
+	}
+
+	private static async Task<IList<Forecast>?> GetWeatherForecastsAsync(string? coordinates)
+	{
+		if (coordinates is null) return null;
+
+		var weatherApiUrl = System.Environment.GetEnvironmentVariable("WEATHER_API_URL");
+		if (weatherApiUrl?.Length is null or 0) throw new Exception("WEATHER_API_URL variable not set");
+
+		try
+		{
+			var response = await httpClient.GetAsync(string.Format(weatherApiUrl, coordinates));
+			if (!response.IsSuccessStatusCode) return null;
+
+			var weatherApiResult = await JsonSerializer.DeserializeAsync<WeatherApiResult>(
+				await response.Content.ReadAsStreamAsync());
+
+			return weatherApiResult?.forecasts
+				.Where(forecast => forecast.date is not null
+						&& forecast.temperature?.minimum?.value.HasValue is true
+						&& forecast.temperature?.minimum?.value.HasValue is true)
+				.Select(forecast => new Forecast(
+					DateTime.Parse(forecast.date ?? ""),
+					forecast.temperature!.minimum!.value!.Value,
+					forecast.temperature!.maximum!.value!.Value))
+				.ToList();
+		}
+		catch (Exception)
+		{
+			return null;
+		}
+	}
+
+	private static readonly CultureInfo cultureInfo = CultureInfo.CreateSpecificCulture("fr-FR");
+
+	private static string FormatNotificationSubject(List<Forecast> forecasts)
+	{
+		var header = "Températures proches de zéro prévues ces prochains jours";
+		var forecastsBelow0 = forecasts.Where(f => f.Minimum < 0).ToList();
+		if (forecastsBelow0.Any())
+		{
+			var first = forecastsBelow0.OrderBy(f => f.Date).First();
+			header = string.Format(
+				cultureInfo,
+				"Températures négatives prévues {0:dddd d MMMM}: {1}°",
+				first.Date,
+				first.Minimum
+			);
+		}
+
+		return header;
+	}
+
+	private static readonly string tableHeaderTemplate ="<table><thead><tr><th>date<th>minimum<th>maximum</thead><tbody>";
+
+	private static readonly string tableRowTemplate = "<tr><td>{0:dddd d MMMM}<td>{1}° {2}<td>{3}°</tr>";
+
+	private static readonly string tableFooterTemplate = "</tbody></table>";
+
+	private static readonly string notificationTemplate =
+@"<p>Bonjour,
+
+<p>Les prévisions de température des prochains jours ({0}, {1}):
+
+{2}
+
+<p>Cordialement,
+<br>L'équipe Alertegelee.fr
+
+<p>Pour vous désinscrire, répondez ""STOP"" à ce message.";
+
+
+	private static string FormatNotificationBody(List<Forecast> forecasts, LocationEntity location)
+	{
+		var table = new StringBuilder();
+		table.Append(tableHeaderTemplate);
+		table.Append(Environment.NewLine);
+
+		foreach (var forecast in forecasts.OrderBy(f => f.Date))
+		{
+			table.Append(string.Format(
+				cultureInfo,
+				tableRowTemplate,
+				forecast.Date,
+				forecast.Minimum,
+				forecast.Minimum < 0 ? '❄': ' ',
+				forecast.Maximum
+			));
+			table.Append(Environment.NewLine);
+		}
+
+		table.Append(tableFooterTemplate);
+
+		return string.Format(
+				cultureInfo,
+				notificationTemplate,
+				location.city,
+				location.country,
+				table.ToString()
+			);
+	}
+
+	private static async Task<bool> SendNotificationAsync(string subject, string body, string? users)
+	{
+		if (users is null) return false;
+
+		var sendMailApiUrl = System.Environment.GetEnvironmentVariable("SEND_MAIL_API_URL");
+		if (sendMailApiUrl?.Length is null or 0) throw new Exception("SEND_MAIL_API_URL variable not set");
+
+		try
+		{
+			var request = new SendMailRequest
+			{
+				subject = subject,
+				body = body,
+				to = users.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+			};
+
+			var requestContent = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
+
+			var response = await httpClient.PostAsync(sendMailApiUrl, requestContent);
+			return response.IsSuccessStatusCode;
+		}
+		catch (Exception)
+		{
+			return false;
 		}
 	}
 }
