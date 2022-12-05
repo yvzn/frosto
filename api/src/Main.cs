@@ -31,34 +31,46 @@ public static class Main
 		TableClient tableClient,
 		ILogger log)
 	{
-		var allLocations = tableClient.QueryAsync<LocationEntity>(filter: e => e.PartitionKey != null && e.uat.HasValue && e.uat.Value);
-		await foreach (var location in allLocations)
+		var runningTasks = new List<Task>();
+		var validLocations = tableClient.QueryAsync<LocationEntity>(filter: e => e.PartitionKey != null && e.uat.HasValue && e.uat.Value);
+
+		await foreach (var location in validLocations)
 		{
-			var forecasts = await GetWeatherForecastsAsync(location.coordinates);
-			if (forecasts is null)
-			{
-				log.LogError("Failed to get weather forecast for {City} ({Coordinates})", location.city, location.coordinates);
-				continue;
-			}
+			var task = NotifyIfFrostAsync(location, log);
+			runningTasks.Add(task);
+		}
 
-			var forecastsBelowThreshold = forecasts.Where(f => f.Minimum <= threshold).ToList();
-			if (forecastsBelowThreshold.Any())
-			{
-				var subject = FormatNotificationSubject(forecastsBelowThreshold);
-				var body = FormatNotificationBody(forecastsBelowThreshold, location);
-				var success = await SendNotificationAsync(subject, body, location.users);
+		await Task.WhenAll(runningTasks);
+	}
 
-				if (!success)
-				{
-					log.LogError("Failed to send notification to {Users}", location.users);
-				}
+	private static async Task NotifyIfFrostAsync(LocationEntity location, ILogger log)
+	{
+		log.LogError("Processing {City} ({Coordinates})", location.city, location.coordinates);
+
+		var forecasts = await GetWeatherForecastsAsync(location.coordinates);
+		if (forecasts is null)
+		{
+			log.LogError("Failed to get weather forecast for {City} ({Coordinates})", location.city, location.coordinates);
+			return;
+		}
+
+		var forecastsBelowThreshold = forecasts.Where(f => f.Minimum <= threshold).ToList();
+		if (forecastsBelowThreshold.Any())
+		{
+			var subject = FormatNotificationSubject(forecastsBelowThreshold);
+			var body = FormatNotificationBody(forecastsBelowThreshold, location);
+			var success = await SendNotificationAsync(subject, body, location.users);
+
+			if (!success)
+			{
+				log.LogError("Failed to send notification to {Users}", location.users);
 			}
 		}
 	}
 
 	private static async Task<IList<Forecast>?> GetWeatherForecastsAsync(string? coordinates)
 	{
-		if (coordinates is null) return null;
+		if (coordinates is null) throw new ArgumentNullException(nameof(coordinates));
 
 		var weatherApiUrl = System.Environment.GetEnvironmentVariable("WEATHER_API_URL");
 		if (weatherApiUrl?.Length is null or 0) throw new Exception("WEATHER_API_URL variable not set");
@@ -107,7 +119,7 @@ public static class Main
 		return header;
 	}
 
-	private static readonly string tableHeaderTemplate ="<table><thead><tr><th>date<th>minimum<th>maximum</thead><tbody>";
+	private static readonly string tableHeaderTemplate = "<table><thead><tr><th>date<th>minimum<th>maximum</thead><tbody>";
 
 	private static readonly string tableRowTemplate = "<tr><td>{0:dddd d MMMM}<td>{1}° {2}<td>{3}°</tr>";
 
@@ -125,7 +137,6 @@ public static class Main
 
 <p>Pour vous désinscrire, répondez ""STOP"" à ce message.";
 
-
 	private static string FormatNotificationBody(List<Forecast> forecasts, LocationEntity location)
 	{
 		var table = new StringBuilder();
@@ -139,7 +150,7 @@ public static class Main
 				tableRowTemplate,
 				forecast.Date,
 				forecast.Minimum,
-				forecast.Minimum < 0 ? '❄': ' ',
+				forecast.Minimum < 0 ? '❄' : ' ',
 				forecast.Maximum
 			));
 			table.Append(Environment.NewLine);
@@ -158,7 +169,7 @@ public static class Main
 
 	private static async Task<bool> SendNotificationAsync(string subject, string body, string? users)
 	{
-		if (users is null) return false;
+		if (users is null) throw new ArgumentNullException(nameof(users));
 
 		var sendMailApiUrl = System.Environment.GetEnvironmentVariable("SEND_MAIL_API_URL");
 		if (sendMailApiUrl?.Length is null or 0) throw new Exception("SEND_MAIL_API_URL variable not set");

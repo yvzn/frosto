@@ -6,11 +6,9 @@ The *Frost Alert* application is aimed to provide notifications when a frost epi
 
 The application consists in the following components:
 - **site**: landing page with subscription form
-- An _Azure Logic App_ that receives the subscription form data and sends the notifications
+- **api**: An _Azure Function App_ that receives the subscription form data, fetches weather forecasts and sends notifications.
 
 [Demo website in french](https://www.alertegelee.fr/)
-
-The _Azure Logic App_ source code is not available yet, it takes some time to extract it.
 
 ## Licensing
 
