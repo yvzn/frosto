@@ -21,7 +21,7 @@ public static class Main
 
 	[FunctionName("Main")]
 	public static async Task RunAsync(
-		[TimerTrigger("0 30 6 * * *"
+		[TimerTrigger("0 30 13 * * *"
 #if DEBUG
 			, RunOnStartup=true
 #endif
@@ -45,31 +45,22 @@ public static class Main
 
 	private static async Task NotifyIfFrostAsync(LocationEntity location, ILogger log)
 	{
-		log.LogError("Processing {City} ({Coordinates})", location.city, location.coordinates);
+		var forecasts = await GetWeatherForecastsAsync(location.coordinates, log);
 
-		var forecasts = await GetWeatherForecastsAsync(location.coordinates);
-		if (forecasts is null)
+		var forecastsBelowThreshold = forecasts?.Where(f => f.Minimum <= threshold).ToList();
+		if (forecastsBelowThreshold?.Any() is true)
 		{
-			log.LogError("Failed to get weather forecast for {City} ({Coordinates})", location.city, location.coordinates);
-			return;
-		}
 
-		var forecastsBelowThreshold = forecasts.Where(f => f.Minimum <= threshold).ToList();
-		if (forecastsBelowThreshold.Any())
-		{
 			var subject = FormatNotificationSubject(forecastsBelowThreshold);
 			var body = FormatNotificationBody(forecastsBelowThreshold, location);
-			var success = await SendNotificationAsync(subject, body, location.users);
-
-			if (!success)
-			{
-				log.LogError("Failed to send notification to {Users}", location.users);
-			}
+			await SendNotificationAsync(subject, body, location.users, log);
 		}
 	}
 
-	private static async Task<IList<Forecast>?> GetWeatherForecastsAsync(string? coordinates)
+	private static async Task<IList<Forecast>?> GetWeatherForecastsAsync(string? coordinates, ILogger log)
 	{
+		log.LogInformation("Get weather forecast for {Coordinates}", coordinates);
+
 		if (coordinates is null) throw new ArgumentNullException(nameof(coordinates));
 
 		var weatherApiUrl = System.Environment.GetEnvironmentVariable("WEATHER_API_URL");
@@ -78,7 +69,12 @@ public static class Main
 		try
 		{
 			var response = await httpClient.GetAsync(string.Format(weatherApiUrl, coordinates));
-			if (!response.IsSuccessStatusCode) return null;
+
+			if (!response.IsSuccessStatusCode)
+			{
+				log.LogError("Failed to get weather forecast for {Coordinates}: {StatusCode} {StatusMessage}", coordinates, response.StatusCode, await response.Content.ReadAsStringAsync());
+				return null;
+			}
 
 			var weatherApiResult = await JsonSerializer.DeserializeAsync<WeatherApiResult>(
 				await response.Content.ReadAsStreamAsync());
@@ -93,8 +89,9 @@ public static class Main
 					forecast.temperature!.maximum!.value!.Value))
 				.ToList();
 		}
-		catch (Exception)
+		catch (Exception ex)
 		{
+			log.LogError(ex, "Failed to get weather forecast for {Coordinates}", coordinates);
 			return null;
 		}
 	}
@@ -167,8 +164,10 @@ public static class Main
 			);
 	}
 
-	private static async Task<bool> SendNotificationAsync(string subject, string body, string? users)
+	private static async Task<bool> SendNotificationAsync(string subject, string body, string? users, ILogger log)
 	{
+		log.LogInformation("Sending notifications to {Users}", users);
+
 		if (users is null) throw new ArgumentNullException(nameof(users));
 
 		var sendMailApiUrl = System.Environment.GetEnvironmentVariable("SEND_MAIL_API_URL");
@@ -186,10 +185,17 @@ public static class Main
 			var requestContent = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
 
 			var response = await httpClient.PostAsync(sendMailApiUrl, requestContent);
+
+			if (!response.IsSuccessStatusCode)
+			{
+				log.LogError("Failed to send notification to {Users}: {StatusCode} {StatusMessage}", users, response.StatusCode, await response.Content.ReadAsStringAsync());
+			}
+
 			return response.IsSuccessStatusCode;
 		}
-		catch (Exception)
+		catch (Exception ex)
 		{
+			log.LogError(ex, "Failed to send notification to {Users}", users);
 			return false;
 		}
 	}
