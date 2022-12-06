@@ -8,7 +8,10 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using api.Data;
 using Azure.Data.Tables;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 
 namespace api;
@@ -21,7 +24,7 @@ public static class Main
 
 	[FunctionName("Main")]
 	public static async Task RunAsync(
-		[TimerTrigger("0 30 13 * * *"
+		[TimerTrigger("0 30 6 * * *"
 #if DEBUG
 			, RunOnStartup=true
 #endif
@@ -41,6 +44,27 @@ public static class Main
 		}
 
 		await Task.WhenAll(runningTasks);
+	}
+
+	[FunctionName("Manual")]
+	public static async Task<IActionResult> ManualAsync(
+		[HttpTrigger(AuthorizationLevel.Function, "get", Route = "manual")]
+		HttpRequest request,
+		[Table("validlocation", Connection = "ALERTS_CONNECTION_STRING")]
+		TableClient tableClient,
+		ILogger log)
+	{
+		var runningTasks = new List<Task>();
+		var validLocations = tableClient.QueryAsync<LocationEntity>(filter: e => e.PartitionKey != null);
+
+		await foreach (var location in validLocations)
+		{
+			var task = NotifyIfFrostAsync(location, log);
+			runningTasks.Add(task);
+		}
+
+		await Task.WhenAll(runningTasks);
+		return new OkObjectResult("Healthy");
 	}
 
 	private static async Task NotifyIfFrostAsync(LocationEntity location, ILogger log)
