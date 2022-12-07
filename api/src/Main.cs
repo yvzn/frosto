@@ -8,10 +8,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using api.Data;
 using Azure.Data.Tables;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 
 namespace api;
@@ -34,8 +31,11 @@ public static class Main
 		TableClient tableClient,
 		ILogger log)
 	{
+#if DEBUG
+		await Task.Delay(5_000);
+#endif
 		var runningTasks = new List<Task>();
-		var validLocations = tableClient.QueryAsync<LocationEntity>(filter: e => e.PartitionKey != null && e.uat.HasValue && e.uat.Value);
+		var validLocations = tableClient.QueryAsync<LocationEntity>(filter: _ => true);
 
 		await foreach (var location in validLocations)
 		{
@@ -44,27 +44,6 @@ public static class Main
 		}
 
 		await Task.WhenAll(runningTasks);
-	}
-
-	[FunctionName("Manual")]
-	public static async Task<IActionResult> ManualAsync(
-		[HttpTrigger(AuthorizationLevel.Function, "get", Route = "manual")]
-		HttpRequest request,
-		[Table("validlocation", Connection = "ALERTS_CONNECTION_STRING")]
-		TableClient tableClient,
-		ILogger log)
-	{
-		var runningTasks = new List<Task>();
-		var validLocations = tableClient.QueryAsync<LocationEntity>(filter: e => e.PartitionKey != null);
-
-		await foreach (var location in validLocations)
-		{
-			var task = NotifyIfFrostAsync(location, log);
-			runningTasks.Add(task);
-		}
-
-		await Task.WhenAll(runningTasks);
-		return new OkObjectResult("Healthy");
 	}
 
 	private static async Task NotifyIfFrostAsync(LocationEntity location, ILogger log)
@@ -74,7 +53,6 @@ public static class Main
 		var forecastsBelowThreshold = forecasts?.Where(f => f.Minimum <= threshold).ToList();
 		if (forecastsBelowThreshold?.Any() is true)
 		{
-
 			var subject = FormatNotificationSubject(forecastsBelowThreshold);
 			var body = FormatNotificationBody(forecastsBelowThreshold, location);
 			await SendNotificationAsync(subject, body, location.users, log);
