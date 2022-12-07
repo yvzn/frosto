@@ -1,0 +1,25 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "Launch via NPM",
+			"request": "launch",
+			"runtimeArgs": [
+				"run",
+				"dev"
+			],
+			"runtimeExecutable": "npm",
+			"skipFiles": [
+				"<node_internals>/**"
+			],
+			"type": "node",
+			"cwd": "${workspaceFolder}/db"
+		},
+		{
+			"name": "Attach to .NET Functions",
+			"type": "coreclr",
+			"request": "attach",
+			"processId": "${command:azureFunctions.pickProcess}"
+		}
+	]
+}
