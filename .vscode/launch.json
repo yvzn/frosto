@@ -2,7 +2,21 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "Launch via NPM",
+			"name": "Launch website",
+			"request": "launch",
+			"runtimeArgs": [
+				"run",
+				"dev"
+			],
+			"runtimeExecutable": "npm",
+			"skipFiles": [
+				"<node_internals>/**"
+			],
+			"type": "node",
+			"cwd": "${workspaceFolder}/site"
+		},
+		{
+			"name": "Launch development DB",
 			"request": "launch",
 			"runtimeArgs": [
 				"run",
@@ -16,7 +30,7 @@
 			"cwd": "${workspaceFolder}/db"
 		},
 		{
-			"name": "Attach to .NET Functions",
+			"name": "Attach to API",
 			"type": "coreclr",
 			"request": "attach",
 			"processId": "${command:azureFunctions.pickProcess}"

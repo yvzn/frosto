@@ -10,7 +10,8 @@ const config = defineConfig(({ mode }) => {
 				input: {
 					main: resolve(__dirname, 'index.html'),
 					'sign-up': resolve(__dirname, 'sign-up.html'),
-					'sign-up-complete': resolve(__dirname, 'sign-up-complete.html')
+					'sign-up-complete': resolve(__dirname, 'sign-up-complete.html'),
+					'legal': resolve(__dirname, 'legal.html'),
 				}
 			}
 		},
