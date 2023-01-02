@@ -1,18 +1,24 @@
-# Frosto
+# Alertegelee.fr (frosto)
 
-The *Frost Alert* application is aimed to provide notifications when a frost episode is due in the following days.
+Le service alerte gel météo vous envoie gratuitement une notification si des températures négatives sont prévues dans les jours suivants.
+
+https://www.alertegelee.fr/
 
 ## Contact
 
-alertegelee (arobase) outlook.fr
+Ce service open source est maintenu par des bénévoles.
+
+Pour nous contacter, envoye un courrier électronique à l'adresse suivante: alertegelee (arobase) outlook.fr
 
 ## Structure
+
+The *Frost Alert* application is aimed to provide notifications when a frost episode is due in the following days.
 
 The application consists in the following components:
 - **site**: landing page with subscription form
 - **api**: An _Azure Function App_ that receives the subscription form data, fetches weather forecasts and sends notifications.
 
-[Demo website in french](https://www.alertegelee.fr/)
+[Frosto website (in french)](https://www.alertegelee.fr/)
 
 ## Licensing
 
