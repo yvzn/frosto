@@ -1,0 +1,58 @@
+variables:
+- group: "maintenance"
+
+trigger:
+  branches:
+    include:
+    - main
+  paths:
+    include:
+    - site-maintenance
+
+pool:
+  vmImage: ubuntu-latest
+
+jobs:
+- job: CI
+  steps:
+  - task: PowerShell@2
+    displayName: 'build .env.production file'
+    inputs:
+      targetType: 'inline'
+      # npm will not pick environment variables, use .env files instead
+      script: './build-env-production.ps1 -HomePageUrl $(homePageUrl)'
+      workingDirectory: 'site-maintenance'
+  - task: Npm@1
+    displayName: 'npm install'
+    inputs:
+      command: 'ci'
+      workingDir: 'site-maintenance'
+  - task: Npm@1
+    displayName: 'npm build'
+    inputs:
+      command: 'custom'
+      workingDir: 'site-maintenance'
+      customCommand: 'run build'
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: 'site-maintenance/dist'
+      publishLocation: 'pipeline'
+      artifact: 'site-maintenance'
+
+- deployment: CD
+  dependsOn: CI
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+  environment: 'Azure'
+  strategy:
+    runOnce:
+      deploy:
+        steps:
+        - task: AzureCLI@2
+          displayName: 'upload files to Azure'
+          inputs:
+            azureSubscription: '$(azureSubscription)'
+            scriptType: 'pscore'
+            scriptLocation: 'inlineScript'
+            inlineScript: |
+              az storage blob delete-batch --account-key $(storageAccountKey) --account-name $(storageAccountName) --source `$web --delete-snapshots include
+              az storage blob upload-batch --account-key $(storageAccountKey) --account-name $(storageAccountName) --destination `$web --source $(Pipeline.Workspace)/site-maintenance
