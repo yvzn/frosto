@@ -7,7 +7,10 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using api.Data;
+using Azure;
 using Azure.Data.Tables;
+using Azure.Storage.Queues;
+using Azure.Storage.Queues.Models;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 
@@ -15,9 +18,15 @@ namespace api;
 
 public static class Main
 {
+#if DEBUG
+	private static readonly decimal threshold = 5.0m;
+#else
 	private static readonly decimal threshold = 1.0m;
+#endif
 
 	private static HttpClient httpClient = new();
+
+	private static string weatherApiUrl = System.Environment.GetEnvironmentVariable("WEATHER_API_URL") ?? throw new Exception("WEATHER_API_URL variable not set");
 
 	[FunctionName("Main")]
 	public static async Task RunAsync(
@@ -29,24 +38,26 @@ public static class Main
 		TimerInfo timerInfo,
 		[Table("validlocation", Connection = "ALERTS_CONNECTION_STRING")]
 		TableClient tableClient,
+		[Queue("emailoutbox", Connection = "ALERTS_CONNECTION_STRING")]
+		QueueClient queueClient,
 		ILogger log)
 	{
 #if DEBUG
 		await Task.Delay(5_000);
 #endif
 		var runningTasks = new List<Task>();
-		var validLocations = tableClient.QueryAsync<LocationEntity>(filter: _ => true);
+		var validLocations = tableClient.QueryAsync<LocationEntity>(filter: location => location.uat == true);
 
 		await foreach (var location in validLocations)
 		{
-			var task = NotifyIfFrostAsync(location, log);
+			var task = NotifyIfFrostAsync(location, queueClient, log);
 			runningTasks.Add(task);
 		}
 
 		await Task.WhenAll(runningTasks);
 	}
 
-	private static async Task NotifyIfFrostAsync(LocationEntity location, ILogger log)
+	private static async Task NotifyIfFrostAsync(LocationEntity location, QueueClient queueClient, ILogger log)
 	{
 		var forecasts = await GetWeatherForecastsAsync(location.coordinates, log);
 
@@ -55,7 +66,7 @@ public static class Main
 		{
 			var subject = FormatNotificationSubject(forecastsBelowThreshold);
 			var body = FormatNotificationBody(forecastsBelowThreshold, location);
-			await SendNotificationAsync(subject, body, location.users, log);
+			await ScheduleNotificationAsync(subject, body, location.users, queueClient, log);
 		}
 	}
 
@@ -64,9 +75,6 @@ public static class Main
 		log.LogInformation("Get weather forecast for {Coordinates}", coordinates);
 
 		if (coordinates is null) throw new ArgumentNullException(nameof(coordinates));
-
-		var weatherApiUrl = System.Environment.GetEnvironmentVariable("WEATHER_API_URL");
-		if (weatherApiUrl?.Length is null or 0) throw new Exception("WEATHER_API_URL variable not set");
 
 		try
 		{
@@ -166,38 +174,37 @@ public static class Main
 			);
 	}
 
-	private static async Task<bool> SendNotificationAsync(string subject, string body, string? users, ILogger log)
+	private static async Task<bool> ScheduleNotificationAsync(string subject, string body, string? users, QueueClient queueClient, ILogger log)
 	{
-		log.LogInformation("Sending notifications to {Users}", users);
+		log.LogInformation("Scheduling notification to {Users}", users);
 
 		if (users is null) throw new ArgumentNullException(nameof(users));
 
-		var sendMailApiUrl = System.Environment.GetEnvironmentVariable("SEND_MAIL_API_URL");
-		if (sendMailApiUrl?.Length is null or 0) throw new Exception("SEND_MAIL_API_URL variable not set");
-
 		try
 		{
-			var request = new SendMailRequest
+			var sendMailRequest = new SendMailRequest
 			{
 				subject = subject,
 				body = body,
 				to = users.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
 			};
 
-			var requestContent = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
+			var json = JsonSerializer.Serialize(sendMailRequest);
+			var bytes = Encoding.UTF8.GetBytes(json);
+			var base64 = Convert.ToBase64String(bytes);
 
-			var response = await httpClient.PostAsync(sendMailApiUrl, requestContent);
+			Response<SendReceipt> response = await queueClient.SendMessageAsync(base64);
 
-			if (!response.IsSuccessStatusCode)
+			if (response.GetRawResponse().IsError)
 			{
-				log.LogError("Failed to send notification to {Users}: {StatusCode} {StatusMessage}", users, response.StatusCode, await response.Content.ReadAsStringAsync());
+				log.LogError("Failed to schedule notification to {Users}: {StatusCode} {StatusMessage}", users, response.GetRawResponse().Status, response.GetRawResponse().ReasonPhrase);
+				return false;
 			}
-
-			return response.IsSuccessStatusCode;
+			return true;
 		}
 		catch (Exception ex)
 		{
-			log.LogError(ex, "Failed to send notification to {Users}", users);
+			log.LogError(ex, "Failed to schedule notification to {Users}", users);
 			return false;
 		}
 	}
