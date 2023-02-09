@@ -1,0 +1,93 @@
+{
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "actions": {
+            "For_each": {
+                "actions": {
+                    "frosto-send-alerts": {
+                        "inputs": {
+                            "body": {
+                                "city": "@{item()['city']}, @{item()['country']}",
+                                "coordinates": "@item()['coordinates']",
+                                "users": "@item()['users']"
+                            },
+                            "host": {
+                                "triggerName": "manual",
+                                "workflow": {
+                                    "id": "/subscriptions/b3d4442c-33dd-4a10-ba57-1d2b9d00a4ce/resourceGroups/frosto/providers/Microsoft.Logic/workflows/frosto-send-alerts"
+                                }
+                            }
+                        },
+                        "runAfter": {},
+                        "type": "Workflow"
+                    }
+                },
+                "foreach": "@body('Get_entities')?['value']",
+                "runAfter": {
+                    "Get_entities": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "Foreach"
+            },
+            "Get_entities": {
+                "inputs": {
+                    "host": {
+                        "connection": {
+                            "name": "@parameters('$connections')['azuretables']['connectionId']"
+                        }
+                    },
+                    "method": "get",
+                    "path": "/Tables/@{encodeURIComponent('validlocation')}/entities",
+                    "queries": {
+                        "$select": "coordinates,users,city,country"
+                    }
+                },
+                "runAfter": {},
+                "type": "ApiConnection"
+            }
+        },
+        "contentVersion": "1.0.0.0",
+        "outputs": {},
+        "parameters": {
+            "$connections": {
+                "defaultValue": {},
+                "type": "Object"
+            }
+        },
+        "triggers": {
+            "Recurrence": {
+                "evaluatedRecurrence": {
+                    "frequency": "Day",
+                    "interval": 1,
+                    "schedule": {
+                        "hours": [
+                            "7"
+                        ]
+                    }
+                },
+                "recurrence": {
+                    "frequency": "Day",
+                    "interval": 1,
+                    "schedule": {
+                        "hours": [
+                            "7"
+                        ]
+                    }
+                },
+                "type": "Recurrence"
+            }
+        }
+    },
+    "parameters": {
+        "$connections": {
+            "value": {
+                "azuretables": {
+                    "connectionId": "/subscriptions/b3d4442c-33dd-4a10-ba57-1d2b9d00a4ce/resourceGroups/frosto/providers/Microsoft.Web/connections/azuretables",
+                    "connectionName": "azuretables",
+                    "id": "/subscriptions/b3d4442c-33dd-4a10-ba57-1d2b9d00a4ce/providers/Microsoft.Web/locations/westeurope/managedApis/azuretables"
+                }
+            }
+        }
+    }
+}

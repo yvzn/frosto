@@ -1,0 +1,231 @@
+{
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "actions": {
+            "For_each_day_of_forecast,_check_temperatures": {
+                "actions": {
+                    "If_minimum_temperature_below_threshold,_add_to_notifications": {
+                        "actions": {
+                            "Append_to_notifications_variable": {
+                                "inputs": {
+                                    "name": "forecasts",
+                                    "value": {
+                                        "date": "@formatDateTime(items('For_each_day_of_forecast,_check_temperatures')?['date'], 'dddd d MMMM')",
+                                        "maximum": "@items('For_each_day_of_forecast,_check_temperatures')?['temperature']?['maximum']?['value']",
+                                        "minimum": "@items('For_each_day_of_forecast,_check_temperatures')?['temperature']?['minimum']?['value']"
+                                    }
+                                },
+                                "runAfter": {},
+                                "type": "AppendToArrayVariable"
+                            }
+                        },
+                        "expression": {
+                            "and": [
+                                {
+                                    "lessOrEquals": [
+                                        "@items('For_each_day_of_forecast,_check_temperatures')?['temperature']?['minimum']?['value']",
+                                        1
+                                    ]
+                                }
+                            ]
+                        },
+                        "runAfter": {},
+                        "type": "If"
+                    }
+                },
+                "foreach": "@body('Parse_JSON')?['forecasts']",
+                "runAfter": {
+                    "Initialize_array_of_forecast_notifications": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "Foreach"
+            },
+            "GET_weather_forecast": {
+                "inputs": {
+                    "method": "GET",
+                    "queries": {
+                        "api-version": "1.0",
+                        "duration": "5",
+                        "query": "@triggerBody()?['coordinates']",
+                        "subscription-key": ""
+                    },
+                    "uri": "https://atlas.microsoft.com/weather/forecast/daily/json"
+                },
+                "runAfter": {},
+                "type": "Http"
+            },
+            "If_any_forecast_to_notify": {
+                "actions": {
+                    "Create_HTML_table": {
+                        "inputs": {
+                            "format": "HTML",
+                            "from": "@variables('forecasts')"
+                        },
+                        "runAfter": {},
+                        "type": "Table"
+                    },
+                    "Send_an_email_(V2)": {
+                        "inputs": {
+                            "body": {
+                                "Body": "<p>Bonjour,<br>\n<br>\nLes prévisions de température des prochains jours (@{triggerBody()?['city']}) :<br>\n<br>\n@{body('Create_HTML_table')}<br>\n<br>\nCordialement,<br>\nL'équipe Alertegelee.fr<br>\n<br>\nPour vous désinscrire, répondez \"STOP\" à ce message.</p>",
+                                "Subject": "Alertes température",
+                                "To": "@triggerBody()?['users']"
+                            },
+                            "host": {
+                                "connection": {
+                                    "name": "@parameters('$connections')['outlook_1']['connectionId']"
+                                }
+                            },
+                            "method": "post",
+                            "path": "/v2/Mail"
+                        },
+                        "runAfter": {
+                            "Create_HTML_table": [
+                                "Succeeded"
+                            ]
+                        },
+                        "type": "ApiConnection"
+                    }
+                },
+                "expression": {
+                    "and": [
+                        {
+                            "greater": [
+                                "@length(variables('forecasts'))",
+                                0
+                            ]
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "For_each_day_of_forecast,_check_temperatures": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "If"
+            },
+            "Initialize_array_of_forecast_notifications": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "forecasts",
+                            "type": "array"
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "Parse_JSON": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "InitializeVariable"
+            },
+            "Parse_JSON": {
+                "inputs": {
+                    "content": "@body('GET_weather_forecast')",
+                    "schema": {
+                        "properties": {
+                            "forecasts": {
+                                "items": {
+                                    "properties": {
+                                        "date": {
+                                            "type": "string"
+                                        },
+                                        "temperature": {
+                                            "properties": {
+                                                "maximum": {
+                                                    "properties": {
+                                                        "value": {
+                                                            "type": "number"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "minimum": {
+                                                    "properties": {
+                                                        "value": {
+                                                            "type": "number"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "required": [
+                                        "date",
+                                        "temperature"
+                                    ],
+                                    "type": "object"
+                                },
+                                "type": "array"
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "runAfter": {
+                    "GET_weather_forecast": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "ParseJson"
+            },
+            "Response": {
+                "inputs": {
+                    "statusCode": 200
+                },
+                "kind": "Http",
+                "runAfter": {
+                    "If_any_forecast_to_notify": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "Response"
+            }
+        },
+        "contentVersion": "1.0.0.0",
+        "outputs": {},
+        "parameters": {
+            "$connections": {
+                "defaultValue": {},
+                "type": "Object"
+            }
+        },
+        "triggers": {
+            "manual": {
+                "inputs": {
+                    "schema": {
+                        "properties": {
+                            "city": {
+                                "type": "string"
+                            },
+                            "coordinates": {
+                                "type": "string"
+                            },
+                            "users": {
+                                "type": "string"
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "kind": "Http",
+                "type": "Request"
+            }
+        }
+    },
+    "parameters": {
+        "$connections": {
+            "value": {
+                "outlook_1": {
+                    "connectionId": "/subscriptions/b3d4442c-33dd-4a10-ba57-1d2b9d00a4ce/resourceGroups/frosto/providers/Microsoft.Web/connections/outlook-1",
+                    "connectionName": "outlook-1",
+                    "id": "/subscriptions/b3d4442c-33dd-4a10-ba57-1d2b9d00a4ce/providers/Microsoft.Web/locations/westeurope/managedApis/outlook"
+                }
+            }
+        }
+    }
+}
