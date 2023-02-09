@@ -1,0 +1,159 @@
+{
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "actions": {
+            "Condition": {
+                "actions": {
+                    "Insert_Entity_Location": {
+                        "inputs": {
+                            "body": {
+                                "PartitionKey": "@triggerFormDataValue('country')",
+                                "RowKey": "@variables('locationId')",
+                                "city": "@triggerFormDataValue('city')",
+                                "country": "@triggerFormDataValue('country')",
+                                "users": "@triggerFormDataValue('email')"
+                            },
+                            "host": {
+                                "connection": {
+                                    "name": "@parameters('$connections')['azuretables']['connectionId']"
+                                }
+                            },
+                            "method": "post",
+                            "path": "/Tables/@{encodeURIComponent('location')}/entities"
+                        },
+                        "runAfter": {},
+                        "type": "ApiConnection"
+                    },
+                    "Insert_Entity_User": {
+                        "inputs": {
+                            "body": {
+                                "PartitionKey": "@variables('locationId')",
+                                "RowKey": "@guid()",
+                                "email": "@triggerFormDataValue('email')",
+                                "userConsent": "@triggerFormDataValue('userConsent')"
+                            },
+                            "host": {
+                                "connection": {
+                                    "name": "@parameters('$connections')['azuretables']['connectionId']"
+                                }
+                            },
+                            "method": "post",
+                            "path": "/Tables/@{encodeURIComponent('user')}/entities"
+                        },
+                        "runAfter": {
+                            "Insert_Entity_Location": [
+                                "Succeeded"
+                            ]
+                        },
+                        "type": "ApiConnection"
+                    },
+                    "Response": {
+                        "inputs": {
+                            "body": "<!DOCTYPE html>\n<html lang=\"fr\">\n<head>\n  <meta http-equiv=\"refresh\" content=\"0; URL=@{parameters('siteUrl')}sign-up-complete.html\" />\n  <title>Alerte gel&eacute;es : Inscription prise en compte</title>\n</head>\n<body>\nVotre inscription est prise en compte. Vous allez &ecirc;tre ridirig&eacute; automatiquement.\n</body>\n</html>",
+                            "headers": {
+                                "Content-Type": "text/html"
+                            },
+                            "statusCode": 201
+                        },
+                        "kind": "Http",
+                        "runAfter": {
+                            "Insert_Entity_User": [
+                                "Succeeded"
+                            ]
+                        },
+                        "type": "Response"
+                    }
+                },
+                "else": {
+                    "actions": {
+                        "Response_Bad_Request": {
+                            "inputs": {
+                                "statusCode": 400
+                            },
+                            "kind": "Http",
+                            "runAfter": {},
+                            "type": "Response"
+                        }
+                    }
+                },
+                "expression": {
+                    "and": [
+                        {
+                            "equals": [
+                                "@triggerFormDataValue('userConsent')",
+                                "true"
+                            ]
+                        },
+                        {
+                            "contains": [
+                                "@triggerFormDataValue('email')",
+                                "@"
+                            ]
+                        },
+                        {
+                            "greater": [
+                                "@length(triggerFormDataValue('country'))",
+                                0
+                            ]
+                        },
+                        {
+                            "greater": [
+                                "@length(triggerFormDataValue('city'))",
+                                0
+                            ]
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "Initialize_variable_locationId": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "If"
+            },
+            "Initialize_variable_locationId": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "locationId",
+                            "type": "string",
+                            "value": "@{guid()}"
+                        }
+                    ]
+                },
+                "runAfter": {},
+                "type": "InitializeVariable"
+            }
+        },
+        "contentVersion": "1.0.0.0",
+        "outputs": {},
+        "parameters": {
+            "$connections": {
+                "defaultValue": {},
+                "type": "Object"
+            },
+            "siteUrl": {
+                "defaultValue": "https://www.alertegelee.fr/",
+                "type": "String"
+            }
+        },
+        "triggers": {
+            "manual": {
+                "inputs": {},
+                "kind": "Http",
+                "type": "Request"
+            }
+        }
+    },
+    "parameters": {
+        "$connections": {
+            "value": {
+                "azuretables": {
+                    "connectionId": "/subscriptions/b3d4442c-33dd-4a10-ba57-1d2b9d00a4ce/resourceGroups/frosto/providers/Microsoft.Web/connections/azuretables",
+                    "connectionName": "azuretables",
+                    "id": "/subscriptions/b3d4442c-33dd-4a10-ba57-1d2b9d00a4ce/providers/Microsoft.Web/locations/westeurope/managedApis/azuretables"
+                }
+            }
+        }
+    }
+}
