@@ -22,38 +22,36 @@ public static class SendMail
 		QueueMessage queueMessage,
 		ILogger log)
 	{
-		var sendMailRequest = Decode(queueMessage);
+		var notification = Decode(queueMessage);
 
-		if (sendMailRequest is not null && IsValid(sendMailRequest))
+		if (notification is not null && IsValid(notification))
 		{
-			await SendMailAsync(sendMailRequest, log);
+			await SendMailAsync(notification, log);
 		}
 	}
 
-	private static SendMailRequest? Decode(QueueMessage queueMessage)
+	private static Notification? Decode(QueueMessage queueMessage)
 	{
 		var base64 = queueMessage.Body.ToString();
 		var bytes = Convert.FromBase64String(base64);
 		var json = Encoding.UTF8.GetString(bytes);
 
-		return JsonSerializer.Deserialize<SendMailRequest>(json);
+		return JsonSerializer.Deserialize<Notification>(json);
 	}
 
-	private static bool IsValid(SendMailRequest sendMailRequest)
-		=> !string.IsNullOrWhiteSpace(sendMailRequest.body)
-			&& !string.IsNullOrWhiteSpace(sendMailRequest.subject)
-			&& sendMailRequest.to.Count > 0;
+	private static bool IsValid(Notification notification)
+		=> !string.IsNullOrWhiteSpace(notification.body)
+			&& !string.IsNullOrWhiteSpace(notification.subject)
+			&& notification.to.Count > 0;
 
-	private static async Task<bool> SendMailAsync(SendMailRequest sendMailRequest, ILogger log)
+	private static async Task<bool> SendMailAsync(Notification notification, ILogger log)
 	{
-		if (sendMailRequest is null) throw new ArgumentNullException(nameof(sendMailRequest));
-
-		var users = sendMailRequest.to;
-		log.LogInformation("Sending notification to {Users}", sendMailRequest);
+		var users = notification.to;
+		log.LogInformation("Sending notification to {Users}", users);
 
 		try
 		{
-			var requestContent = new StringContent(JsonSerializer.Serialize(sendMailRequest), Encoding.UTF8, "application/json");
+			var requestContent = new StringContent(JsonSerializer.Serialize(notification), Encoding.UTF8, "application/json");
 
 			var response = await httpClient.PostAsync(sendMailApiUrl, requestContent);
 

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace api.Data;
 
-internal class SendMailRequest
+internal class Notification
 {
 	public string? subject { get; set; }
 	public string? body { get; set; }

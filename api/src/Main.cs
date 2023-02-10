@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -42,23 +43,34 @@ public static class Main
 		QueueClient queueClient,
 		ILogger log)
 	{
+		var runningTasks = new List<Task>();
+		Expression<Func<LocationEntity, bool>> locationFilter = _ => true;
+
 #if DEBUG
 		await Task.Delay(5_000);
+		locationFilter = location => location.uat == true;
 #endif
-		var runningTasks = new List<Task>();
-		var validLocations = tableClient.QueryAsync<LocationEntity>(filter: location => location.uat == true);
+
+		var validLocations = tableClient.QueryAsync<LocationEntity>(locationFilter);
 
 		await foreach (var location in validLocations)
 		{
-			var task = NotifyIfFrostAsync(location, queueClient, log);
+			var task = NotifyAtLocationAsync(location, queueClient, log);
 			runningTasks.Add(task);
 		}
 
 		await Task.WhenAll(runningTasks);
 	}
 
-	private static async Task NotifyIfFrostAsync(LocationEntity location, QueueClient queueClient, ILogger log)
+	private static async Task NotifyAtLocationAsync(LocationEntity location, QueueClient queueClient, ILogger log)
 	{
+		var users = location.users?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+		if (users is null || users.Length == 0)
+		{
+			log.LogWarning("Skipping location {City} {Country} because no user configured", location.city, location.country);
+			return;
+		}
+
 		var forecasts = await GetWeatherForecastsAsync(location.coordinates, log);
 
 		var forecastsBelowThreshold = forecasts?.Where(f => f.Minimum <= threshold).ToList();
@@ -66,7 +78,14 @@ public static class Main
 		{
 			var subject = FormatNotificationSubject(forecastsBelowThreshold);
 			var body = FormatNotificationBody(forecastsBelowThreshold, location);
-			await ScheduleNotificationAsync(subject, body, location.users, queueClient, log);
+			var notification = new Notification
+			{
+				subject = subject,
+				body = body,
+				to = users
+			};
+
+			await ScheduleNotificationAsync(notification, queueClient, log);
 		}
 	}
 
@@ -133,7 +152,7 @@ public static class Main
 	private static readonly string tableFooterTemplate = "</tbody></table>";
 
 	private static readonly string notificationTemplate =
-@"<p>Bonjour,
+	@"<p>Bonjour,
 
 <p>Les prévisions de température des prochains jours ({0}, {1}):
 
@@ -174,22 +193,15 @@ public static class Main
 			);
 	}
 
-	private static async Task<bool> ScheduleNotificationAsync(string subject, string body, string? users, QueueClient queueClient, ILogger log)
+	private static async Task<bool> ScheduleNotificationAsync(Notification notification, QueueClient queueClient, ILogger log)
 	{
-		log.LogInformation("Scheduling notification to {Users}", users);
+		var users = notification.to;
 
-		if (users is null) throw new ArgumentNullException(nameof(users));
+		log.LogInformation("Scheduling notification to {Users}", users);
 
 		try
 		{
-			var sendMailRequest = new SendMailRequest
-			{
-				subject = subject,
-				body = body,
-				to = users.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-			};
-
-			var json = JsonSerializer.Serialize(sendMailRequest);
+			var json = JsonSerializer.Serialize(notification);
 			var bytes = Encoding.UTF8.GetBytes(json);
 			var base64 = Convert.ToBase64String(bytes);
 
