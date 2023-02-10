@@ -202,8 +202,7 @@ public static class Main
 		try
 		{
 			var json = JsonSerializer.Serialize(notification);
-			var bytes = Encoding.UTF8.GetBytes(json);
-			var base64 = Convert.ToBase64String(bytes);
+			var base64 = EncodeBase64(json);
 
 			Response<SendReceipt> response = await queueClient.SendMessageAsync(base64);
 
@@ -220,4 +219,7 @@ public static class Main
 			return false;
 		}
 	}
+
+	private static string EncodeBase64(string json)
+		=> Convert.ToBase64String(Encoding.UTF8.GetBytes(json));
 }
