@@ -19,7 +19,7 @@ public static class SendMail
 
 	private static string alertsConnectionString = Environment.GetEnvironmentVariable("ALERTS_CONNECTION_STRING") ?? throw new Exception("ALERTS_CONNECTION_STRING variable not set");
 
-	private static QueueClient queueClient = new QueueClient(alertsConnectionString, "emailoutbox");
+	private static QueueClient queueClient = new QueueClient(alertsConnectionString, "emailoutbox", new() { MessageEncoding = QueueMessageEncoding.Base64 });
 
 	[FunctionName("SendMail")]
 	public static async Task RunAsync(
@@ -31,6 +31,10 @@ public static class SendMail
 		TimerInfo timerInfo,
 		ILogger log)
 	{
+#if DEBUG
+		await Task.Delay(10_000);
+#endif
+
 		var queueMessage = await DequeueMessageAsync();
 		if (queueMessage is null)
 		{
@@ -53,7 +57,7 @@ public static class SendMail
 
 	private static async Task<QueueMessage?> DequeueMessageAsync()
 	{
-		if (queueClient.Exists())
+		if (await queueClient.ExistsAsync())
 		{
 			// will return null if no message
 			return await queueClient.ReceiveMessageAsync();
@@ -68,11 +72,7 @@ public static class SendMail
 
 	private static Notification? Decode(QueueMessage queueMessage)
 	{
-		// Azure SDK re-encodes MessageText in base64 so need to decode it twice
-		// https://github.com/Azure/azure-sdk-for-js/issues/6805
-		var base64 = DecodeBase64(queueMessage.MessageText);
-		var json = DecodeBase64(base64);
-
+		var json = DecodeBase64(queueMessage.MessageText);
 		return JsonSerializer.Deserialize<Notification>(json);
 	}
 
@@ -84,7 +84,7 @@ public static class SendMail
 			&& !string.IsNullOrWhiteSpace(notification.subject)
 			&& notification.to.Count > 0;
 
-	private static async Task<bool> SendMailAsync(Notification notification, ILogger log)
+	internal static async Task<bool> SendMailAsync(Notification notification, ILogger log)
 	{
 		var users = notification.to;
 		log.LogInformation("Sending notification to {Users}", users);
