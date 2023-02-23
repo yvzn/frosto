@@ -29,9 +29,11 @@ public static class Main
 
 	private static string weatherApiUrl = System.Environment.GetEnvironmentVariable("WEATHER_API_URL") ?? throw new Exception("WEATHER_API_URL variable not set");
 
+	private static string sendMailApiUrl = Environment.GetEnvironmentVariable("SEND_MAIL_API_URL") ?? throw new Exception("SEND_MAIL_API_URL variable not set");
+
 	[FunctionName("Main")]
 	public static async Task RunAsync(
-		[TimerTrigger("0 30 6 * * *"
+		[TimerTrigger("0 0 6 * * *"
 #if DEBUG
 			, RunOnStartup=true
 #endif
@@ -43,11 +45,14 @@ public static class Main
 		QueueClient queueClient,
 		ILogger log)
 	{
+#if DEBUG
+		await Task.Delay(5_000);
+#endif
+
 		var runningTasks = new List<Task>();
 		Expression<Func<LocationEntity, bool>> locationFilter = _ => true;
 
 #if DEBUG
-		await Task.Delay(5_000);
 		locationFilter = location => location.uat == true;
 #endif
 
@@ -73,6 +78,12 @@ public static class Main
 
 		var forecasts = await GetWeatherForecastsAsync(location.coordinates, log);
 
+		var notificationDelegate = SendNotificationAsync;
+		if (location.uat == true)
+		{
+			notificationDelegate = ScheduleNotificationAsync;
+		}
+
 		var forecastsBelowThreshold = forecasts?.Where(f => f.Minimum <= threshold).ToList();
 		if (forecastsBelowThreshold?.Any() is true)
 		{
@@ -85,7 +96,7 @@ public static class Main
 				to = users
 			};
 
-			await ScheduleNotificationAsync(notification, queueClient, log);
+			await notificationDelegate.Invoke(notification, queueClient, log);
 		}
 	}
 
@@ -191,6 +202,11 @@ public static class Main
 				location.country,
 				table.ToString()
 			);
+	}
+
+	private static async Task<bool> SendNotificationAsync(Notification notification, QueueClient _, ILogger log)
+	{
+		return await SendMail.SendMailAsync(notification, log);
 	}
 
 	private static async Task<bool> ScheduleNotificationAsync(Notification notification, QueueClient queueClient, ILogger log)
