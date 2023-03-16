@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -11,30 +12,19 @@ using Microsoft.Extensions.Logging;
 
 namespace api;
 
-public static class SendMail
+internal class MailQueueProcessor
 {
-	private static HttpClient httpClient = new();
+	private QueueClient queueClient;
+	private Func<Notification, Task<HttpResponseMessage>> sendMail;
 
-	private static string sendMailApiUrl = Environment.GetEnvironmentVariable("SEND_MAIL_API_URL") ?? throw new Exception("SEND_MAIL_API_URL variable not set");
-
-	private static string alertsConnectionString = Environment.GetEnvironmentVariable("ALERTS_CONNECTION_STRING") ?? throw new Exception("ALERTS_CONNECTION_STRING variable not set");
-
-	private static QueueClient queueClient = new QueueClient(alertsConnectionString, "emailoutbox", new() { MessageEncoding = QueueMessageEncoding.Base64 });
-
-	[FunctionName("SendMail")]
-	public static async Task RunAsync(
-		[TimerTrigger("0 */3 6-7 * * *"
-#if DEBUG
-			, RunOnStartup=true
-#endif
-		)]
-		TimerInfo timerInfo,
-		ILogger log)
+	public MailQueueProcessor(string queueName, Func<Notification, Task<HttpResponseMessage>> sendMail)
 	{
-#if DEBUG
-		await Task.Delay(10_000);
-#endif
+		this.queueClient = new QueueClient(AppSettings.AlertsConnectionString, queueName, new() { MessageEncoding = QueueMessageEncoding.Base64 });
+		this.sendMail = sendMail;
+	}
 
+	public async Task ProcessQueueMessageAsync(ILogger log)
+	{
 		var queueMessage = await DequeueMessageAsync();
 		if (queueMessage is null)
 		{
@@ -46,7 +36,7 @@ public static class SendMail
 		var notification = Decode(queueMessage);
 		if (notification is not null && IsValid(notification))
 		{
-			success = await SendMailAsync(notification, log);
+			success = await SendNotificationAsync(notification, log);
 		}
 
 		if (success)
@@ -55,7 +45,7 @@ public static class SendMail
 		}
 	}
 
-	private static async Task<QueueMessage?> DequeueMessageAsync()
+	private async Task<QueueMessage?> DequeueMessageAsync()
 	{
 		if (await queueClient.ExistsAsync())
 		{
@@ -65,7 +55,7 @@ public static class SendMail
 		return default;
 	}
 
-	private static async Task OnMessageProcessedAsync(QueueMessage queueMessage)
+	private async Task OnMessageProcessedAsync(QueueMessage queueMessage)
 	{
 		await queueClient.DeleteMessageAsync(queueMessage.MessageId, queueMessage.PopReceipt);
 	}
@@ -82,18 +72,16 @@ public static class SendMail
 	private static bool IsValid(Notification notification)
 		=> !string.IsNullOrWhiteSpace(notification.body)
 			&& !string.IsNullOrWhiteSpace(notification.subject)
-			&& notification.to.Count > 0;
+			&& notification.to.Where(user => !string.IsNullOrWhiteSpace(user)).Count() > 0;
 
-	internal static async Task<bool> SendMailAsync(Notification notification, ILogger log)
+	private async Task<bool> SendNotificationAsync(Notification notification, ILogger log)
 	{
 		var users = notification.to;
-		log.LogInformation("Sending notification to {Users}", users);
+		log.LogInformation("Sending notification to {Users}", string.Join(" ", users));
 
 		try
 		{
-			var requestContent = new StringContent(JsonSerializer.Serialize(notification), Encoding.UTF8, "application/json");
-
-			var response = await httpClient.PostAsync(sendMailApiUrl, requestContent);
+			var response = await sendMail.Invoke(notification);
 
 			if (!response.IsSuccessStatusCode)
 			{
@@ -104,8 +92,96 @@ public static class SendMail
 		}
 		catch (Exception ex)
 		{
-			log.LogError(ex, "Failed to send notification to {Users}", users);
+			log.LogError(ex, "Failed to send notification to {Users}", string.Join(" ", users));
 			return false;
 		}
+	}
+}
+
+public static class SendMailDefault
+{
+	private static HttpClient httpClient = new();
+
+	private static MailQueueProcessor processor = new MailQueueProcessor("email-default", SendMailDefault.SendMail);
+
+	[FunctionName("SendMailDefault")]
+	public static async Task RunAsync(
+		[TimerTrigger("0 */2 6-7 * * *"
+#if DEBUG
+			, RunOnStartup=true
+#endif
+		)]
+		TimerInfo timerInfo,
+		ILogger log)
+	{
+#if DEBUG
+		await Task.Delay(10_000);
+#endif
+
+		await processor.ProcessQueueMessageAsync(log);
+	}
+
+	private static Task<HttpResponseMessage> SendMail(Notification notification)
+	{
+		var users = notification.to;
+
+		var message = new
+		{
+			subject = notification.subject,
+			body = notification.body,
+			to = notification.to,
+		};
+
+		var requestContent = new StringContent(JsonSerializer.Serialize(message), Encoding.UTF8, "application/json");
+
+		return httpClient.PostAsync(AppSettings.SendMailApiUrl, requestContent);
+	}
+}
+
+public static class SendTipiMail
+{
+	private static HttpClient httpClient = new();
+
+	private static MailQueueProcessor processor = new MailQueueProcessor("email-tipimail", SendTipiMail.SendMail);
+
+	[FunctionName("SendTipiMail")]
+	public static async Task RunAsync(
+		[TimerTrigger("0 */15 6 * * *"
+#if DEBUG
+			, RunOnStartup=true
+#endif
+		)]
+		TimerInfo timerInfo,
+		ILogger log)
+	{
+#if DEBUG
+		await Task.Delay(10_000);
+#endif
+
+		await processor.ProcessQueueMessageAsync(log);
+	}
+
+	private static Task<HttpResponseMessage> SendMail(Notification notification)
+	{
+		var message = new
+		{
+			to = notification.to.Select(user => new { address = user }).ToArray(),
+			msg = new
+			{
+				from = new
+				{
+					address = "yvan@alertegelee.fr"
+				},
+				subject = notification.subject,
+				html = notification.body,
+			},
+			apiKey = AppSettings.TipiMailApiKey
+		};
+
+		var requestContent = new StringContent(JsonSerializer.Serialize(message), Encoding.UTF8, "application/json");
+		requestContent.Headers.Add("X-Tipimail-ApiUser", AppSettings.TipiMailApiUser);
+		requestContent.Headers.Add("X-Tipimail-ApiKey", AppSettings.TipiMailApiKey);
+
+		return httpClient.PostAsync(AppSettings.TipiMailApiUrl, requestContent);
 	}
 }

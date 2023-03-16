@@ -20,16 +20,14 @@ namespace api;
 public static class Main
 {
 #if DEBUG
-	private static readonly decimal threshold = 5.0m;
+	private static readonly decimal threshold = 10.0m;
 #else
 	private static readonly decimal threshold = 1.0m;
 #endif
 
 	private static HttpClient httpClient = new();
 
-	private static string weatherApiUrl = System.Environment.GetEnvironmentVariable("WEATHER_API_URL") ?? throw new Exception("WEATHER_API_URL variable not set");
-
-	private static string sendMailApiUrl = Environment.GetEnvironmentVariable("SEND_MAIL_API_URL") ?? throw new Exception("SEND_MAIL_API_URL variable not set");
+	private static IDictionary<string, QueueClient> queueClientByChannel = BuildQueueClients();
 
 	[FunctionName("Main")]
 	public static async Task RunAsync(
@@ -41,8 +39,6 @@ public static class Main
 		TimerInfo timerInfo,
 		[Table("validlocation", Connection = "ALERTS_CONNECTION_STRING")]
 		TableClient tableClient,
-		[Queue("emailoutbox", Connection = "ALERTS_CONNECTION_STRING")]
-		QueueClient queueClient,
 		ILogger log)
 	{
 #if DEBUG
@@ -60,14 +56,14 @@ public static class Main
 
 		await foreach (var location in validLocations)
 		{
-			var task = NotifyAtLocationAsync(location, queueClient, log);
+			var task = NotifyAtLocationAsync(location, log);
 			runningTasks.Add(task);
 		}
 
 		await Task.WhenAll(runningTasks);
 	}
 
-	private static async Task NotifyAtLocationAsync(LocationEntity location, QueueClient queueClient, ILogger log)
+	private static async Task NotifyAtLocationAsync(LocationEntity location, ILogger log)
 	{
 		var users = location.users?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 		if (users is null || users.Length == 0)
@@ -77,12 +73,6 @@ public static class Main
 		}
 
 		var forecasts = await GetWeatherForecastsAsync(location.coordinates, log);
-
-		var notificationDelegate = SendNotificationAsync;
-		if (location.uat == true)
-		{
-			notificationDelegate = ScheduleNotificationAsync;
-		}
 
 		var forecastsBelowThreshold = forecasts?.Where(f => f.Minimum <= threshold).ToList();
 		if (forecastsBelowThreshold?.Any() is true)
@@ -96,7 +86,13 @@ public static class Main
 				to = users
 			};
 
-			await notificationDelegate.Invoke(notification, queueClient, log);
+			string channel = "default";
+			if (queueClientByChannel.ContainsKey(location.channel ?? "") && !string.IsNullOrWhiteSpace(location.channel))
+			{
+				channel = location.channel;
+			}
+
+			await ScheduleNotificationAsync(notification, channel, log);
 		}
 	}
 
@@ -108,7 +104,7 @@ public static class Main
 
 		try
 		{
-			var response = await httpClient.GetAsync(string.Format(weatherApiUrl, coordinates));
+			var response = await httpClient.GetAsync(string.Format(AppSettings.WeatherApiUrl, coordinates));
 
 			if (!response.IsSuccessStatusCode)
 			{
@@ -204,34 +200,38 @@ public static class Main
 			);
 	}
 
-	private static async Task<bool> SendNotificationAsync(Notification notification, QueueClient _, ILogger log)
+	private static IDictionary<string, QueueClient> BuildQueueClients()
 	{
-		return await SendMail.SendMailAsync(notification, log);
+		return new[] { "default", "tipimail" }
+			.ToDictionary(
+				channel => channel,
+				channel => new QueueClient(AppSettings.AlertsConnectionString, $"email-{channel}", new() { MessageEncoding = QueueMessageEncoding.Base64 }));
 	}
 
-	private static async Task<bool> ScheduleNotificationAsync(Notification notification, QueueClient queueClient, ILogger log)
+	private static async Task<bool> ScheduleNotificationAsync(Notification notification, string channel, ILogger log)
 	{
 		var users = notification.to;
 
-		log.LogInformation("Scheduling notification to {Users}", users);
+		log.LogInformation("Scheduling notification to {Users} on {ChannelName} channel", string.Join(" ", users), channel);
 
 		try
 		{
 			var json = JsonSerializer.Serialize(notification);
 			var base64 = EncodeBase64(json);
 
+			var queueClient = queueClientByChannel[channel];
 			Response<SendReceipt> response = await queueClient.SendMessageAsync(base64);
 
 			if (response.GetRawResponse().IsError)
 			{
-				log.LogError("Failed to schedule notification to {Users}: {StatusCode} {StatusMessage}", users, response.GetRawResponse().Status, response.GetRawResponse().ReasonPhrase);
+				log.LogError("Failed to schedule notification to {Users}: {StatusCode} {StatusMessage}", string.Join(" ", users), response.GetRawResponse().Status, response.GetRawResponse().ReasonPhrase);
 				return false;
 			}
 			return true;
 		}
 		catch (Exception ex)
 		{
-			log.LogError(ex, "Failed to schedule notification to {Users}", users);
+			log.LogError(ex, "Failed to schedule notification to {Users}", string.Join(" ", users));
 			return false;
 		}
 	}
