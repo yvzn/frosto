@@ -170,7 +170,8 @@ public static class SendTipiMail
 			{
 				from = new
 				{
-					address = "yvan@alertegelee.fr"
+					address = "yvan@alertegelee.fr",
+					personalName = "Yvan de Alertegelee.fr"
 				},
 				subject = notification.subject,
 				html = notification.body,
