@@ -146,7 +146,7 @@ public static class SendTipiMail
 
 	[FunctionName("SendTipiMail")]
 	public static async Task RunAsync(
-		[TimerTrigger("0 */15 6 * * *"
+		[TimerTrigger("0 */11 6 * * *"
 #if DEBUG
 			, RunOnStartup=true
 #endif
