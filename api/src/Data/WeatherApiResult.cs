@@ -5,22 +5,12 @@ namespace api.Data;
 
 internal class WeatherApiResult
 {
-	public IList<WeatherApiForecast> forecasts { get; set; } = Array.Empty<WeatherApiForecast>();
+	public WeatherApiForecast daily { get; set; } = new();
 }
 
 internal class WeatherApiForecast
 {
-	public string? date { get; set; }
-	public WeatherApiRange? temperature { get; set; }
-}
-
-internal class WeatherApiRange
-{
-	public WeatherApiUnit? minimum { get; set; }
-	public WeatherApiUnit? maximum { get; set; }
-}
-
-internal class WeatherApiUnit
-{
-	public decimal? value { get; set; }
+	public IList<DateTime> time { get; set; } = Array.Empty<DateTime>();
+	public IList<decimal> temperature_2m_max { get; set; } = Array.Empty<decimal>();
+	public IList<decimal> temperature_2m_min { get; set; } = Array.Empty<decimal>();
 }

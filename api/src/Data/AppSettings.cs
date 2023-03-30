@@ -1,8 +1,10 @@
 using System;
 
+namespace api.Data;
+
 internal class AppSettings
 {
-	private static string weatherApiUrl = System.Environment.GetEnvironmentVariable("WEATHER_API_URL") ?? throw new Exception("WEATHER_API_URL variable not set");
+	private static string weatherApiUrl = System.Environment.GetEnvironmentVariable("OPEN_METEO_API_URL") ?? throw new Exception("OPEN_METEO_API_URL variable not set");
 	public static string WeatherApiUrl => weatherApiUrl;
 
 	private static string sendMailApiUrl = Environment.GetEnvironmentVariable("SEND_MAIL_API_URL") ?? throw new Exception("SEND_MAIL_API_URL variable not set");

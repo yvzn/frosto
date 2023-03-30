@@ -102,9 +102,12 @@ public static class Main
 
 		if (coordinates is null) throw new ArgumentNullException(nameof(coordinates));
 
+		var (latitude, longitude) = ParseCoordinates(coordinates);
+		if (!latitude.HasValue || !longitude.HasValue) throw new ArgumentOutOfRangeException(nameof(coordinates));
+
 		try
 		{
-			var response = await httpClient.GetAsync(string.Format(AppSettings.WeatherApiUrl, coordinates));
+			var response = await httpClient.GetAsync(string.Format(AppSettings.WeatherApiUrl, latitude.Value, longitude.Value));
 
 			if (!response.IsSuccessStatusCode)
 			{
@@ -115,14 +118,14 @@ public static class Main
 			var weatherApiResult = await JsonSerializer.DeserializeAsync<WeatherApiResult>(
 				await response.Content.ReadAsStreamAsync());
 
-			return weatherApiResult?.forecasts
-				.Where(forecast => forecast.date is not null
-						&& forecast.temperature?.minimum?.value.HasValue is true
-						&& forecast.temperature?.minimum?.value.HasValue is true)
-				.Select(forecast => new Forecast(
-					DateTime.Parse(forecast.date ?? ""),
-					forecast.temperature!.minimum!.value!.Value,
-					forecast.temperature!.maximum!.value!.Value))
+			return weatherApiResult?.daily.time
+				.Zip(
+					weatherApiResult?.daily.temperature_2m_min ?? Array.Empty<decimal>(),
+					weatherApiResult?.daily.temperature_2m_max ?? Array.Empty<decimal>())
+				.Select(tuple => new Forecast(
+					DateOnly.FromDateTime(tuple.First),
+					tuple.Second,
+					tuple.Third))
 				.ToList();
 		}
 		catch (Exception ex)
@@ -130,6 +133,25 @@ public static class Main
 			log.LogError(ex, "Failed to get weather forecast for {Coordinates}", coordinates);
 			return null;
 		}
+	}
+
+	private static (decimal? latitude, decimal? longitude) ParseCoordinates(string coordinates)
+	{
+		decimal? latitude = default;
+		decimal? longitude = default;
+
+		var split = coordinates.Split(",", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+
+		if (split.Length > 0 && decimal.TryParse(split[0], out var parsedAt0))
+		{
+			latitude = parsedAt0;
+		}
+		if (split.Length > 1 && decimal.TryParse(split[1], out var parsedAt1))
+		{
+			longitude = parsedAt1;
+		}
+
+		return (latitude, longitude);
 	}
 
 	private static readonly CultureInfo cultureInfo = CultureInfo.CreateSpecificCulture("fr-FR");
@@ -168,7 +190,10 @@ public static class Main
 <p>Cordialement,
 <br>L'équipe Alertegelee.fr
 
-<p>Pour vous désinscrire, répondez ""STOP"" à ce message.";
+<p>Pour vous désinscrire, répondez ""STOP"" à ce message.
+
+<p>Les données météo sont fournies par <em>Open-Meteo.com</em> &mdash;
+<a href=""https://open-meteo.com/"" target=""_blank"" rel=""noopener noreferrer"">Weather data by Open-Meteo.com</a>";
 
 	private static string FormatNotificationBody(List<Forecast> forecasts, LocationEntity location)
 	{

@@ -2,4 +2,4 @@ using System;
 
 namespace api.Data;
 
-internal record Forecast(DateTime Date, decimal Minimum, decimal Maximum);
+internal record Forecast(DateOnly Date, decimal Minimum, decimal Maximum);
