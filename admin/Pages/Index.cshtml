@@ -1,0 +1,34 @@
+﻿@page
+@model IndexModel
+@{
+	ViewData["Title"] = "Home page";
+}
+
+<div class="text-center">
+	<h1 class="display-4">Welcome</h1>
+</div>
+
+<table class="table">
+	<thead>
+		<tr>
+			<th>City</th>
+			<th>Country</th>
+			<th>Coordinates</th>
+		</tr>
+	</thead>
+	<tbody>
+@foreach (var item in Model.ValidLocations) {
+		<tr>
+			<td>
+				@Html.DisplayFor(modelItem => item.city)
+			</td>
+			<td>
+				@Html.DisplayFor(modelItem => item.country)
+			</td>
+			<td>
+				@Html.DisplayFor(modelItem => item.coordinates)
+			</td>
+		</tr>
+}
+	</tbody>
+</table>
