@@ -6,19 +6,19 @@ namespace admin.Pages;
 
 public class IndexModel : PageModel
 {
-	private readonly ILogger<IndexModel> _logger;
-	private ILocationService _locationService;
+	private LocationService _locationService;
 
-	public IndexModel(ILogger<IndexModel> logger, ILocationService locationService)
+	public IndexModel(LocationService locationService)
 	{
-		_logger = logger;
 		_locationService = locationService;
 	}
 
-	public IList<Location> ValidLocations { get; private set; } = Array.Empty<Location>();
+	public IEnumerable<Location> NewLocations { get; private set; } = Array.Empty<Location>();
+	public string? Message { get; private set; } = string.Empty;
 
 	public async Task OnGetAsync()
 	{
-		ValidLocations = await _locationService.GetValidLocations();
+		NewLocations = (await _locationService.GetNewLocationsAsync(HttpContext.RequestAborted)).OrderByDescending(l => l.Timestamp).ToList();
+		Message = Request.Query["m"];
 	}
 }

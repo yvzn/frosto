@@ -4,7 +4,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
-builder.Services.AddScoped<ILocationService, LocationService>();
+builder.Services.AddScoped<LocationService>();
 
 var app = builder.Build();
 

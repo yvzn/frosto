@@ -1,0 +1,82 @@
+@page "{id}"
+@model admin.ValidateModel
+@{
+	ViewData["Title"] = "Edit Location";
+}
+
+<div class="row">
+	<form method="get" class="col-lg-6 mb-5 mb-log-0">
+		<h2 class="text-muted mb-3">Location</h2>
+		<div class="form-group mb-3">
+			<label asp-for="Location.city" class="form-label"></label>
+			<div class="input-group">
+				<input asp-for="Location.city" class="form-control" disabled readonly />
+				<div class="input-group-append">
+					<a
+						class="btn btn-outline-secondary"
+						href="https://www.google.com/maps/place/@Model.Location.city.Trim(),+@Model.Location.country.Trim()/"
+						target="_blank" rel="noopener noreferrer">Maps</a>
+				</div>
+			</div>
+			<span asp-validation-for="Location.city" class="text-danger"></span>
+		</div>
+		<div class="form-group mb-3">
+			<label asp-for="Location.country" class="form-label"></label>
+			<input asp-for="Location.country" class="form-control" disabled readonly />
+			<span asp-validation-for="Location.country" class="text-danger"></span>
+		</div>
+		<div class="form-group mb-3">
+			<label asp-for="Location.coordinates" class="form-label"></label>
+			<input asp-for="Location.coordinates" class="form-control" disabled readonly />
+			<span asp-validation-for="Location.coordinates" class="text-danger"></span>
+		</div>
+		<div class="form-group mb-3">
+			<label asp-for="Location.users" class="form-label"></label>
+			<input asp-for="Location.users" class="form-control" disabled readonly />
+			<span asp-validation-for="Location.users" class="text-danger"></span>
+		</div>
+		<div class="form-group mb-3">
+			<label asp-for="Location.channel" class="form-label"></label>
+			<input asp-for="Location.channel" class="form-control" disabled readonly />
+		</div>
+
+		<button type="submit" class="btn btn-outline-secondary ">Reset</button>
+	</form>
+
+	<form method="post" class="col-lg-6">
+		<h2 class="text-muted mb-3">Valid location</h2>
+
+		<div class="form-group mb-3">
+			<label asp-for="ValidLocation.city" class="form-label"></label>
+			<input asp-for="ValidLocation.city" class="form-control" />
+			<span asp-validation-for="ValidLocation.city" class="text-danger"></span>
+		</div>
+		<div class="form-group mb-3">
+			<label asp-for="ValidLocation.country" class="form-label"></label>
+			<input asp-for="ValidLocation.country" class="form-control" />
+			<span asp-validation-for="ValidLocation.country" class="text-danger"></span>
+		</div>
+		<div class="form-group mb-3">
+			<label asp-for="ValidLocation.coordinates" class="form-label"></label>
+			<input asp-for="ValidLocation.coordinates" class="form-control" />
+			<span asp-validation-for="ValidLocation.coordinates" class="text-danger"></span>
+		</div>
+		<div class="form-group mb-3">
+			<label asp-for="ValidLocation.users" class="form-label"></label>
+			<input asp-for="ValidLocation.users" class="form-control" />
+			<span asp-validation-for="ValidLocation.users" class="text-danger"></span>
+		</div>
+		<div class="form-group mb-3">
+			<label asp-for="ValidLocation.channel" class="form-label"></label>
+			<input asp-for="ValidLocation.channel" class="form-control" />
+		</div>
+
+		<input asp-for="ValidLocation.Id" />
+		<span asp-validation-for="ValidLocation.Id" class="text-danger"></span>
+		<button type="submit" class="btn btn-primary">Submit</button>
+	</form>
+
+	<div hidden>
+	@Html.ValidationSummary()
+	</div>
+</div>

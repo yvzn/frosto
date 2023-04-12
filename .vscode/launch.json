@@ -5,7 +5,6 @@
 			"name": "Attach to admin",
 			"type": "coreclr",
 			"request": "attach",
-			"preLaunchTask": "watch (admin)"
 		},
 		{
 			"name": "Launch website",

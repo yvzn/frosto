@@ -8,27 +8,44 @@
 	<h1 class="display-4">Welcome</h1>
 </div>
 
+@if (!string.IsNullOrWhiteSpace(Model.Message))
+{
+	<div class="alert alert-success" role="alert">
+		@Model.Message
+	</div>
+}
+
 <table class="table">
+	<caption>@Model.NewLocations.Count() items</caption>
 	<thead>
 		<tr>
 			<th>City</th>
 			<th>Country</th>
 			<th>Coordinates</th>
+			<th>Last Modified</th>
+			<td></td>
 		</tr>
 	</thead>
 	<tbody>
-@foreach (var item in Model.ValidLocations) {
-		<tr>
-			<td>
-				@Html.DisplayFor(modelItem => item.city)
-			</td>
-			<td>
-				@Html.DisplayFor(modelItem => item.country)
-			</td>
-			<td>
-				@Html.DisplayFor(modelItem => item.coordinates)
-			</td>
-		</tr>
-}
+@foreach (var item in Model.NewLocations)
+		{
+			<tr>
+				<td>
+					@Html.DisplayFor(modelItem => item.city)
+				</td>
+				<td>
+					@Html.DisplayFor(modelItem => item.country)
+				</td>
+				<td>
+					@Html.DisplayFor(modelItem => item.coordinates)
+				</td>
+				<td>
+					@Html.DisplayFor(modelItem => item.Timestamp)
+				</td>
+				<td>
+					<a asp-page="./Validate" asp-route-id="@item.Id">Validate</a>
+				</td>
+			</tr>
+		}
 	</tbody>
 </table>
