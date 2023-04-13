@@ -21,7 +21,7 @@
 		<tr>
 			<th>City</th>
 			<th>Country</th>
-			<th>Coordinates</th>
+			<th>Users</th>
 			<th>Last Modified</th>
 			<td></td>
 		</tr>
@@ -29,7 +29,7 @@
 	<tbody>
 @foreach (var item in Model.NewLocations)
 		{
-			<tr>
+			<tr @(item.Timestamp > Model.LastUpdate ? @"class=table-info" : "" )>
 				<td>
 					@Html.DisplayFor(modelItem => item.city)
 				</td>
@@ -37,7 +37,7 @@
 					@Html.DisplayFor(modelItem => item.country)
 				</td>
 				<td>
-					@Html.DisplayFor(modelItem => item.coordinates)
+					@Html.DisplayFor(modelItem => item.users)
 				</td>
 				<td>
 					@Html.DisplayFor(modelItem => item.Timestamp)
@@ -49,3 +49,7 @@
 		}
 	</tbody>
 </table>
+
+<footer>
+	Last update: @Model.LastUpdate
+</footer>
