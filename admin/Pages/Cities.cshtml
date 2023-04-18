@@ -1,0 +1,33 @@
+@page
+@model admin.CitiesModel
+@{
+    ViewData["Title"] = "Cities";
+}
+
+<div class="text-center">
+	<h1 class="display-4">Locations</h1>
+</div>
+
+<table class="table">
+	<caption>@Model.ValidLocations.Count() items</caption>
+	<thead>
+		<tr>
+			<th>City</th>
+			<th>Country</th>
+		</tr>
+	</thead>
+	<tbody>
+	@foreach (var item in Model.ValidLocations)
+	{
+		<tr>
+			<td>
+				@Html.DisplayFor(modelItem => item.city)
+			</td>
+			<td>
+				@Html.DisplayFor(modelItem => item.country)
+			</td>
+
+		</tr>
+	}
+	</tbody>
+</table>

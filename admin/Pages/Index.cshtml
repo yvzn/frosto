@@ -5,7 +5,7 @@
 }
 
 <div class="text-center">
-	<h1 class="display-4">Welcome</h1>
+	<h1 class="display-4">Locations</h1>
 </div>
 
 @if (!string.IsNullOrWhiteSpace(Model.Message))
@@ -27,26 +27,26 @@
 		</tr>
 	</thead>
 	<tbody>
-@foreach (var item in Model.NewLocations)
-		{
-			<tr @(item.Timestamp > Model.LastUpdate ? @"class=table-info" : "" )>
-				<td>
-					@Html.DisplayFor(modelItem => item.city)
-				</td>
-				<td>
-					@Html.DisplayFor(modelItem => item.country)
-				</td>
-				<td>
-					@Html.DisplayFor(modelItem => item.users)
-				</td>
-				<td>
-					@Html.DisplayFor(modelItem => item.Timestamp)
-				</td>
-				<td>
-					<a asp-page="./Validate" asp-route-id="@item.Id">Validate</a>
-				</td>
-			</tr>
-		}
+	@foreach (var item in Model.NewLocations)
+	{
+		<tr @(item.Timestamp > Model.LastUpdate ? @"class=table-info" : "" )>
+			<td>
+				@Html.DisplayFor(modelItem => item.city)
+			</td>
+			<td>
+				@Html.DisplayFor(modelItem => item.country)
+			</td>
+			<td>
+				@Html.DisplayFor(modelItem => item.users)
+			</td>
+			<td>
+				@Html.DisplayFor(modelItem => item.Timestamp)
+			</td>
+			<td>
+				<a asp-page="./Validate" asp-route-id="@item.Id">Validate</a>
+			</td>
+		</tr>
+	}
 	</tbody>
 </table>
 

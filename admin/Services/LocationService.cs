@@ -106,5 +106,26 @@ public class LocationService
 
 		return true;
 	}
+
+	internal async Task<IList<Location>> GetValidLocationsAsync(CancellationToken cancellationToken)
+	{
+		var result = new List<Location>();
+		await foreach (var validLocationEntity in _validLocationTableClient.QueryAsync<LocationEntity>(_ => true, cancellationToken: cancellationToken))
+		{
+			result.Add(new()
+			{
+				city = validLocationEntity.city ?? "",
+				country = validLocationEntity.country ?? "",
+				coordinates = validLocationEntity.coordinates ?? "",
+				users = validLocationEntity.users ?? "",
+				channel = validLocationEntity.channel ?? "",
+				PartitionKey = validLocationEntity.PartitionKey ?? "",
+				RowKey = validLocationEntity.RowKey ?? "",
+				Timestamp = validLocationEntity.Timestamp,
+			});
+		}
+
+		return result;
+	}
 }
 
