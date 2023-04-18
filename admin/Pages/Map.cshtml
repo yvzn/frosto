@@ -1,0 +1,75 @@
+@page
+@model admin.Pages.MapModel
+@{
+	ViewData["Title"] = "Map";
+}
+
+@section Head
+{
+	<link rel="stylesheet" href="https://atlas.microsoft.com/sdk/javascript/mapcontrol/2/atlas.min.css" type="text/css">
+	<script src="https://atlas.microsoft.com/sdk/javascript/mapcontrol/2/atlas.min.js"></script>
+}
+
+<div class="text-center">
+	<h1 class="display-3">Map</h1>
+</div>
+
+<div class="row">
+	<div id="myMap" class="col-12" style="height: 75vh"></div>
+</div>
+
+<script>
+function InitMap()
+{
+	var map = new atlas.Map('myMap', {
+		center: [2.44, 47.54],
+		zoom: 4,
+		language: 'fr-FR',
+			authOptions: {
+				authType: 'subscriptionKey',
+				subscriptionKey: '@Model.AzureMapsSubscriptionKey'
+			}
+	})
+
+	var source = new atlas.source.DataSource()
+	var layer = new atlas.layer.BubbleLayer(source, null, {})
+
+	map.events.add('ready', () => {
+		map.sources.add(source)
+
+		source.importDataFromUrl('/api/location/valid').then(() => {
+			var points = source.toJson()
+		})
+
+		map.layers.add(layer)
+	})
+
+	var popup = new atlas.Popup({
+		pixelOffset: [0, -18],
+		closeButton: false,
+		fillColor: 'rgba(0,0,0,0.8)',
+	})
+
+	map.events.add('mouseover', layer, function (e) {
+		if (e.shapes && e.shapes.length > 0) {
+			var content, coordinate
+			var properties = e.shapes[0].getProperties()
+			content = `<div style="padding:10px;color:white">${properties.city}</div>`
+			coordinate = e.shapes[0].getCoordinates()
+
+			popup.setOptions({
+				content: content,
+				position: coordinate
+			})
+
+			popup.open(map)
+		}
+	})
+
+	map.events.add('mouseleave', layer, function (){
+		popup.close()
+	})
+}
+
+addEventListener('load', InitMap)
+</script>

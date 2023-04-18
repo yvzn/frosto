@@ -127,5 +127,37 @@ public class LocationService
 
 		return result;
 	}
+
+	internal async Task<object> GetValidLocationsGeoJSONAsync(CancellationToken cancellationToken)
+	{
+		var features = new List<object>();
+		await foreach (var validLocationEntity in _validLocationTableClient.QueryAsync<LocationEntity>(_ => true, cancellationToken: cancellationToken))
+		{
+			var city = validLocationEntity.city;
+			var coordinates = validLocationEntity.coordinates?.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+			if (coordinates is [var latitude, var longitude, ..])
+			{
+				features.Add(new
+				{
+					type = "Feature",
+					geometry = new
+					{
+						type = "Point",
+						coordinates = new[] { longitude, latitude },
+					},
+					properties = new
+					{
+						city = city,
+					}
+				});
+			}
+		}
+
+		return new
+		{
+			type = "FeatureCollection",
+			features = features
+		};
+	}
 }
 
