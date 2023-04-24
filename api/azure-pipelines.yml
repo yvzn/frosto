@@ -41,10 +41,35 @@ jobs:
     runOnce:
       deploy:
         steps:
+        - task: ExtractFiles@1
+          inputs:
+            archiveFilePatterns: '$(Pipeline.Workspace)/api/*.zip'
+            destinationFolder: '$(Pipeline.Workspace)/wip'
+            cleanDestinationFolder: true
+            overwriteExistingFiles: true
+        - task: DownloadSecureFile@1
+          name: dkimCertificate
+          displayName: 'Download DKIM certificate'
+          inputs:
+            secureFile: 'dkim_private.pem'
+        - task: Bash@3
+          inputs:
+            targetType: 'inline'
+            script: |
+              echo Installing $(dkimCertificate.secureFilePath) to build directory
+              rm $(Pipeline.Workspace)/wip/dkim_private.pem
+              cp $(dkimCertificate.secureFilePath) $(Pipeline.Workspace)/wip/dkim_private.pem
+        - task: ArchiveFiles@2
+          inputs:
+            rootFolderOrFile: '$(Pipeline.Workspace)/wip'
+            includeRootFolder: false
+            archiveType: 'zip'
+            archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+            replaceExistingArchive: true
         - task: AzureFunctionApp@1
           inputs:
             azureSubscription: '$(azureSubscription)'
             appType: 'functionApp'
             appName: '$(functionAppName)'
-            package: '$(Pipeline.Workspace)/api/*.zip'
+            package: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
             runtimeStack: 'DOTNET|6.0'
