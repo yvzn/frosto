@@ -5,7 +5,6 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using api.Data;
-using Azure.Storage.Queues;
 using Azure.Storage.Queues.Models;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
@@ -14,50 +13,20 @@ namespace api;
 
 internal class MailQueueProcessor
 {
-	private QueueClient queueClient;
 	private Func<Notification, Task<HttpResponseMessage>> sendMail;
 
-	public MailQueueProcessor(string queueName, Func<Notification, Task<HttpResponseMessage>> sendMail)
+	public MailQueueProcessor(Func<Notification, Task<HttpResponseMessage>> sendMail)
 	{
-		this.queueClient = new QueueClient(AppSettings.AlertsConnectionString, queueName, new() { MessageEncoding = QueueMessageEncoding.Base64 });
 		this.sendMail = sendMail;
 	}
 
-	public async Task ProcessQueueMessageAsync(ILogger log)
+	public async Task ProcessQueueMessageAsync(QueueMessage queueMessage, ILogger log)
 	{
-		var queueMessage = await DequeueMessageAsync();
-		if (queueMessage is null)
-		{
-			return;
-		}
-
-		var success = true;
-
 		var notification = Decode(queueMessage);
 		if (notification is not null && IsValid(notification))
 		{
-			success = await SendNotificationAsync(notification, log);
+			_ = await SendNotificationAsync(notification, log);
 		}
-
-		if (success)
-		{
-			await OnMessageProcessedAsync(queueMessage);
-		}
-	}
-
-	private async Task<QueueMessage?> DequeueMessageAsync()
-	{
-		if (await queueClient.ExistsAsync())
-		{
-			// will return null if no message
-			return await queueClient.ReceiveMessageAsync();
-		}
-		return default;
-	}
-
-	private async Task OnMessageProcessedAsync(QueueMessage queueMessage)
-	{
-		await queueClient.DeleteMessageAsync(queueMessage.MessageId, queueMessage.PopReceipt);
 	}
 
 	private static Notification? Decode(QueueMessage queueMessage)
@@ -79,22 +48,16 @@ internal class MailQueueProcessor
 		var users = notification.to;
 		log.LogInformation("Sending notification to {Users}", string.Join(" ", users));
 
-		try
-		{
-			var response = await sendMail.Invoke(notification);
+		var response = await sendMail.Invoke(notification);
 
-			if (!response.IsSuccessStatusCode)
-			{
-				log.LogError("Failed to send notification to {Users}: {StatusCode} {StatusMessage}", users, response.StatusCode, await response.Content.ReadAsStringAsync());
-			}
-
-			return response.IsSuccessStatusCode;
-		}
-		catch (Exception ex)
+		if (!response.IsSuccessStatusCode)
 		{
-			log.LogError(ex, "Failed to send notification to {Users}", string.Join(" ", users));
-			return false;
+			var responseContent = await response.Content.ReadAsStringAsync();
+			log.LogError("Failed to send notification to {Users}: {StatusCode} {StatusMessage}", users, response.StatusCode, responseContent);
+			throw new Exception(string.Format("Failed to send notification to {0}: {1} {2}", users, response.StatusCode, responseContent));
 		}
+
+		return response.IsSuccessStatusCode;
 	}
 }
 
@@ -102,23 +65,15 @@ public static class SendMailDefault
 {
 	private static HttpClient httpClient = new();
 
-	private static MailQueueProcessor processor = new MailQueueProcessor("email-default", SendMailDefault.SendMail);
+	private static MailQueueProcessor processor = new MailQueueProcessor(SendMailDefault.SendMail);
 
 	[FunctionName("SendMailDefault")]
 	public static async Task RunAsync(
-		[TimerTrigger("0 */2 6-8 * * *"
-#if DEBUG
-			, RunOnStartup=true
-#endif
-		)]
-		TimerInfo timerInfo,
+		[QueueTrigger("email-default", Connection = "ALERTS_CONNECTION_STRING")]
+		QueueMessage queueMessage,
 		ILogger log)
 	{
-#if DEBUG
-		await Task.Delay(10_000);
-#endif
-
-		await processor.ProcessQueueMessageAsync(log);
+		await processor.ProcessQueueMessageAsync(queueMessage, log);
 	}
 
 	private static Task<HttpResponseMessage> SendMail(Notification notification)
@@ -142,23 +97,15 @@ public static class SendTipiMail
 {
 	private static HttpClient httpClient = new();
 
-	private static MailQueueProcessor processor = new MailQueueProcessor("email-tipimail", SendTipiMail.SendMail);
+	private static MailQueueProcessor processor = new MailQueueProcessor(SendTipiMail.SendMail);
 
 	[FunctionName("SendTipiMail")]
 	public static async Task RunAsync(
-		[TimerTrigger("0 */8 6 * * *"
-#if DEBUG
-			, RunOnStartup=true
-#endif
-		)]
-		TimerInfo timerInfo,
+		[QueueTrigger("email-tipimail", Connection = "ALERTS_CONNECTION_STRING")]
+		QueueMessage queueMessage,
 		ILogger log)
 	{
-#if DEBUG
-		await Task.Delay(10_000);
-#endif
-
-		await processor.ProcessQueueMessageAsync(log);
+		await processor.ProcessQueueMessageAsync(queueMessage, log);
 	}
 
 	private static Task<HttpResponseMessage> SendMail(Notification notification)

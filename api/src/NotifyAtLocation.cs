@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -17,7 +16,7 @@ using Microsoft.Extensions.Logging;
 
 namespace api;
 
-public static class Main
+public static class NotifyAtLocation
 {
 #if DEBUG
 	private static readonly decimal threshold = 10.0m;
@@ -29,38 +28,39 @@ public static class Main
 
 	private static IDictionary<string, QueueClient> queueClientByChannel = BuildQueueClients();
 
-	[FunctionName("Main")]
+	[FunctionName("NotifyAtLocation")]
 	public static async Task RunAsync(
-		[TimerTrigger("0 0 6 * * *"
-#if DEBUG
-			, RunOnStartup=true
-#endif
-		)]
-		TimerInfo timerInfo,
+		[QueueTrigger("location-loop", Connection = "ALERTS_CONNECTION_STRING")]
+		QueueMessage queueMessage,
 		[Table("validlocation", Connection = "ALERTS_CONNECTION_STRING")]
 		TableClient tableClient,
 		ILogger log)
 	{
-#if DEBUG
-		await Task.Delay(5_000);
-#endif
-
-		var runningTasks = new List<Task>();
-		Expression<Func<LocationEntity, bool>> locationFilter = _ => true;
-
-#if DEBUG
-		locationFilter = location => location.uat == true;
-#endif
-
-		var validLocations = tableClient.QueryAsync<LocationEntity>(locationFilter);
-
-		await foreach (var location in validLocations)
+		var entityKey = Decode(queueMessage);
+		if (entityKey is null)
 		{
-			var task = NotifyAtLocationAsync(location, log);
-			runningTasks.Add(task);
+			log.LogError("Failed to decode location {EntityKey}", (string?)queueMessage.Body.ToString());
+			throw new Exception(string.Format("Failed to decode location {0}", (string?)queueMessage.Body.ToString()));
 		}
 
-		await Task.WhenAll(runningTasks);
+		var location = await tableClient.GetEntityAsync<LocationEntity>(entityKey.PartitionKey, entityKey.RowKey);
+		var response = location.GetRawResponse();
+		if (response.IsError)
+		{
+			log.LogError("Failed to get location {PartitionKey} {RowKey}", entityKey.PartitionKey, entityKey.RowKey, response.Status, Encoding.UTF8.GetString(response.Content));
+			throw new Exception(string.Format("Failed to get location {0} {1}", entityKey.PartitionKey, entityKey.RowKey, response.Status, Encoding.UTF8.GetString(response.Content)));
+		}
+
+		await NotifyAtLocationAsync(location.Value, log);
+	}
+
+	private static EntityKey? Decode(QueueMessage queueMessage)
+	{
+		var base64 = queueMessage.Body.ToString();
+		var bytes = Convert.FromBase64String(base64);
+		var json = Encoding.UTF8.GetString(bytes);
+
+		return JsonSerializer.Deserialize<EntityKey>(json);
 	}
 
 	private static async Task NotifyAtLocationAsync(LocationEntity location, ILogger log)
@@ -105,34 +105,27 @@ public static class Main
 		var (latitude, longitude) = ParseCoordinates(coordinates);
 		if (!latitude.HasValue || !longitude.HasValue) throw new ArgumentOutOfRangeException(nameof(coordinates));
 
-		try
+		var response = await httpClient.GetAsync(string.Format(AppSettings.WeatherApiUrl, latitude.Value, longitude.Value));
+
+		if (!response.IsSuccessStatusCode)
 		{
-			var response = await httpClient.GetAsync(string.Format(AppSettings.WeatherApiUrl, latitude.Value, longitude.Value));
-
-			if (!response.IsSuccessStatusCode)
-			{
-				log.LogError("Failed to get weather forecast for {Coordinates}: {StatusCode} {StatusMessage}", coordinates, response.StatusCode, await response.Content.ReadAsStringAsync());
-				return null;
-			}
-
-			var weatherApiResult = await JsonSerializer.DeserializeAsync<WeatherApiResult>(
-				await response.Content.ReadAsStreamAsync());
-
-			return weatherApiResult?.daily.time
-				.Zip(
-					weatherApiResult?.daily.temperature_2m_min ?? Array.Empty<decimal>(),
-					weatherApiResult?.daily.temperature_2m_max ?? Array.Empty<decimal>())
-				.Select(tuple => new Forecast(
-					DateOnly.FromDateTime(tuple.First),
-					tuple.Second,
-					tuple.Third))
-				.ToList();
+			var responseContent = await response.Content.ReadAsStringAsync();
+			log.LogError("Failed to get weather forecast for {Coordinates}: {StatusCode} {StatusMessage}", coordinates, response.StatusCode, responseContent);
+			throw new Exception(string.Format("Failed to get weather forecast for {0}: {1} {2}", coordinates, response.StatusCode, responseContent));
 		}
-		catch (Exception ex)
-		{
-			log.LogError(ex, "Failed to get weather forecast for {Coordinates}", coordinates);
-			return null;
-		}
+
+		var weatherApiResult = await JsonSerializer.DeserializeAsync<WeatherApiResult>(
+			await response.Content.ReadAsStreamAsync());
+
+		return weatherApiResult?.daily.time
+			.Zip(
+				weatherApiResult?.daily.temperature_2m_min ?? Array.Empty<decimal>(),
+				weatherApiResult?.daily.temperature_2m_max ?? Array.Empty<decimal>())
+			.Select(tuple => new Forecast(
+				DateOnly.FromDateTime(tuple.First),
+				tuple.Second,
+				tuple.Third))
+			.ToList();
 	}
 
 	private static (decimal? latitude, decimal? longitude) ParseCoordinates(string coordinates)
@@ -192,6 +185,8 @@ public static class Main
 
 <p>Pour vous désinscrire, répondez ""STOP"" à ce message.
 
+<hr>
+
 <p>Les données météo sont fournies par <em>Open-Meteo.com</em> &mdash;
 <a href=""https://open-meteo.com/"" target=""_blank"" rel=""noopener noreferrer"">Weather data by Open-Meteo.com</a>";
 
@@ -239,26 +234,18 @@ public static class Main
 
 		log.LogInformation("Scheduling notification to {Users} on {ChannelName} channel", string.Join(" ", users), channel);
 
-		try
-		{
-			var json = JsonSerializer.Serialize(notification);
-			var base64 = EncodeBase64(json);
+		var json = JsonSerializer.Serialize(notification);
+		var base64 = EncodeBase64(json);
 
-			var queueClient = queueClientByChannel[channel];
-			Response<SendReceipt> response = await queueClient.SendMessageAsync(base64);
+		var queueClient = queueClientByChannel[channel];
+		Response<SendReceipt> response = await queueClient.SendMessageAsync(base64);
 
-			if (response.GetRawResponse().IsError)
-			{
-				log.LogError("Failed to schedule notification to {Users}: {StatusCode} {StatusMessage}", string.Join(" ", users), response.GetRawResponse().Status, response.GetRawResponse().ReasonPhrase);
-				return false;
-			}
-			return true;
-		}
-		catch (Exception ex)
+		if (response.GetRawResponse().IsError)
 		{
-			log.LogError(ex, "Failed to schedule notification to {Users}", string.Join(" ", users));
-			return false;
+			log.LogError("Failed to schedule notification to {Users}: {StatusCode} {StatusMessage}", string.Join(" ", users), response.GetRawResponse().Status, response.GetRawResponse().ReasonPhrase);
+			throw new Exception(string.Format("Failed to schedule notification to {0}: {1} {2}", string.Join(" ", users), response.GetRawResponse().Status, response.GetRawResponse().ReasonPhrase));
 		}
+		return true;
 	}
 
 	private static string EncodeBase64(string json)
