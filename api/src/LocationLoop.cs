@@ -42,7 +42,7 @@ public static class LocationLoop
 #endif
 
 		var validLocations = tableClient.QueryAsync<LocationEntity>(locationFilter);
-		var locationIndex = 0;
+		var locationIndex = -1;
 
 		await foreach (var location in validLocations)
 		{

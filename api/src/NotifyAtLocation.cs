@@ -167,9 +167,9 @@ public static class NotifyAtLocation
 		return header;
 	}
 
-	private static readonly string tableHeaderTemplate = "<table><thead><tr><th>date<th>minimum<th>maximum</thead><tbody>";
+	private static readonly string tableHeaderTemplate = "<table><thead><tr><th>date<th>minimum<th>maximum<th></thead><tbody>";
 
-	private static readonly string tableRowTemplate = "<tr><td>{0:dddd d MMMM}<td>{1}° {2}<td>{3}°</tr>";
+	private static readonly string tableRowTemplate = "<tr><td>{0:dddd d MMMM}<td>{1}° {2}<td>{3}°<td>{4}</tr>";
 
 	private static readonly string tableFooterTemplate = "</tbody></table>";
 
@@ -195,6 +195,7 @@ public static class NotifyAtLocation
 		var table = new StringBuilder();
 		table.Append(tableHeaderTemplate);
 		table.Append(Environment.NewLine);
+		var previousMinimum = decimal.MinValue;
 
 		foreach (var forecast in forecasts.OrderBy(f => f.Date))
 		{
@@ -204,9 +205,12 @@ public static class NotifyAtLocation
 				forecast.Date,
 				forecast.Minimum,
 				forecast.Minimum < 0 ? '❄' : ' ',
-				forecast.Maximum
+				forecast.Maximum,
+				forecast.Minimum < previousMinimum ? "en baisse" : " "
 			));
 			table.Append(Environment.NewLine);
+
+			previousMinimum = forecast.Minimum;
 		}
 
 		table.Append(tableFooterTemplate);
