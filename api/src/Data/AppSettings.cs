@@ -21,4 +21,11 @@ internal class AppSettings
 
 	private static string alertsConnectionString = Environment.GetEnvironmentVariable("ALERTS_CONNECTION_STRING") ?? throw new Exception("ALERTS_CONNECTION_STRING variable not set");
 	public static string AlertsConnectionString => alertsConnectionString;
+
+	private static string smtpUrl = Environment.GetEnvironmentVariable("SMTP_URL") ?? throw new Exception("SMTP_URL variable not set");
+	public static string SmtpUrl => smtpUrl;
+	private static string smtpLogin = Environment.GetEnvironmentVariable("SMTP_LOGIN") ?? throw new Exception("SMTP_LOGIN variable not set");
+	public static string SmtpLogin => smtpLogin;
+	private static string smtpPassword = Environment.GetEnvironmentVariable("SMTP_PASSWORD") ?? throw new Exception("SMTP_PASSWORD variable not set");
+	public static string SmtpPassword => smtpPassword;
 }

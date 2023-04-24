@@ -16,9 +16,11 @@ namespace api;
 
 public static class LocationLoop
 {
+	private static Random random = new Random();
+
 	[FunctionName("LocationLoop")]
 	public static async Task RunAsync(
-		[TimerTrigger("0 0 6 * * *"
+		[TimerTrigger("0 0 4 * * *"
 #if DEBUG
 			, RunOnStartup=true
 #endif
@@ -72,7 +74,7 @@ public static class LocationLoop
 			var json = JsonSerializer.Serialize(locationId);
 			var base64 = EncodeBase64(json);
 
-			var visibilityTimeout = TimeSpan.FromSeconds(30 * locationIndex);
+			var visibilityTimeout = TimeSpan.FromSeconds(90 * locationIndex + random.Next(-30, 30));
 			Response<SendReceipt> response = await queueClient.SendMessageAsync(base64, visibilityTimeout);
 
 			if (response.GetRawResponse().IsError)

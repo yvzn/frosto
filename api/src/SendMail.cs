@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -6,18 +7,22 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using api.Data;
 using Azure.Storage.Queues.Models;
+using MailKit.Net.Smtp;
+using MailKit.Security;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
+using MimeKit;
+using MimeKit.Cryptography;
 
 namespace api;
 
 internal class MailQueueProcessor
 {
-	private Func<Notification, Task<HttpResponseMessage>> sendMail;
+	private Func<Notification, Task<(bool success, string? error)>> sendMailCallback;
 
-	public MailQueueProcessor(Func<Notification, Task<HttpResponseMessage>> sendMail)
+	public MailQueueProcessor(Func<Notification, Task<(bool success, string? error)>> sendMailCallback)
 	{
-		this.sendMail = sendMail;
+		this.sendMailCallback = sendMailCallback;
 	}
 
 	public async Task ProcessQueueMessageAsync(QueueMessage queueMessage, ILogger log)
@@ -45,19 +50,18 @@ internal class MailQueueProcessor
 
 	private async Task<bool> SendNotificationAsync(Notification notification, ILogger log)
 	{
-		var users = notification.to;
-		log.LogInformation("Sending notification to {Users}", string.Join(" ", users));
+		var users = string.Join(" ", notification.to);
+		log.LogInformation("Sending notification to {Users}", users);
 
-		var response = await sendMail.Invoke(notification);
+		var (success, error) = await sendMailCallback.Invoke(notification);
 
-		if (!response.IsSuccessStatusCode)
+		if (!success)
 		{
-			var responseContent = await response.Content.ReadAsStringAsync();
-			log.LogError("Failed to send notification to {Users}: {StatusCode} {StatusMessage}", users, response.StatusCode, responseContent);
-			throw new Exception(string.Format("Failed to send notification to {0}: {1} {2}", users, response.StatusCode, responseContent));
+			log.LogError("Failed to send notification to {Users}: {StatusMessage}", users, error);
+			throw new Exception(string.Format("Failed to send notification to {0}: {1}", users, error));
 		}
 
-		return response.IsSuccessStatusCode;
+		return success;
 	}
 }
 
@@ -65,7 +69,7 @@ public static class SendMailDefault
 {
 	private static HttpClient httpClient = new();
 
-	private static MailQueueProcessor processor = new MailQueueProcessor(SendMailDefault.SendMail);
+	private static MailQueueProcessor processor = new MailQueueProcessor(SendMailDefault.SendMailAsync);
 
 	[FunctionName("SendMailDefault")]
 	public static async Task RunAsync(
@@ -76,10 +80,8 @@ public static class SendMailDefault
 		await processor.ProcessQueueMessageAsync(queueMessage, log);
 	}
 
-	private static Task<HttpResponseMessage> SendMail(Notification notification)
+	private static async Task<(bool success, string? error)> SendMailAsync(Notification notification)
 	{
-		var users = notification.to;
-
 		var message = new
 		{
 			subject = notification.subject,
@@ -89,7 +91,15 @@ public static class SendMailDefault
 
 		var requestContent = new StringContent(JsonSerializer.Serialize(message), Encoding.UTF8, "application/json");
 
-		return httpClient.PostAsync(AppSettings.SendMailApiUrl, requestContent);
+		var response = await httpClient.PostAsync(AppSettings.SendMailApiUrl, requestContent);
+
+		if (!response.IsSuccessStatusCode)
+		{
+			var responseContent = await response.Content.ReadAsStringAsync();
+			return (false, string.Format("{0} {1}", response.StatusCode, responseContent));
+		}
+
+		return (true, default);
 	}
 }
 
@@ -97,7 +107,7 @@ public static class SendTipiMail
 {
 	private static HttpClient httpClient = new();
 
-	private static MailQueueProcessor processor = new MailQueueProcessor(SendTipiMail.SendMail);
+	private static MailQueueProcessor processor = new MailQueueProcessor(SendTipiMail.SendMailAsync);
 
 	[FunctionName("SendTipiMail")]
 	public static async Task RunAsync(
@@ -108,7 +118,7 @@ public static class SendTipiMail
 		await processor.ProcessQueueMessageAsync(queueMessage, log);
 	}
 
-	private static Task<HttpResponseMessage> SendMail(Notification notification)
+	private static async Task<(bool success, string? error)> SendMailAsync(Notification notification)
 	{
 		var message = new
 		{
@@ -130,6 +140,71 @@ public static class SendTipiMail
 		requestContent.Headers.Add("X-Tipimail-ApiUser", AppSettings.TipiMailApiUser);
 		requestContent.Headers.Add("X-Tipimail-ApiKey", AppSettings.TipiMailApiKey);
 
-		return httpClient.PostAsync(AppSettings.TipiMailApiUrl, requestContent);
+		var response = await httpClient.PostAsync(AppSettings.TipiMailApiUrl, requestContent);
+
+		if (!response.IsSuccessStatusCode)
+		{
+			var responseContent = await response.Content.ReadAsStringAsync();
+			return (false, string.Format("{0} {1}", response.StatusCode, responseContent));
+		}
+
+		return (true, default);
+	}
+}
+
+public static class SendSmtpMail
+{
+	private static HttpClient httpClient = new();
+
+	private static MailQueueProcessor processor = new MailQueueProcessor(SendSmtpMail.SendMailAsync);
+
+	[FunctionName("SendSmtpMail")]
+	public static async Task RunAsync(
+		[QueueTrigger("email-smtp", Connection = "ALERTS_CONNECTION_STRING")]
+		QueueMessage queueMessage,
+		ILogger log)
+	{
+		await processor.ProcessQueueMessageAsync(queueMessage, log);
+	}
+
+	private static async Task<(bool success, string? error)> SendMailAsync(Notification notification)
+	{
+		var Signer = new DkimSigner(
+			File.OpenRead("dkim_private.pem"),
+			domain: "alertegelee.fr",
+			selector: "frosto")
+		{
+			HeaderCanonicalizationAlgorithm = DkimCanonicalizationAlgorithm.Simple,
+			BodyCanonicalizationAlgorithm = DkimCanonicalizationAlgorithm.Simple,
+			AgentOrUserIdentifier = "@alertegelee.fr",
+			QueryMethod = "dns/txt",
+		};
+
+		// Composing the whole email
+		var message = new MimeMessage();
+		message.From.Add(new MailboxAddress("Yvan de Alertegelee.fr", "yvan@alertegelee.fr"));
+		message.To.AddRange(notification.to.Select(user => new MailboxAddress(user, user)));
+		message.Subject = notification.subject;
+
+		var headers = new HeaderId[] { HeaderId.From, HeaderId.Subject, HeaderId.To };
+
+		var builder = new BodyBuilder();
+		builder.HtmlBody = notification.body;
+
+		message.Body = builder.ToMessageBody();
+		message.Prepare(EncodingConstraint.SevenBit);
+
+		Signer.Sign(message, headers);
+
+		// Sending the email
+		using var client = new SmtpClient();
+
+		await client.ConnectAsync(AppSettings.SmtpUrl, port: 465, SecureSocketOptions.SslOnConnect);
+		await client.AuthenticateAsync(AppSettings.SmtpLogin, AppSettings.SmtpPassword);
+
+		var response = await client.SendAsync(message);
+		await client.DisconnectAsync(true);
+
+		return (success: response.StartsWith("2."), error: response);
 	}
 }

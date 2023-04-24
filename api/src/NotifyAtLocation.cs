@@ -226,7 +226,7 @@ public static class NotifyAtLocation
 
 	private static IDictionary<string, QueueClient> BuildQueueClients()
 	{
-		return new[] { "default", "tipimail" }
+		return new[] { "default", "tipimail", "smtp" }
 			.ToDictionary(
 				channel => channel,
 				channel => new QueueClient(AppSettings.AlertsConnectionString, $"email-{channel}", new() { MessageEncoding = QueueMessageEncoding.Base64 }));
