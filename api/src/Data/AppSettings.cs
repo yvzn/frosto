@@ -28,4 +28,7 @@ internal class AppSettings
 	public static string SmtpLogin => smtpLogin;
 	private static string smtpPassword = Environment.GetEnvironmentVariable("SMTP_PASSWORD") ?? throw new Exception("SMTP_PASSWORD variable not set");
 	public static string SmtpPassword => smtpPassword;
+
+	private static string siteUrl = Environment.GetEnvironmentVariable("SITE_URL") ?? throw new Exception("SITE_URL variable not set");
+	public static string SiteUrl => siteUrl;
 }
