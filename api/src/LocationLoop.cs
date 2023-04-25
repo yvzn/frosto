@@ -20,7 +20,7 @@ public static class LocationLoop
 
 	[FunctionName("LocationLoop")]
 	public static async Task RunAsync(
-		[TimerTrigger("0 0 4 * * *"
+		[TimerTrigger("* * 4 * 1-5,10-12 *"
 #if DEBUG
 			, RunOnStartup=true
 #endif
