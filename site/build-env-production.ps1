@@ -7,15 +7,21 @@
 	(this is the case in some build environments)
 .PARAMETER SignUpUrl
 	URL of SignUp page
+.PARAMETER HealthCheckUrl
+	URL of HealthCheck page
 #>
 
 param (
-	[string] $SignUpUrl
+	[string] $SignUpUrl,
+	[string] $HealthCheckUrl
 )
 
 Write-Output "SignUpUrl: $SignUpUrl"
+Write-Output "HealthCheckUrl: $HealthCheckUrl"
 
 $dotEnv = Get-Content -Path .env
-$dotEnvForProd = $dotEnv.Replace("VITE_SIGNUP_URL=", "VITE_SIGNUP_URL=$SignUpUrl")
+$dotEnvForProd = $dotEnv
+$dotEnvForProd = $dotEnvForProd.Replace("VITE_SIGNUP_URL=", "VITE_SIGNUP_URL=$SignUpUrl")
+$dotEnvForProd = $dotEnvForProd.Replace("VITE_HEALTHCHECK_URL=", "VITE_HEALTHCHECK_URL=$HealthCheckUrl")
 
 Set-Content -Path .env.production -Value $dotEnvForProd
