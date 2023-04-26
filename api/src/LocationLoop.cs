@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using api.Data;
 using Azure;
@@ -44,11 +45,11 @@ public static class LocationLoop
 #endif
 
 		var validLocations = tableClient.QueryAsync<LocationEntity>(locationFilter);
-		var locationIndex = -1;
+		int locationIndex = -1;
 
 		await foreach (var location in validLocations)
 		{
-			++locationIndex;
+			Interlocked.Increment(ref locationIndex);
 			var task = ScheduleLocationAsync(location, locationIndex, queueClient, log);
 			runningTasks.Add(task);
 		}
@@ -74,7 +75,7 @@ public static class LocationLoop
 			var json = JsonSerializer.Serialize(locationId);
 			var base64 = EncodeBase64(json);
 
-			var visibilityTimeout = TimeSpan.FromSeconds(90 * locationIndex + random.Next(-30, 30));
+			var visibilityTimeout = TimeSpan.FromSeconds(90 * locationIndex + random.Next(60));
 			Response<SendReceipt> response = await queueClient.SendMessageAsync(base64, visibilityTimeout);
 
 			if (response.GetRawResponse().IsError)
