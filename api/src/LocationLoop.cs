@@ -40,9 +40,7 @@ public static class LocationLoop
 		var runningTasks = new List<Task>();
 		Expression<Func<LocationEntity, bool>> locationFilter = _ => true;
 
-#if DEBUG
 		locationFilter = location => location.uat == true;
-#endif
 
 		var validLocations = tableClient.QueryAsync<LocationEntity>(locationFilter);
 		int locationIndex = -1;
