@@ -18,7 +18,12 @@
                                 }
                             },
                             "method": "post",
-                            "path": "/v2/Mail"
+                            "path": "/v2/Mail",
+                            "retryPolicy": {
+                                "count": 1,
+                                "interval": "PT1M",
+                                "type": "fixed"
+                            }
                         },
                         "runAfter": {},
                         "type": "ApiConnection"
@@ -27,6 +32,34 @@
                 "foreach": "@triggerBody()?['to']",
                 "runAfter": {},
                 "type": "Foreach"
+            },
+            "Response_Failure": {
+                "inputs": {
+                    "body": "@outputs('Send_an_email_(V2)')",
+                    "statusCode": 500
+                },
+                "kind": "Http",
+                "runAfter": {
+                    "For_each": [
+                        "TimedOut",
+                        "Skipped",
+                        "Failed"
+                    ]
+                },
+                "type": "Response"
+            },
+            "Response_Success": {
+                "inputs": {
+                    "body": "@outputs('Send_an_email_(V2)')",
+                    "statusCode": 200
+                },
+                "kind": "Http",
+                "runAfter": {
+                    "For_each": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "Response"
             }
         },
         "contentVersion": "1.0.0.0",
