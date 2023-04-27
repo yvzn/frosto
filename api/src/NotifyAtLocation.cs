@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -77,12 +76,14 @@ public static class NotifyAtLocation
 		var forecastsBelowThreshold = forecasts?.Where(f => f.Minimum <= threshold).ToList();
 		if (forecastsBelowThreshold?.Any() is true)
 		{
-			var subject = FormatNotificationSubject(forecastsBelowThreshold);
-			var body = FormatNotificationBody(forecastsBelowThreshold, location);
+			var subject = Formatter.FormatSubject(forecastsBelowThreshold);
+			var body = HtmlFormatter.FormatBody(forecastsBelowThreshold, location);
+			var text = TextFormatter.FormatBody(forecastsBelowThreshold, location);
 			var notification = new Notification
 			{
 				subject = subject,
 				body = body,
+				raw = text,
 				to = users
 			};
 
@@ -165,83 +166,6 @@ public static class NotifyAtLocation
 		}
 
 		return (latitude, longitude);
-	}
-
-	private static readonly CultureInfo cultureInfo = CultureInfo.CreateSpecificCulture("fr-FR");
-
-	private static string FormatNotificationSubject(List<Forecast> forecasts)
-	{
-		var header = "Températures proches de zéro prévues ces prochains jours";
-		var forecastsBelow0 = forecasts.Where(f => f.Minimum < 0).ToList();
-		if (forecastsBelow0.Any())
-		{
-			var first = forecastsBelow0.OrderBy(f => f.Date).First();
-			header = string.Format(
-				cultureInfo,
-				"Températures négatives prévues {0:dddd d MMMM}: {1}°",
-				first.Date,
-				first.Minimum
-			);
-		}
-
-		return header;
-	}
-
-	private static readonly string tableHeaderTemplate = "<table><thead><tr><th>date<th>minimum<th>maximum<th></thead><tbody>";
-
-	private static readonly string tableRowTemplate = "<tr><td>{0:dddd d MMMM}<td>{1}° {2}<td>{3}°<td>{4}</tr>";
-
-	private static readonly string tableFooterTemplate = "</tbody></table>";
-
-	private static readonly string notificationTemplate =
-	@"<p>Bonjour,
-
-<p>Les prévisions de température des prochains jours ({0}, {1}):
-
-{2}
-
-<p>Cordialement,
-<br>L'équipe Alertegelee.fr
-
-<p>Pour vous désinscrire, répondez ""STOP"" à ce message.
-
-<hr>
-
-<p>Les données météo sont fournies par <em>Open-Meteo.com</em> &mdash;
-<a href=""https://open-meteo.com/"" target=""_blank"" rel=""noopener noreferrer"">Weather data by Open-Meteo.com</a>";
-
-	private static string FormatNotificationBody(List<Forecast> forecasts, LocationEntity location)
-	{
-		var table = new StringBuilder();
-		table.Append(tableHeaderTemplate);
-		table.Append(Environment.NewLine);
-		var previousMinimum = decimal.MinValue;
-
-		foreach (var forecast in forecasts.OrderBy(f => f.Date))
-		{
-			table.Append(string.Format(
-				cultureInfo,
-				tableRowTemplate,
-				forecast.Date,
-				forecast.Minimum,
-				forecast.Minimum < 0 ? '❄' : ' ',
-				forecast.Maximum,
-				forecast.Minimum < previousMinimum ? "en baisse" : " "
-			));
-			table.Append(Environment.NewLine);
-
-			previousMinimum = forecast.Minimum;
-		}
-
-		table.Append(tableFooterTemplate);
-
-		return string.Format(
-				cultureInfo,
-				notificationTemplate,
-				location.city,
-				location.country,
-				table.ToString()
-			);
 	}
 
 	private static IDictionary<string, QueueClient> BuildQueueClients()

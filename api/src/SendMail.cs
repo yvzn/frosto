@@ -49,6 +49,7 @@ internal class MailQueueProcessor
 
 	private static bool IsValid(Notification notification)
 		=> !string.IsNullOrWhiteSpace(notification.body)
+			&& !string.IsNullOrWhiteSpace(notification.raw)
 			&& !string.IsNullOrWhiteSpace(notification.subject)
 			&& notification.to.Where(user => !string.IsNullOrWhiteSpace(user)).Count() > 0;
 
@@ -146,6 +147,7 @@ public static class SendTipiMail
 					personalName = "Yvan de Alertegelee.fr"
 				},
 				subject = notification.subject,
+				text = notification.raw,
 				html = notification.body,
 			},
 			apiKey = AppSettings.TipiMailApiKey
@@ -204,6 +206,7 @@ public static class SendSmtpMail
 		var headers = new HeaderId[] { HeaderId.From, HeaderId.Subject, HeaderId.To };
 
 		var builder = new BodyBuilder();
+		builder.TextBody = notification.raw;
 		builder.HtmlBody = notification.body;
 
 		message.Body = builder.ToMessageBody();
