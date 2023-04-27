@@ -18,7 +18,11 @@ namespace api;
 
 public static class NotifyAtLocation
 {
+#if DEBUG
 	private static readonly decimal threshold = 10.0m;
+#else
+	private static readonly decimal threshold = 1.0m;
+#endif
 
 	private static HttpClient httpClient = new();
 
