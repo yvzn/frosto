@@ -94,24 +94,44 @@ public static class NotifyAtLocation
 
 	private static async Task<IList<Forecast>?> GetWeatherForecastsAsync(string? coordinates, ILogger log)
 	{
-		log.LogInformation("Get weather forecast for {Coordinates}", coordinates);
+		log.LogInformation("Get weather for {Coordinates}", coordinates);
 
 		if (coordinates is null) throw new ArgumentNullException(nameof(coordinates));
 
 		var (latitude, longitude) = ParseCoordinates(coordinates);
-		if (!latitude.HasValue || !longitude.HasValue) throw new ArgumentOutOfRangeException(nameof(coordinates));
+		if (!latitude.HasValue || !longitude.HasValue) throw new ArgumentOutOfRangeException(nameof(coordinates), coordinates, "Expected comma-separated numbers");
 
-		var response = await httpClient.GetAsync(string.Format(AppSettings.WeatherApiUrl, latitude.Value, longitude.Value));
+		var requestUri = string.Format(AppSettings.WeatherApiUrl, latitude.Value, longitude.Value);
+
+		var response = default(HttpResponseMessage?);
+
+		try
+		{
+			response = await httpClient.GetAsync(requestUri);
+		}
+		catch (Exception ex)
+		{
+			var responseContent = response is null ? "<empty response>" : await response.Content.ReadAsStringAsync();
+			log.LogError(ex, "Failed to get weather for {Coordinates}: HTTP {StatusCode} {RequestUri} [{ResponseContent}]", coordinates, response?.StatusCode, requestUri, responseContent);
+			throw;
+		}
 
 		if (!response.IsSuccessStatusCode)
 		{
-			var responseContent = await response.Content.ReadAsStringAsync();
-			log.LogError("Failed to get weather forecast for {Coordinates}: {StatusCode} {StatusMessage}", coordinates, response.StatusCode, responseContent);
-			throw new Exception(string.Format("Failed to get weather forecast for {0}: {1} {2}", coordinates, response.StatusCode, responseContent));
+			throw new Exception(string.Format("Failed to get weather for {0}: HTTP {1} {2} [{3}]", coordinates, response.StatusCode, requestUri, await response.Content.ReadAsStringAsync()));
 		}
 
-		var weatherApiResult = await JsonSerializer.DeserializeAsync<WeatherApiResult>(
-			await response.Content.ReadAsStreamAsync());
+		var weatherApiResult = default(WeatherApiResult?);
+
+		try
+		{
+			weatherApiResult = await JsonSerializer.DeserializeAsync<WeatherApiResult>(await response.Content.ReadAsStreamAsync());
+		}
+		catch (Exception ex)
+		{
+			log.LogError(ex, "Failed to parse weather forecast for {Coordinates}", coordinates);
+			throw;
+		}
 
 		return weatherApiResult?.daily.time
 			.Zip(
@@ -230,9 +250,9 @@ public static class NotifyAtLocation
 
 	private static async Task<bool> ScheduleNotificationAsync(Notification notification, string channel, ILogger log)
 	{
-		var users = notification.to;
+		var users = string.Join(" ", notification.to);
 
-		log.LogInformation("Scheduling notification to {Users} on {ChannelName} channel", string.Join(" ", users), channel);
+		log.LogInformation("Scheduling notification to <{Users}> on {ChannelName} channel", users, channel);
 
 		var json = JsonSerializer.Serialize(notification);
 		var base64 = EncodeBase64(json);
@@ -242,8 +262,7 @@ public static class NotifyAtLocation
 
 		if (response.GetRawResponse().IsError)
 		{
-			log.LogError("Failed to schedule notification to {Users}: {StatusCode} {StatusMessage}", string.Join(" ", users), response.GetRawResponse().Status, response.GetRawResponse().ReasonPhrase);
-			throw new Exception(string.Format("Failed to schedule notification to {0}: {1} {2}", string.Join(" ", users), response.GetRawResponse().Status, response.GetRawResponse().ReasonPhrase));
+			throw new Exception(string.Format("Failed to schedule notification to {0}: {1} {2}", users, response.GetRawResponse().Status, response.GetRawResponse().ReasonPhrase));
 		}
 		return true;
 	}

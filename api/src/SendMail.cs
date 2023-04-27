@@ -32,6 +32,10 @@ internal class MailQueueProcessor
 		{
 			_ = await SendNotificationAsync(notification, log);
 		}
+		else
+		{
+			log.LogWarning("Skip sending notification {NotificationSubject} to <{Users}> : invalid", notification?.subject, string.Join(" ", notification?.to ?? Array.Empty<string>()));
+		}
 	}
 
 	private static Notification? Decode(QueueMessage queueMessage)
@@ -51,14 +55,25 @@ internal class MailQueueProcessor
 	private async Task<bool> SendNotificationAsync(Notification notification, ILogger log)
 	{
 		var users = string.Join(" ", notification.to);
-		log.LogInformation("Sending notification to {Users}", users);
 
-		var (success, error) = await sendMailCallback.Invoke(notification);
+		log.LogInformation("Sending notification to <{Users}>", users);
+
+		var success = true;
+		var error = default(string?);
+
+		try
+		{
+			(success, error) = await sendMailCallback.Invoke(notification);
+		}
+		catch (Exception ex)
+		{
+			log.LogError(ex, "Failed to send notification to <{Users}>: {StatusMessage}", users, error);
+			throw;
+		}
 
 		if (!success)
 		{
-			log.LogError("Failed to send notification to {Users}: {StatusMessage}", users, error);
-			throw new Exception(string.Format("Failed to send notification to {0}: {1}", users, error));
+			throw new Exception(string.Format("Failed to send notification to <{0}>: {1}", users, error));
 		}
 
 		return success;
