@@ -54,7 +54,7 @@ public static class SignUp
 			RowKey = Guid.NewGuid().ToString(),
 			city = requestParams["city"],
 			country = requestParams["country"],
-			users = requestParams["emai"],
+			users = requestParams["email"],
 		};
 
 	private static UserEntity ParseUserEntity(NameValueCollection requestParams)
