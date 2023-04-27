@@ -21,7 +21,7 @@ public static class LocationLoop
 
 	[FunctionName("LocationLoop")]
 	public static async Task RunAsync(
-		[TimerTrigger("* * 4 * 1-5,10-12 *"
+		[TimerTrigger("0 0 4 * 1-5,10-12 *"
 #if DEBUG
 			, RunOnStartup=true
 #endif
@@ -78,8 +78,6 @@ public static class LocationLoop
 
 			if (response.GetRawResponse().IsError)
 			{
-				log.LogInformation("Scheduling location {City} {Country} for weather", location.city, location.country);
-
 				log.LogError("Failed to schedule location {City} {Country} for weather: {StatusCode} {StatusMessage}", location.city, location.country, response.GetRawResponse().Status, response.GetRawResponse().ReasonPhrase);
 				return false;
 			}
