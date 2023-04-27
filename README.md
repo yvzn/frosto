@@ -12,12 +12,13 @@ Pour nous contacter, envoyez un courrier électronique à l'adresse suivante: al
 
 ## Structure
 
-The *Frost Alert* application is aimed to provide notifications when a frost episode is due in the following days.
+The _Frost Alert_ application is aimed to provide notifications when a frost episode is due in the following days.
 
 The application consists in the following components:
+
 - **site**: landing page with subscription form
-- **logic-app**: _Azure Logic App_ that receives the subscription form data
-- **api**: _Azure Function App_ that fetches weather forecasts and sends notifications
+- **api**: _Azure Function App_ that receives the subscription form data, fetches weather forecasts and sends notifications
+- **logic-app**: _Azure Logic App_ that receives the subscription form data and sends notifications
 - **admin**: _ASP.NET_ webapp with admin tools
 
 [Frosto website (in french)](https://www.alertegelee.fr/)
@@ -39,4 +40,4 @@ This project uses open-source, third party software:
 This project uses graphics under _open_ or _permissive_ licences:
 
 - Illustrations by [unDraw](https://undraw.co/license)
-- Fav icon by [Oh Rian](https://thenounproject.com/ohrianid/): Creative Commons license  (CCBY)
+- Fav icon by [Oh Rian](https://thenounproject.com/ohrianid/): Creative Commons license (CCBY)
