@@ -2,7 +2,7 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"label": "clean (functions)",
+			"label": "clean (api)",
 			"command": "dotnet",
 			"args": [
 				"clean",
@@ -16,7 +16,7 @@
 			}
 		},
 		{
-			"label": "build (functions)",
+			"label": "build (api)",
 			"command": "dotnet",
 			"args": [
 				"build",
@@ -24,10 +24,10 @@
 				"/consoleloggerparameters:NoSummary"
 			],
 			"type": "process",
-			"dependsOn": "clean (functions)",
+			"dependsOn": "clean (api)",
 			"group": {
 				"kind": "build",
-				"isDefault": true
+				"isDefault": false
 			},
 			"problemMatcher": "$msCompile",
 			"options": {
@@ -35,7 +35,7 @@
 			}
 		},
 		{
-			"label": "clean release (functions)",
+			"label": "clean release (api)",
 			"command": "dotnet",
 			"args": [
 				"clean",
@@ -51,7 +51,7 @@
 			}
 		},
 		{
-			"label": "publish (functions)",
+			"label": "publish (api)",
 			"command": "dotnet",
 			"args": [
 				"publish",
@@ -61,7 +61,7 @@
 				"/consoleloggerparameters:NoSummary"
 			],
 			"type": "process",
-			"dependsOn": "clean release (functions)",
+			"dependsOn": "clean release (api)",
 			"problemMatcher": "$msCompile",
 			"options": {
 				"cwd": "${workspaceFolder}/api"
@@ -69,7 +69,7 @@
 		},
 		{
 			"type": "func",
-			"dependsOn": "build (functions)",
+			"dependsOn": "build (api)",
 			"options": {
 				"cwd": "${workspaceFolder}/api/bin/Debug/net6.0"
 			},
@@ -126,6 +126,82 @@
 			"options": {
 				"cwd": "${workspaceFolder}/admin"
 			}
+		},
+		{
+			"label": "clean (batch)",
+			"command": "dotnet",
+			"args": [
+				"clean",
+				"/property:GenerateFullPaths=true",
+				"/consoleloggerparameters:NoSummary"
+			],
+			"type": "process",
+			"problemMatcher": "$msCompile",
+			"options": {
+				"cwd": "${workspaceFolder}/batch"
+			}
+		},
+		{
+			"label": "build (batch)",
+			"command": "dotnet",
+			"args": [
+				"build",
+				"/property:GenerateFullPaths=true",
+				"/consoleloggerparameters:NoSummary"
+			],
+			"type": "process",
+			"dependsOn": "clean (batch)",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"problemMatcher": "$msCompile",
+			"options": {
+				"cwd": "${workspaceFolder}/batch"
+			}
+		},
+		{
+			"label": "clean release (batch)",
+			"command": "dotnet",
+			"args": [
+				"clean",
+				"--configuration",
+				"Release",
+				"/property:GenerateFullPaths=true",
+				"/consoleloggerparameters:NoSummary"
+			],
+			"type": "process",
+			"problemMatcher": "$msCompile",
+			"options": {
+				"cwd": "${workspaceFolder}/batch"
+			}
+		},
+		{
+			"label": "publish (batch)",
+			"command": "dotnet",
+			"args": [
+				"publish",
+				"--configuration",
+				"Release",
+				"/property:GenerateFullPaths=true",
+				"/consoleloggerparameters:NoSummary"
+			],
+			"type": "process",
+			"dependsOn": "clean release (batch)",
+			"problemMatcher": "$msCompile",
+			"options": {
+				"cwd": "${workspaceFolder}/batch"
+			}
+		},
+		{
+			"type": "func",
+			"dependsOn": "build (batch)",
+			"options": {
+				"cwd": "${workspaceFolder}/batch/bin/Debug/net6.0"
+			},
+			"command": "host start",
+			"isBackground": true,
+			"problemMatcher": "$func-dotnet-watch"
 		},
 	]
 }
