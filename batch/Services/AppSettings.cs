@@ -2,7 +2,7 @@ using System;
 
 namespace batch.Services;
 
-internal class AppSettings
+internal static class AppSettings
 {
 	private static string weatherApiUrl = System.Environment.GetEnvironmentVariable("OPEN_METEO_API_URL") ?? throw new Exception("OPEN_METEO_API_URL variable not set");
 	public static string WeatherApiUrl => weatherApiUrl;

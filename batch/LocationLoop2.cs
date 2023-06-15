@@ -1,13 +1,14 @@
 using System;
 using System.Linq.Expressions;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Data.Tables;
 using batch.Models;
+using batch.Services;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
-
 
 namespace batch;
 
@@ -33,16 +34,16 @@ public class LocationLoop2
 		await Task.Delay(5_000);
 #endif
 
-		httpClient.Timeout = TimeSpan.FromSeconds(60);
 		Expression<Func<LocationEntity, bool>> locationFilter = _ => true;
 
 #if DEBUG
 		locationFilter = location => location.uat == true;
 #endif
 
-		var validLocations = tableClient.QueryAsync<LocationEntity>(locationFilter);
-		int locationIndex = -1;
+		var query = () => tableClient.QueryAsync<LocationEntity>(locationFilter);
+		var validLocations = RetryPolicy.ForDataAccess.Execute(query);
 
+		int locationIndex = -1;
 		await foreach (var location in validLocations)
 		{
 			Interlocked.Increment(ref locationIndex);
@@ -67,16 +68,15 @@ public class LocationLoop2
 
 		try
 		{
-#if !DEBUG
 			var visibilityTimeout = TimeSpan.FromMilliseconds(1_000 * locationIndex + random.Next(500));
 			await Task.Delay(visibilityTimeout, CancellationToken.None);
-#endif
 
-			response = await httpClient.GetAsync(requestUri);
+			var request = () => httpClient.GetAsync(requestUri);
+			response = await RetryPolicy.ForInternalHttpAsync.ExecuteAsync(request);
 
-			if (!response.IsSuccessStatusCode)
+			if (!response.IsSuccessStatusCode && response.StatusCode != HttpStatusCode.BadGateway)
 			{
-				log.LogError("Failed to schedule location {City} {Country} for weather: {StatusCode} {StatusMessage}", location.city, location.country, response.StatusCode, response.ReasonPhrase);
+				log.LogError("Failed to schedule location {City} {Country} for weather: HTTP {StatusCode} {RequestUri}", location.city, location.country, response.StatusCode, requestUri);
 				return false;
 			}
 			return true;

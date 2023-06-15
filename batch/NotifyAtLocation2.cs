@@ -13,6 +13,7 @@ using System.Text.Json;
 using Azure.Data.Tables;
 using batch.Models;
 using batch.Services;
+using System.Net;
 
 namespace batch;
 
@@ -41,11 +42,13 @@ public static class NotifyAtLocation2
 			return new BadRequestResult();
 		}
 
-		var location = await tableClient.GetEntityAsync<LocationEntity>(entityKey.PartitionKey, entityKey.RowKey);
+		var query = () => tableClient.GetEntityAsync<LocationEntity>(entityKey.PartitionKey, entityKey.RowKey);
+		var location = await RetryPolicy.ForDataAccessAsync.ExecuteAsync(query);
+
 		var response = location.GetRawResponse();
 		if (response.IsError)
 		{
-			log.LogError("Failed to get location {PartitionKey} {RowKey}", entityKey.PartitionKey, entityKey.RowKey, response.Status, Encoding.UTF8.GetString(response.Content));
+			log.LogError("Failed to get location {PartitionKey} {RowKey} {StatusCode} [{ResponseContent}]", entityKey.PartitionKey, entityKey.RowKey, response.Status, Encoding.UTF8.GetString(response.Content));
 			return new BadRequestResult();
 		}
 
@@ -111,7 +114,8 @@ public static class NotifyAtLocation2
 
 		try
 		{
-			response = await httpClient.GetAsync(requestUri);
+			var request = () => httpClient.GetAsync(requestUri);
+			response = await RetryPolicy.ForExternalHttpAsync.ExecuteAsync(request);
 		}
 		catch (Exception ex)
 		{
@@ -181,9 +185,10 @@ public static class NotifyAtLocation2
 
 		try
 		{
-			response = await httpClient.PostAsJsonAsync(requestUri, notification);
+			var request = () => httpClient.PostAsJsonAsync(requestUri, notification);
+			response = await RetryPolicy.ForInternalHttpAsync.ExecuteAsync(request);
 
-			if (!response.IsSuccessStatusCode)
+			if (!response.IsSuccessStatusCode && response.StatusCode != HttpStatusCode.BadGateway)
 			{
 				var responseContent = response is null ? "<empty response>" : await response.Content.ReadAsStringAsync();
 				log.LogError("Failed to schedule notification to {Users}: HTTP {StatusCode} {RequestUri} [{ResponseContent}]", users, response?.StatusCode, requestUri, responseContent);

@@ -69,7 +69,7 @@ public static class SendMail2
 		log.LogInformation("Sending notification to <{Users}>", users);
 
 		var success = true;
-		var error = default(string?);
+		var error = default(string);
 
 		try
 		{
@@ -120,14 +120,23 @@ public static class SendMail2
 		Signer.Sign(message, headers);
 
 		// Sending the email
-		using var client = new SmtpClient();
+		var sendmail = async () =>
+		{
+			using var client = new SmtpClient();
 
-		await client.ConnectAsync(AppSettings.SmtpUrl, port: 465, SecureSocketOptions.SslOnConnect);
-		await client.AuthenticateAsync(AppSettings.SmtpLogin, AppSettings.SmtpPassword);
+			await client.ConnectAsync(AppSettings.SmtpUrl, port: 465, SecureSocketOptions.SslOnConnect);
+			await client.AuthenticateAsync(AppSettings.SmtpLogin, AppSettings.SmtpPassword);
 
-		var response = "2."; //await client.SendAsync(message);
-		await client.DisconnectAsync(true);
+			var response = default(string);
+			response = await client.SendAsync(message);
 
-		return (success: response.StartsWith("2."), error: response);
+			await client.DisconnectAsync(true);
+
+			return response;
+		};
+
+		var response = await RetryPolicy.ForSmtpAsync.ExecuteAsync(sendmail);
+
+		return (success: response is not null && response.StartsWith("2."), error: response);
 	}
 }
