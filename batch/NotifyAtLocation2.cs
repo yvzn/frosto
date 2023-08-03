@@ -36,7 +36,7 @@ public static class NotifyAtLocation2
 		ILogger log)
 	{
 		var entityKey = Decode(req);
-		if (entityKey is null)
+		if (entityKey is null || !IsValid(entityKey))
 		{
 			log.LogError("Failed to decode location p={PartitionKey} r={RowKey}", req.Query["p"], req.Query["r"]);
 			return new BadRequestResult();
@@ -70,6 +70,10 @@ public static class NotifyAtLocation2
 			RowKey = req.Query["r"],
 		};
 
+	private static bool IsValid(EntityKey entityKey)
+		=> !string.IsNullOrWhiteSpace(entityKey.PartitionKey)
+			&& !string.IsNullOrWhiteSpace(entityKey.RowKey);
+
 	private static async Task NotifyAtLocationAsync(LocationEntity location, ILogger log)
 	{
 		var users = location.users?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
@@ -95,7 +99,14 @@ public static class NotifyAtLocation2
 				to = users
 			};
 
-			await ScheduleNotificationAsync(notification, log);
+
+			string channel = "default";
+			if (SendNotification2.channels.Contains(location.channel ?? "") && !string.IsNullOrEmpty(location.channel))
+			{
+				channel = location.channel;
+			}
+
+			await ScheduleNotificationAsync(notification, channel, log);
 		}
 	}
 
@@ -173,13 +184,13 @@ public static class NotifyAtLocation2
 		return (latitude, longitude);
 	}
 
-	private static async Task ScheduleNotificationAsync(Notification notification, ILogger log)
+	private static async Task ScheduleNotificationAsync(Notification notification, string channel, ILogger log)
 	{
 		var users = string.Join(" ", notification.to);
 
-		log.LogInformation("Scheduling notification to <{Users}>", users);
+		log.LogInformation("Scheduling notification to <{Users}> on {ChannelName} channel", users, channel);
 
-		var requestUri = $"http://{Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME")}/api/SendMail2";
+		var requestUri = $"http://{Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME")}/api/SendNotification2?c={channel}";
 
 		var response = default(HttpResponseMessage);
 

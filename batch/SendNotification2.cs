@@ -14,18 +14,26 @@ using MimeKit;
 using MailKit.Net.Smtp;
 using batch.Services;
 using MailKit.Security;
+using System.Net.Http;
+using System.Text;
+using System.Collections.Generic;
 
 namespace batch;
 
-public static class SendMail2
+public static class SendNotification2
 {
-	[FunctionName("SendMail2")]
+	private static HttpClient httpClient = new();
+
+	internal static ISet<string> channels = new HashSet<string>() { "default", "tipimail", "smtp" };
+
+	[FunctionName("SendNotification2")]
 	public static async Task<IActionResult> RunAsync(
 		[HttpTrigger(AuthorizationLevel.Function, "post", Route = null)]
 		HttpRequest req,
 		ILogger log)
 	{
 		var notification = default(Notification);
+		var channel = default(string);
 
 		try
 		{
@@ -42,15 +50,29 @@ public static class SendMail2
 			return new BadRequestResult();
 		}
 
+		channel = Decode(req);
+		if (channel is null)
+		{
+			log.LogWarning("Skip sending notification {NotificationSubject} to <{Users}> on {ChannelName} channel : invalid channel", notification?.subject, string.Join(" ", notification?.to ?? Array.Empty<string>()), channel);
+			return new BadRequestResult();
+		}
+
 		try
 		{
-			_ = await SendNotificationAsync(notification, log);
+			_ = await SendNotificationAsync(notification, channel, log);
 			return new OkResult();
 		}
 		catch (Exception)
 		{
 			return new StatusCodeResult(StatusCodes.Status502BadGateway);
 		}
+	}
+
+	private static string? Decode(HttpRequest req)
+	{
+		var queryParam = req.Query["c"];
+		if (channels.Contains(queryParam)) return queryParam;
+		return default;
 	}
 
 	private static async Task<Notification?> DecodeAsync(HttpRequest req)
@@ -62,18 +84,19 @@ public static class SendMail2
 			&& !string.IsNullOrWhiteSpace(notification.subject)
 			&& notification.to.Where(user => !string.IsNullOrWhiteSpace(user)).Count() > 0;
 
-	private static async Task<bool> SendNotificationAsync(Notification notification, ILogger log)
+	private static async Task<bool> SendNotificationAsync(Notification notification, string channel, ILogger log)
 	{
 		var users = string.Join(" ", notification.to);
 
-		log.LogInformation("Sending notification to <{Users}>", users);
+		log.LogInformation("Sending notification to <{Users}> on {ChannelName} channel", users, channel);
 
 		var success = true;
 		var error = default(string);
 
 		try
 		{
-			(success, error) = await SendMailAsync(notification);
+			var sendMailFunction = SelectSendMailCallback(channel);
+			(success, error) = await sendMailFunction.Invoke(notification);
 		}
 		catch (Exception ex)
 		{
@@ -89,7 +112,73 @@ public static class SendMail2
 		return success;
 	}
 
-	private static async Task<(bool success, string? error)> SendMailAsync(Notification notification)
+	private static Func<Notification, Task<(bool success, string? error)>> SelectSendMailCallback(string channel)
+		=> channel switch
+		{
+			"tipimail" => SendNotification2.SendTipiMailAsync,
+			"smtp" => SendNotification2.SendMailSmtpAsync,
+			_ => SendNotification2.SendMailDefaultAsync
+		};
+
+	private static async Task<(bool success, string? error)> SendMailDefaultAsync(Notification notification)
+	{
+		var message = new
+		{
+			subject = notification.subject,
+			body = notification.body,
+			to = notification.to,
+		};
+
+		var requestContent = new StringContent(JsonSerializer.Serialize(message), Encoding.UTF8, "application/json");
+
+		var request = () => httpClient.PostAsync(AppSettings.SendMailApiUrl, requestContent);
+		var response = await RetryPolicy.ForExternalHttpAsync.ExecuteAsync(request);
+
+		if (!response.IsSuccessStatusCode)
+		{
+			var responseContent = await response.Content.ReadAsStringAsync();
+			return (false, string.Format("{0} {1}", response.StatusCode, responseContent));
+		}
+
+		return (true, default);
+	}
+
+	private static async Task<(bool success, string? error)> SendTipiMailAsync(Notification notification)
+	{
+		var message = new
+		{
+			to = notification.to.Select(user => new { address = user }).ToArray(),
+			msg = new
+			{
+				from = new
+				{
+					address = "yvan@alertegelee.fr",
+					personalName = "Yvan de Alertegelee.fr"
+				},
+				subject = notification.subject,
+				text = notification.raw,
+				html = notification.body,
+			},
+			apiKey = AppSettings.TipiMailApiKey
+		};
+
+		var requestContent = new StringContent(JsonSerializer.Serialize(message), Encoding.UTF8, "application/json");
+		requestContent.Headers.Add("X-Tipimail-ApiUser", AppSettings.TipiMailApiUser);
+		requestContent.Headers.Add("X-Tipimail-ApiKey", AppSettings.TipiMailApiKey);
+
+		var request = () => httpClient.PostAsync(AppSettings.TipiMailApiUrl, requestContent);
+		var response = await RetryPolicy.ForExternalHttpAsync.ExecuteAsync(request);
+
+		if (!response.IsSuccessStatusCode)
+		{
+			var responseContent = await response.Content.ReadAsStringAsync();
+			return (false, string.Format("{0} {1}", response.StatusCode, responseContent));
+		}
+
+		return (true, default);
+	}
+
+	private static async Task<(bool success, string? error)> SendMailSmtpAsync(Notification notification)
 	{
 		var Signer = new DkimSigner(
 			File.OpenRead("dkim_private.pem"),
