@@ -21,7 +21,7 @@ public class LocationLoop2
 	[FunctionName("LocationLoop2")]
 	public static async Task RunAsync(
 		[TimerTrigger("0 0 4 * 1-5,10-12 *"
-#if DEBUG
+#if true //DEBUG
 			, RunOnStartup=true
 #endif
 		)]
@@ -36,7 +36,7 @@ public class LocationLoop2
 
 		Expression<Func<LocationEntity, bool>> locationFilter = _ => true;
 
-#if DEBUG
+#if true //DEBUG
 		locationFilter = location => location.uat == true;
 #endif
 
