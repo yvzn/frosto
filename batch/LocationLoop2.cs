@@ -62,7 +62,7 @@ public class LocationLoop2
 
 		log.LogInformation("Scheduling location {City} {Country} for weather", location.city, location.country);
 
-		var requestUri = $"http://{Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME")}/api/NotifyAtLocation2?p={location.PartitionKey}&r={location.RowKey}";
+		var requestUri = $"http://{Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME")}/api/NotifyAtLocation2?p={location.PartitionKey}&r={location.RowKey}&code={AppSettings.InternalApiKey}";
 
 		var response = default(HttpResponseMessage);
 

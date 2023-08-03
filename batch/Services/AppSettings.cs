@@ -25,4 +25,7 @@ internal static class AppSettings
 	public static string SmtpLogin => smtpLogin;
 	private static string smtpPassword = Environment.GetEnvironmentVariable("SMTP_PASSWORD") ?? throw new Exception("SMTP_PASSWORD variable not set");
 	public static string SmtpPassword => smtpPassword;
+
+	private static string internalApiKey = Environment.GetEnvironmentVariable("INTERNAL_API_KEY") ?? throw new Exception("INTERNAL_API_KEY variable not set");
+	public static string InternalApiKey => internalApiKey;
 }

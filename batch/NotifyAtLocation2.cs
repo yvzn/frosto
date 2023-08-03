@@ -190,7 +190,7 @@ public static class NotifyAtLocation2
 
 		log.LogInformation("Scheduling notification to <{Users}> on {ChannelName} channel", users, channel);
 
-		var requestUri = $"http://{Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME")}/api/SendNotification2?c={channel}";
+		var requestUri = $"http://{Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME")}/api/SendNotification2?c={channel}&code={AppSettings.InternalApiKey}";
 
 		var response = default(HttpResponseMessage);
 
