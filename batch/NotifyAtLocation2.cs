@@ -25,7 +25,7 @@ public static class NotifyAtLocation2
 	private static readonly decimal threshold = 1.0m;
 #endif
 
-	private static HttpClient httpClient = new();
+	private static readonly HttpClient httpClient = new();
 
 	[FunctionName("NotifyAtLocation2")]
 	public static async Task<IActionResult> RunAsync(
@@ -42,7 +42,7 @@ public static class NotifyAtLocation2
 			return new BadRequestResult();
 		}
 
-		var query = () => tableClient.GetEntityAsync<LocationEntity>(entityKey.PartitionKey, entityKey.RowKey);
+		Task<Azure.Response<LocationEntity>> query() => tableClient.GetEntityAsync<LocationEntity>(entityKey.PartitionKey, entityKey.RowKey);
 		var location = await RetryPolicy.ForDataAccessAsync.ExecuteAsync(query);
 
 		var response = location.GetRawResponse();
@@ -125,7 +125,7 @@ public static class NotifyAtLocation2
 
 		try
 		{
-			var request = () => httpClient.GetAsync(requestUri);
+			Task<HttpResponseMessage> request() => httpClient.GetAsync(requestUri);
 			response = await RetryPolicy.ForExternalHttpAsync.ExecuteAsync(request);
 		}
 		catch (Exception ex)
@@ -190,13 +190,13 @@ public static class NotifyAtLocation2
 
 		log.LogInformation("Scheduling notification to <{Users}> on {ChannelName} channel", users, channel);
 
-		var requestUri = $"http://{Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME")}/api/SendNotification2?c={channel}&code={AppSettings.InternalApiKey}";
+		var requestUri = new InternalRequestUri("SendNotification2", new() { { "c", channel } });
 
 		var response = default(HttpResponseMessage);
 
 		try
 		{
-			var request = () => httpClient.PostAsJsonAsync(requestUri, notification);
+			Task<HttpResponseMessage> request() => httpClient.PostAsJsonAsync(requestUri.AbsoluteUri, notification);
 			response = await RetryPolicy.ForInternalHttpAsync.ExecuteAsync(request);
 
 			if (!response.IsSuccessStatusCode && response.StatusCode != HttpStatusCode.BadGateway)

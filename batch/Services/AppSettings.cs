@@ -4,28 +4,34 @@ namespace batch.Services;
 
 internal static class AppSettings
 {
-	private static string weatherApiUrl = System.Environment.GetEnvironmentVariable("OPEN_METEO_API_URL") ?? throw new Exception("OPEN_METEO_API_URL variable not set");
+	private static readonly string weatherApiUrl = TryGetEnvironmentVariable("OPEN_METEO_API_URL");
 	public static string WeatherApiUrl => weatherApiUrl;
 
-	private static string sendMailApiUrl = Environment.GetEnvironmentVariable("SEND_MAIL_API_URL") ?? throw new Exception("SEND_MAIL_API_URL variable not set");
+	private static readonly string sendMailApiUrl = TryGetEnvironmentVariable("SEND_MAIL_API_URL");
 	public static string SendMailApiUrl => sendMailApiUrl;
 
-	private static string tipiMailApiUrl = Environment.GetEnvironmentVariable("TIPI_MAIL_API_URL") ?? throw new Exception("TIPI_MAIL_API_URL variable not set");
+	private static readonly string tipiMailApiUrl = TryGetEnvironmentVariable("TIPI_MAIL_API_URL");
 	public static string TipiMailApiUrl => tipiMailApiUrl;
 
-	private static string tipiMailApiUser = Environment.GetEnvironmentVariable("TIPI_MAIL_API_USER") ?? throw new Exception("TIPI_MAIL_API_USER variable not set");
+	private static readonly string tipiMailApiUser = TryGetEnvironmentVariable("TIPI_MAIL_API_USER");
 	public static string TipiMailApiUser => tipiMailApiUser;
 
-	private static string tipiMailApiKey = Environment.GetEnvironmentVariable("TIPI_MAIL_API_KEY") ?? throw new Exception("TIPI_MAIL_API_KEY variable not set");
+	private static readonly string tipiMailApiKey = TryGetEnvironmentVariable("TIPI_MAIL_API_KEY");
 	public static string TipiMailApiKey => tipiMailApiKey;
 
-	private static string smtpUrl = Environment.GetEnvironmentVariable("SMTP_URL") ?? throw new Exception("SMTP_URL variable not set");
+	private static readonly string smtpUrl = TryGetEnvironmentVariable("SMTP_URL");
 	public static string SmtpUrl => smtpUrl;
-	private static string smtpLogin = Environment.GetEnvironmentVariable("SMTP_LOGIN") ?? throw new Exception("SMTP_LOGIN variable not set");
+	private static readonly string smtpLogin = TryGetEnvironmentVariable("SMTP_LOGIN");
 	public static string SmtpLogin => smtpLogin;
-	private static string smtpPassword = Environment.GetEnvironmentVariable("SMTP_PASSWORD") ?? throw new Exception("SMTP_PASSWORD variable not set");
+	private static readonly string smtpPassword = TryGetEnvironmentVariable("SMTP_PASSWORD");
 	public static string SmtpPassword => smtpPassword;
 
-	private static string internalApiKey = Environment.GetEnvironmentVariable("INTERNAL_API_KEY") ?? throw new Exception("INTERNAL_API_KEY variable not set");
+	private static readonly string internalApiKey = TryGetEnvironmentVariable("INTERNAL_API_KEY");
 	public static string InternalApiKey => internalApiKey;
+
+	private static readonly string internalProtocol = TryGetEnvironmentVariable("INTERNAL_PROTOCOL");
+	public static string InternalProtocol => internalProtocol;
+
+	private static string TryGetEnvironmentVariable(string variable)
+		=> Environment.GetEnvironmentVariable(variable) ?? throw new Exception($"{variable} variable not set");
 }

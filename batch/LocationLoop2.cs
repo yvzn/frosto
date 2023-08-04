@@ -14,9 +14,9 @@ namespace batch;
 
 public class LocationLoop2
 {
-	private static Random random = new();
+	private static readonly Random random = new();
 
-	private static HttpClient httpClient = new();
+	private static readonly HttpClient httpClient = new();
 
 	[FunctionName("LocationLoop2")]
 	public static async Task RunAsync(
@@ -40,7 +40,7 @@ public class LocationLoop2
 		locationFilter = location => location.uat == true;
 #endif
 
-		var query = () => tableClient.QueryAsync<LocationEntity>(locationFilter);
+		Azure.AsyncPageable<LocationEntity> query() => tableClient.QueryAsync(locationFilter);
 		var validLocations = RetryPolicy.ForDataAccess.Execute(query);
 
 		int locationIndex = -1;
@@ -62,7 +62,7 @@ public class LocationLoop2
 
 		log.LogInformation("Scheduling location {City} {Country} for weather", location.city, location.country);
 
-		var requestUri = $"http://{Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME")}/api/NotifyAtLocation2?p={location.PartitionKey}&r={location.RowKey}&code={AppSettings.InternalApiKey}";
+		var requestUri = new InternalRequestUri("NotifyAtLocation2", new() { { "p", location.PartitionKey }, { "r", location.RowKey } });
 
 		var response = default(HttpResponseMessage);
 
@@ -71,7 +71,7 @@ public class LocationLoop2
 			var visibilityTimeout = TimeSpan.FromMilliseconds(1_000 * locationIndex + random.Next(500));
 			await Task.Delay(visibilityTimeout, CancellationToken.None);
 
-			var request = () => httpClient.GetAsync(requestUri);
+			Task<HttpResponseMessage> request() => httpClient.GetAsync(requestUri.AbsoluteUri);
 			response = await RetryPolicy.ForInternalHttpAsync.ExecuteAsync(request);
 
 			if (!response.IsSuccessStatusCode && response.StatusCode != HttpStatusCode.BadGateway)
