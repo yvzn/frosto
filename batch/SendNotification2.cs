@@ -22,7 +22,7 @@ namespace batch;
 
 public static class SendNotification2
 {
-	private static HttpClient httpClient = new();
+	private static readonly HttpClient httpClient = new();
 
 	internal static ISet<string> channels = new HashSet<string>() { "default", "tipimail", "smtp" };
 
@@ -33,8 +33,6 @@ public static class SendNotification2
 		ILogger log)
 	{
 		var notification = default(Notification);
-		var channel = default(string);
-
 		try
 		{
 			notification = await DecodeAsync(req);
@@ -50,7 +48,7 @@ public static class SendNotification2
 			return new BadRequestResult();
 		}
 
-		channel = Decode(req);
+		var channel = Decode(req);
 		if (channel is null)
 		{
 			log.LogWarning("Skip sending notification {NotificationSubject} to <{Users}> on {ChannelName} channel : invalid channel", notification?.subject, string.Join(" ", notification?.to ?? Array.Empty<string>()), channel);
@@ -82,7 +80,7 @@ public static class SendNotification2
 		=> !string.IsNullOrWhiteSpace(notification.body)
 			&& !string.IsNullOrWhiteSpace(notification.raw)
 			&& !string.IsNullOrWhiteSpace(notification.subject)
-			&& notification.to.Where(user => !string.IsNullOrWhiteSpace(user)).Count() > 0;
+			&& notification.to.Where(user => !string.IsNullOrWhiteSpace(user)).Any();
 
 	private static async Task<bool> SendNotificationAsync(Notification notification, string channel, ILogger log)
 	{
@@ -124,14 +122,14 @@ public static class SendNotification2
 	{
 		var message = new
 		{
-			subject = notification.subject,
-			body = notification.body,
-			to = notification.to,
+			notification.subject,
+			notification.body,
+			notification.to,
 		};
 
 		var requestContent = new StringContent(JsonSerializer.Serialize(message), Encoding.UTF8, "application/json");
 
-		var request = () => httpClient.PostAsync(AppSettings.SendMailApiUrl, requestContent);
+		Task<HttpResponseMessage> request() => httpClient.PostAsync(AppSettings.SendMailApiUrl, requestContent);
 		var response = await RetryPolicy.ForExternalHttpAsync.ExecuteAsync(request);
 
 		if (!response.IsSuccessStatusCode)
@@ -155,7 +153,7 @@ public static class SendNotification2
 					address = "yvan@alertegelee.fr",
 					personalName = "Yvan de Alertegelee.fr"
 				},
-				subject = notification.subject,
+				notification.subject,
 				text = notification.raw,
 				html = notification.body,
 			},
@@ -166,7 +164,7 @@ public static class SendNotification2
 		requestContent.Headers.Add("X-Tipimail-ApiUser", AppSettings.TipiMailApiUser);
 		requestContent.Headers.Add("X-Tipimail-ApiKey", AppSettings.TipiMailApiKey);
 
-		var request = () => httpClient.PostAsync(AppSettings.TipiMailApiUrl, requestContent);
+		Task<HttpResponseMessage> request() => httpClient.PostAsync(AppSettings.TipiMailApiUrl, requestContent);
 		var response = await RetryPolicy.ForExternalHttpAsync.ExecuteAsync(request);
 
 		if (!response.IsSuccessStatusCode)
@@ -199,9 +197,11 @@ public static class SendNotification2
 
 		var headers = new HeaderId[] { HeaderId.From, HeaderId.Subject, HeaderId.To };
 
-		var builder = new BodyBuilder();
-		builder.TextBody = notification.raw;
-		builder.HtmlBody = notification.body;
+		var builder = new BodyBuilder
+		{
+			TextBody = notification.raw,
+			HtmlBody = notification.body
+		};
 
 		message.Body = builder.ToMessageBody();
 		message.Prepare(EncodingConstraint.SevenBit);
@@ -209,7 +209,7 @@ public static class SendNotification2
 		Signer.Sign(message, headers);
 
 		// Sending the email
-		var sendmail = async () =>
+		async Task<string?> sendmail()
 		{
 			using var client = new SmtpClient();
 
@@ -222,7 +222,7 @@ public static class SendNotification2
 			await client.DisconnectAsync(true);
 
 			return response;
-		};
+		}
 
 		var response = await RetryPolicy.ForSmtpAsync.ExecuteAsync(sendmail);
 
