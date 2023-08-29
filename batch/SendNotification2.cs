@@ -24,12 +24,13 @@ public static class SendNotification2
 {
 	private static readonly HttpClient httpClient = new();
 
-	internal static ISet<string> channels = new HashSet<string>() { "default", "tipimail", "smtp" };
+	internal static ISet<string> channels = new HashSet<string>() { "default", "api", "tipimail", "smtp" };
 
 	[FunctionName("SendNotification2")]
 	public static async Task<IActionResult> RunAsync(
 		[HttpTrigger(AuthorizationLevel.Function, "post", Route = null)]
 		HttpRequest req,
+		ExecutionContext ctx,
 		ILogger log)
 	{
 		var notification = default(Notification);
@@ -57,7 +58,7 @@ public static class SendNotification2
 
 		try
 		{
-			_ = await SendNotificationAsync(notification, channel, log);
+			_ = await SendNotificationAsync(notification, channel, ctx, log);
 			return new OkResult();
 		}
 		catch (Exception)
@@ -82,7 +83,7 @@ public static class SendNotification2
 			&& !string.IsNullOrWhiteSpace(notification.subject)
 			&& notification.to.Where(user => !string.IsNullOrWhiteSpace(user)).Any();
 
-	private static async Task<bool> SendNotificationAsync(Notification notification, string channel, ILogger log)
+	private static async Task<bool> SendNotificationAsync(Notification notification, string channel, ExecutionContext ctx, ILogger log)
 	{
 		var users = string.Join(" ", notification.to);
 
@@ -94,7 +95,7 @@ public static class SendNotification2
 		try
 		{
 			var sendMailFunction = SelectSendMailCallback(channel);
-			(success, error) = await sendMailFunction.Invoke(notification);
+			(success, error) = await sendMailFunction.Invoke(notification, ctx);
 		}
 		catch (Exception ex)
 		{
@@ -110,15 +111,16 @@ public static class SendNotification2
 		return success;
 	}
 
-	private static Func<Notification, Task<(bool success, string? error)>> SelectSendMailCallback(string channel)
+	private static Func<Notification, ExecutionContext, Task<(bool success, string? error)>> SelectSendMailCallback(string channel)
 		=> channel switch
 		{
-			"tipimail" => SendNotification2.SendTipiMailAsync,
-			"smtp" => SendNotification2.SendMailSmtpAsync,
-			_ => SendNotification2.SendMailDefaultAsync
+			"tipimail" => SendTipiMailAsync,
+			"smtp" => SendMailSmtpAsync,
+			"api" => SendMailApiAsync,
+			_ => SendMailApiAsync
 		};
 
-	private static async Task<(bool success, string? error)> SendMailDefaultAsync(Notification notification)
+	private static async Task<(bool success, string? error)> SendMailApiAsync(Notification notification, ExecutionContext ctx)
 	{
 		var message = new
 		{
@@ -141,7 +143,7 @@ public static class SendNotification2
 		return (true, default);
 	}
 
-	private static async Task<(bool success, string? error)> SendTipiMailAsync(Notification notification)
+	private static async Task<(bool success, string? error)> SendTipiMailAsync(Notification notification, ExecutionContext ctx)
 	{
 		var message = new
 		{
@@ -176,10 +178,12 @@ public static class SendNotification2
 		return (true, default);
 	}
 
-	private static async Task<(bool success, string? error)> SendMailSmtpAsync(Notification notification)
+	private static async Task<(bool success, string? error)> SendMailSmtpAsync(Notification notification, ExecutionContext ctx)
 	{
-		var Signer = new DkimSigner(
-			File.OpenRead("dkim_private.pem"),
+		var privateKey = File.OpenRead($"{ctx.FunctionAppDirectory}{Path.DirectorySeparatorChar}dkim_private.pem");
+
+		var signer = new DkimSigner(
+			privateKey,
 			domain: "alertegelee.fr",
 			selector: "frosto")
 		{
@@ -206,7 +210,7 @@ public static class SendNotification2
 		message.Body = builder.ToMessageBody();
 		message.Prepare(EncodingConstraint.SevenBit);
 
-		Signer.Sign(message, headers);
+		signer.Sign(message, headers);
 
 		// Sending the email
 		async Task<string?> sendmail()

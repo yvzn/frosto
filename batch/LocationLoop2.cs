@@ -20,14 +20,12 @@ public class LocationLoop2
 
 	[FunctionName("LocationLoop2")]
 	public static async Task RunAsync(
-		[TimerTrigger("0 0 4 * 1-5,10-12 *"
-#if true //DEBUG
+		[TimerTrigger("0 0 4 * 1-5,9-12 *"
+#if DEBUG
 			, RunOnStartup=true
 #endif
 		)]
 		TimerInfo timerInfo,
-		[Table("validlocation", Connection = "ALERTS_CONNECTION_STRING")]
-		TableClient tableClient,
 		ILogger log)
 	{
 #if DEBUG
@@ -39,6 +37,8 @@ public class LocationLoop2
 #if true //DEBUG
 		locationFilter = location => location.uat == true;
 #endif
+
+		var tableClient = new TableClient(AppSettings.AlertsConnectionString, "validlocation");
 
 		Azure.AsyncPageable<LocationEntity> query() => tableClient.QueryAsync(locationFilter);
 		var validLocations = RetryPolicy.ForDataAccess.Execute(query);

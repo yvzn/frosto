@@ -31,8 +31,6 @@ public static class NotifyAtLocation2
 	public static async Task<IActionResult> RunAsync(
 		[HttpTrigger(AuthorizationLevel.Function, "get", Route = null)]
 		HttpRequest req,
-		[Table("validlocation", Connection = "ALERTS_CONNECTION_STRING")]
-		TableClient tableClient,
 		ILogger log)
 	{
 		var entityKey = Decode(req);
@@ -41,6 +39,8 @@ public static class NotifyAtLocation2
 			log.LogError("Failed to decode location p={PartitionKey} r={RowKey}", req.Query["p"], req.Query["r"]);
 			return new BadRequestResult();
 		}
+
+		var tableClient = new TableClient(AppSettings.AlertsConnectionString, "validlocation");
 
 		Task<Azure.Response<LocationEntity>> query() => tableClient.GetEntityAsync<LocationEntity>(entityKey.PartitionKey, entityKey.RowKey);
 		var location = await RetryPolicy.ForDataAccessAsync.ExecuteAsync(query);
@@ -101,7 +101,7 @@ public static class NotifyAtLocation2
 
 
 			string channel = "default";
-			if (SendNotification2.channels.Contains(location.channel ?? "") && !string.IsNullOrEmpty(location.channel))
+			if (!string.IsNullOrEmpty(location.channel) && SendNotification2.channels.Contains(location.channel))
 			{
 				channel = location.channel;
 			}

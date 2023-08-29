@@ -32,6 +32,9 @@ internal static class AppSettings
 	private static readonly string internalProtocol = TryGetEnvironmentVariable("INTERNAL_PROTOCOL");
 	public static string InternalProtocol => internalProtocol;
 
+	private static readonly string alertsConnectionString = TryGetEnvironmentVariable("ALERTS_CONNECTION_STRING");
+	public static string AlertsConnectionString => alertsConnectionString;
+
 	private static string TryGetEnvironmentVariable(string variable)
 		=> Environment.GetEnvironmentVariable(variable) ?? throw new Exception($"{variable} variable not set");
 }
