@@ -34,7 +34,7 @@ public class LocationLoop2
 
 		Expression<Func<LocationEntity, bool>> locationFilter = _ => true;
 
-#if true //DEBUG
+#if DEBUG
 		locationFilter = location => location.uat == true;
 #endif
 

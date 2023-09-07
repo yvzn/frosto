@@ -19,7 +19,7 @@ namespace batch;
 
 public static class NotifyAtLocation2
 {
-#if true //DEBUG
+#if DEBUG
 	private static readonly decimal threshold = 20.0m;
 #else
 	private static readonly decimal threshold = 1.0m;

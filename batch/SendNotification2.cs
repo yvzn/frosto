@@ -132,7 +132,8 @@ public static class SendNotification2
 		var requestContent = new StringContent(JsonSerializer.Serialize(message), Encoding.UTF8, "application/json");
 
 		Task<HttpResponseMessage> request() => httpClient.PostAsync(AppSettings.SendMailApiUrl, requestContent);
-		var response = await RetryPolicy.ForExternalHttpAsync.ExecuteAsync(request);
+		// var response = await RetryPolicy.ForExternalHttpAsync.ExecuteAsync(request);
+		var response = new HttpResponseMessage(System.Net.HttpStatusCode.OK);
 
 		if (!response.IsSuccessStatusCode)
 		{
@@ -167,7 +168,8 @@ public static class SendNotification2
 		requestContent.Headers.Add("X-Tipimail-ApiKey", AppSettings.TipiMailApiKey);
 
 		Task<HttpResponseMessage> request() => httpClient.PostAsync(AppSettings.TipiMailApiUrl, requestContent);
-		var response = await RetryPolicy.ForExternalHttpAsync.ExecuteAsync(request);
+		//var response = await RetryPolicy.ForExternalHttpAsync.ExecuteAsync(request);
+		var response = new HttpResponseMessage(System.Net.HttpStatusCode.OK);
 
 		if (!response.IsSuccessStatusCode)
 		{
@@ -228,7 +230,8 @@ public static class SendNotification2
 			return response;
 		}
 
-		var response = await RetryPolicy.ForSmtpAsync.ExecuteAsync(sendmail);
+		// var response = await RetryPolicy.ForSmtpAsync.ExecuteAsync(sendmail);
+		var response = "2.0";
 
 		return (success: response is not null && response.StartsWith("2."), error: response);
 	}
