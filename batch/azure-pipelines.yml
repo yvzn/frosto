@@ -4,7 +4,7 @@ variables:
 trigger:
   branches:
     include:
-    - split-http-batch
+    - main
   paths:
     include:
     - batch
