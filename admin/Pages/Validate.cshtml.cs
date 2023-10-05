@@ -2,6 +2,7 @@ using admin.Models;
 using admin.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace admin
 {
@@ -20,6 +21,8 @@ namespace admin
 
 		[BindProperty]
 		public Location ValidLocation { get; set; } = new();
+
+		public SelectList ChannelOptions { get; set; } = new(new[] { "", "api", "smtp", "default", "tipimail" });
 
 		public async Task OnGetAsync(string id)
 		{

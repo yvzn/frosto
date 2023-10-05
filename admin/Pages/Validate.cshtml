@@ -68,7 +68,7 @@
 		</div>
 		<div class="form-group mb-3">
 			<label asp-for="ValidLocation.channel" class="form-label"></label>
-			<input asp-for="ValidLocation.channel" class="form-control" />
+			<select asp-for="ValidLocation.channel" asp-items="Model.ChannelOptions" class="form-select"></select>
 		</div>
 
 		<input asp-for="ValidLocation.Id" />

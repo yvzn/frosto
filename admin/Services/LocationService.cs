@@ -7,10 +7,9 @@ public class LocationService
 {
 	private readonly TableClient _validLocationTableClient;
 	private readonly TableClient _locationTableClient;
-	private readonly ILogger<LocationService> _logger;
 	public DateTimeOffset? LastUpdate { get; private set; } = default;
 
-	public LocationService(IConfiguration configuration, ILogger<LocationService> logger)
+	public LocationService(IConfiguration configuration)
 	{
 		_validLocationTableClient = new TableClient(
 			configuration.GetConnectionString("Alerts"),
@@ -18,7 +17,6 @@ public class LocationService
 		_locationTableClient = new TableClient(
 			configuration.GetConnectionString("Alerts"),
 			tableName: "location");
-		_logger = logger;
 	}
 
 	public async Task<Location?> GetLocationAsync(string id, CancellationToken cancellationToken)
@@ -95,8 +93,8 @@ public class LocationService
 		var validLocationEntity = entity.Value;
 
 		validLocationEntity.city = validLocation.city.Trim();
-		validLocationEntity.country = validLocation.country.Trim()[0].ToString().ToUpper() + validLocation.country.Trim().Substring(1).ToLower();
-		validLocationEntity.coordinates = validLocation.coordinates.Trim();
+		validLocationEntity.country = validLocation.country.Trim()[0].ToString().ToUpper() + validLocation.country.Trim()[1..].ToLower();
+		validLocationEntity.coordinates = validLocation.coordinates.Replace(" ", "");
 		validLocationEntity.users = validLocation.users.Trim();
 		validLocationEntity.channel = string.IsNullOrWhiteSpace(validLocation.channel) ? default : validLocation.channel.Trim().ToLower();
 		validLocationEntity.PartitionKey = validLocationEntity.country;
@@ -147,7 +145,7 @@ public class LocationService
 					},
 					properties = new
 					{
-						city = city,
+						city,
 					}
 				});
 			}
@@ -156,7 +154,7 @@ public class LocationService
 		return new
 		{
 			type = "FeatureCollection",
-			features = features
+			features
 		};
 	}
 }

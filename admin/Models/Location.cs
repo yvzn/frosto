@@ -13,7 +13,7 @@ public class Location
 	[DisplayName("Country")]
 	public string country { get; set; } = "";
 	[Required]
-	[RegularExpression(@"^-?[\d\.]+,-?[\d\.]+$")]
+	[RegularExpression(@"^-?[\d\.]+,\s*-?[\d\.]+$")]
 	[DisplayName("Coordinates")]
 	public string coordinates { get; set; } = "";
 	[Required]
