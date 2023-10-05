@@ -1,11 +1,15 @@
 {
-    "azureFunctions.deploySubpath": "api/bin/Release/net6.0/publish",
-    "azureFunctions.projectLanguage": "C#",
-    "azureFunctions.projectRuntime": "~4",
-    "debug.internalConsoleOptions": "neverOpen",
-    "azureFunctions.preDeployTask": "publish (functions)",
-    "files.watcherExclude": {
-        "**/bin/**": true,
-        "**/obj/**": true
-    }
+	"azureFunctions.deploySubpath": "batch/bin/Release/net6.0/publish",
+	"azureFunctions.projectLanguage": "C#",
+	"azureFunctions.projectRuntime": "~4",
+	"debug.internalConsoleOptions": "neverOpen",
+	"azureFunctions.preDeployTask": "publish (batch)",
+	"files.watcherExclude": {
+		"**/.git/objects/**": true,
+		"**/.git/subtree-cache/**": true,
+		"**/bin/**": true,
+		"**/obj/**": true,
+		"**/node_modules/**": true
+	},
+	"azureFunctions.projectSubpath": "batch"
 }
