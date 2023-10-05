@@ -35,7 +35,7 @@ jobs:
 
 - deployment: CD
   dependsOn: CI
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/split-http-batch'))
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
   environment: 'Azure'
   strategy:
     runOnce:
