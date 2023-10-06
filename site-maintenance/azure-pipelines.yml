@@ -1,6 +1,3 @@
-variables:
-- group: "maintenance"
-
 trigger:
   branches:
     include:
@@ -15,13 +12,6 @@ pool:
 jobs:
 - job: CI
   steps:
-  - task: PowerShell@2
-    displayName: 'build .env.production file'
-    inputs:
-      targetType: 'inline'
-      # npm will not pick environment variables, use .env files instead
-      script: './build-env-production.ps1 -HomePageUrl $(homePageUrl)'
-      workingDirectory: 'site-maintenance'
   - task: Npm@1
     displayName: 'npm install'
     inputs:
