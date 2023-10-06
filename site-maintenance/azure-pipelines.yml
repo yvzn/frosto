@@ -1,3 +1,6 @@
+variables:
+- group: "maintenance"
+
 trigger:
   branches:
     include:
