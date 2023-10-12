@@ -17,19 +17,14 @@ jobs:
   steps:
   - task: DotNetCoreCLI@2
     inputs:
-      command: 'build'
-      projects: 'batch/*.csproj'
-      arguments: '--configuration Release --arch x64 --os win --no-self-contained'
-  - task: DotNetCoreCLI@2
-    inputs:
       command: 'publish'
       publishWebProjects: false
       projects: 'batch/*.csproj'
       nobuild: true
-      arguments: '--configuration Release --arch x64 --os win --no-self-contained'
+      arguments: '--configuration Release'
   - task: PublishPipelineArtifact@1
     inputs:
-      targetPath: 'batch/bin/Release/net6.0/win-x64/publish.zip'
+      targetPath: 'batch/bin/Release/net6.0/publish.zip'
       publishLocation: 'pipeline'
       artifact: 'batch'
 
@@ -69,7 +64,7 @@ jobs:
         - task: AzureFunctionApp@1
           inputs:
             azureSubscription: '$(azureSubscription)'
-            appType: 'functionApp'
+            appType: 'functionAppLinux'
             appName: '$(batchAppName)'
             package: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
             runtimeStack: 'DOTNET|6.0'
