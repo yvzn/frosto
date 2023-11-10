@@ -6,7 +6,6 @@
 		<LangVersion>10</LangVersion>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="MailKit" Version="4.0.0" />
 		<PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Storage" Version="5.1.1" />
 		<PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Tables" Version="1.1.0" />
 		<PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.1.3" />
