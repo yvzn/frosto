@@ -20,7 +20,7 @@ public class IndexModel : PageModel
 	public async Task OnGetAsync()
 	{
 		NewLocations = (await _locationService.GetNewLocationsAsync(HttpContext.RequestAborted)).OrderByDescending(l => l.Timestamp).ToList();
-		LastUpdate = _locationService.LastUpdate ?? DateTimeOffset.UtcNow.Date.AddDays(1).AddTicks(-1);
+		LastUpdate = (await _locationService.GetLastUpdateAsync(HttpContext.RequestAborted)) ?? DateTimeOffset.UtcNow.Date.AddDays(1).AddTicks(-1);
 		Message = Request.Query["m"];
 	}
 }

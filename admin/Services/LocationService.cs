@@ -7,7 +7,6 @@ public class LocationService
 {
 	private readonly TableClient _validLocationTableClient;
 	private readonly TableClient _locationTableClient;
-	public DateTimeOffset? LastUpdate { get; private set; } = default;
 
 	public LocationService(IConfiguration configuration)
 	{
@@ -41,6 +40,22 @@ public class LocationService
 		return default;
 	}
 
+	public async Task<DateTimeOffset?> GetLastUpdateAsync(CancellationToken cancellationToken)
+	{
+		DateTimeOffset? lastUpdate = default;
+		DateTimeOffset today = DateTimeOffset.UtcNow.Date;
+
+		await foreach (var validLocationEntity in _validLocationTableClient.QueryAsync<LocationEntity>(_ => true, cancellationToken: cancellationToken))
+		{
+			if (validLocationEntity.Timestamp < today && (!lastUpdate.HasValue || validLocationEntity.Timestamp > lastUpdate.Value))
+			{
+				lastUpdate = validLocationEntity.Timestamp;
+			}
+		}
+
+		return lastUpdate;
+	}
+
 	public async Task<IList<Location>> GetNewLocationsAsync(CancellationToken cancellationToken)
 	{
 		DateTimeOffset today = DateTimeOffset.UtcNow.Date;
@@ -49,10 +64,6 @@ public class LocationService
 		await foreach (var validLocationEntity in _validLocationTableClient.QueryAsync<LocationEntity>(_ => true, cancellationToken: cancellationToken))
 		{
 			validLocationKeys.Add((validLocationEntity.PartitionKey?.Trim(), validLocationEntity.RowKey?.Trim()).ToId().ToLower());
-			if (validLocationEntity.Timestamp < today && (!LastUpdate.HasValue || validLocationEntity.Timestamp > LastUpdate.Value))
-			{
-				LastUpdate = validLocationEntity.Timestamp;
-			}
 		}
 
 		var result = new List<Location>();
