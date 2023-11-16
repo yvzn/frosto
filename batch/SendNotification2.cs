@@ -132,7 +132,7 @@ public static class SendNotification2
 		var requestContent = new StringContent(JsonSerializer.Serialize(message), Encoding.UTF8, "application/json");
 
 		Task<HttpResponseMessage> request() => httpClient.PostAsync(AppSettings.SendMailApiUrl, requestContent);
-		var response = await RetryPolicy.ForExternalHttpAsync.ExecuteAsync(request);
+		var response = await RetryPolicy.ForMailApiAsync.ExecuteAsync(request);
 
 		if (!response.IsSuccessStatusCode)
 		{

@@ -16,6 +16,8 @@ internal static class RetryPolicy
 
 	public static IAsyncPolicy ForDataAccessAsync => (IAsyncPolicy)policyRegistry["ForDataAccessAsync"];
 
+	public static IAsyncPolicy<HttpResponseMessage> ForMailApiAsync => (IAsyncPolicy<HttpResponseMessage>)policyRegistry["ForMailApiAsync"];
+
 	public static IAsyncPolicy<string?> ForSmtpAsync => (IAsyncPolicy<string?>)policyRegistry["ForSmtpAsync"];
 
 	private static readonly PolicyRegistry policyRegistry = BuildPolicyRegistry();
@@ -80,6 +82,17 @@ internal static class RetryPolicy
 					.WaitAndRetryAsync(defaultRetry),
 				Policy
 					.TimeoutAsync(defaultTimoutInSeconds)
+			});
+
+		registry["ForMailApiAsync"] = Policy.WrapAsync(
+			new IAsyncPolicy<HttpResponseMessage>[] {
+				Policy
+					.Handle<SocketException>()
+					.Or<HttpRequestException>()
+					.OrResult<HttpResponseMessage>(r => !r.IsSuccessStatusCode)
+					.WaitAndRetryAsync(exponentialBackoff),
+				Policy
+					.TimeoutAsync<HttpResponseMessage>(2 * defaultTimoutInSeconds)
 			});
 
 		registry["ForSmtpAsync"] = Policy.WrapAsync(
