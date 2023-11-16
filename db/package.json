@@ -8,6 +8,6 @@
 	"author": "Yvan Razafindramanana",
 	"license": "MIT",
 	"dependencies": {
-		"azurite": "^3.23.0"
+		"azurite": "^3.27.0"
 	}
 }
