@@ -1,0 +1,56 @@
+trigger:
+  branches:
+    include:
+    - main
+  paths:
+    include:
+    - admin
+
+variables:
+  - group: 'admin'
+  - name: solution
+    value: 'admin/*.csproj'
+  - name: buildPlatform
+    value: 'win-x86'
+  - name: buildConfiguration
+    value: 'Release'
+
+pool:
+  vmImage: ubuntu-latest
+
+jobs:
+- job: CI
+  steps:
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'build'
+      projects: '$(solution)'
+      arguments: '--configuration $(buildConfiguration) -r $(buildPlatform) --no-self-contained'
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'publish'
+      publishWebProjects: false
+      projects: '$(solution)'
+      nobuild: true
+      arguments: '--no-build --configuration $(buildConfiguration) -r $(buildPlatform) --no-self-contained'
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: 'admin/bin/$(buildConfiguration)/net7.0/$(buildPlatform)/publish.zip'
+      publishLocation: 'pipeline'
+      artifact: 'admin'
+
+- deployment: CD
+  dependsOn: CI
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+  environment: 'Azure'
+  strategy:
+    runOnce:
+      deploy:
+        steps:
+        - task: AzureRmWebAppDeployment@4
+          inputs:
+            ConnectionType: 'AzureRM'
+            azureSubscription: '$(azureSubscription)'
+            appType: 'webApp'
+            WebAppName: '$(webAppName)'
+            packageForLinux: '$(Pipeline.Workspace)/admin/*.zip'
