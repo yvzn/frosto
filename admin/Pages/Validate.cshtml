@@ -101,7 +101,8 @@
 	var verificationResult = document.getElementById('valid-location-verification-result');
 	var cityCoordinates = document.getElementById('valid-location-coordinates');
 
-	document.getElementById('valid-location-city').addEventListener('change', onChangeCity);
+	cityInput.addEventListener('change', onChangeCity);
+	countryInput.addEventListener('change', onChangeCity);
 	addEventListener('load', onChangeCity);
 
 	function onChangeCity() {
@@ -116,7 +117,6 @@
 	function notifyDuplicatedEntity() {
 		verificationResult.innerHTML = '<span class="text-danger fs-6">exists</span>';
 	}
-
 
 	function notifyUniqueEntity() {
 		verificationResult.innerHTML = '<span class="text-success fs-6">new</span>';
@@ -138,6 +138,11 @@
 	cityCoordinates.addEventListener('click', pasteFromClipboard);
 
 	function pasteFromClipboard(event) {
-		navigator.clipboard.readText().then(text => event.target.value = text);
+		navigator.clipboard.readText().then(text => {
+			event.target.value = text
+			if (event.target.id == cityInput.id) {
+				onChangeCity();
+			}
+		});
 	}
 </script>
