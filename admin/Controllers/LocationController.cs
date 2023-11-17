@@ -20,4 +20,12 @@ public class LocationController : ControllerBase
 	{
 		return await _locationService.GetValidLocationsGeoJSONAsync(HttpContext.RequestAborted);
 	}
+
+	[HttpGet]
+	[Route("")]
+	public async Task<IActionResult> GetLocationAsync([FromQuery(Name = "city")] string city, [FromQuery(Name = "country")] string country)
+	{
+		var location = await _locationService.FindLocationAsync(city, country, HttpContext.RequestAborted);
+		return location is null ? NotFound() : Ok(location);
+	}
 }

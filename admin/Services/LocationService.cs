@@ -168,5 +168,25 @@ public class LocationService
 			features
 		};
 	}
+
+	internal async Task<object?> FindLocationAsync(string city, string country, CancellationToken cancellationToken)
+	{
+		await foreach (var validLocationEntity in _validLocationTableClient.QueryAsync<LocationEntity>(e => e.city == city && e.country == country, cancellationToken: cancellationToken))
+		{
+			return new Location()
+			{
+				city = validLocationEntity.city ?? "",
+				country = validLocationEntity.country ?? "",
+				coordinates = validLocationEntity.coordinates ?? "",
+				users = validLocationEntity.users ?? "",
+				channel = validLocationEntity.channel ?? "",
+				PartitionKey = validLocationEntity.PartitionKey ?? "",
+				RowKey = validLocationEntity.RowKey ?? "",
+				Timestamp = validLocationEntity.Timestamp,
+			};
+		}
+
+		return default;
+	}
 }
 

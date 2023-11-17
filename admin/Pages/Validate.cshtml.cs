@@ -24,6 +24,8 @@ namespace admin
 
 		public SelectList ChannelOptions { get; set; } = new(new[] { "", "api", "smtp", "default", "tipimail" });
 
+		public ICollection<string> CountryList { get; set; } = new[] { "France", "Belgique", "Algérie", "Canada" };
+
 		public async Task OnGetAsync(string id)
 		{
 			Location = await _locationService.GetLocationAsync(id, HttpContext.RequestAborted) ?? new();
