@@ -11,11 +11,9 @@
 			<label asp-for="Location.city" class="form-label"></label>
 			<div class="input-group">
 				<input asp-for="Location.city" class="form-control" disabled readonly />
-				<div class="input-group-append">
-					<a class="btn btn-outline-secondary"
-						href="https://www.google.com/maps/place/@Model.Location.city.Trim(),+@Model.Location.country.Trim()/"
-						target="_blank" rel="noopener noreferrer">Search</a>
-				</div>
+				<a class="btn btn-outline-secondary"
+					href="https://www.google.com/maps/place/@Model.Location.city.Trim(),+@Model.Location.country.Trim()/"
+					target="_blank" rel="noopener noreferrer">Search</a>
 			</div>
 			<span asp-validation-for="Location.city" class="text-danger"></span>
 		</div>
@@ -49,10 +47,15 @@
 			<label asp-for="ValidLocation.city" class="form-label"></label>
 			<div class="input-group">
 				<input asp-for="ValidLocation.city" class="form-control" id="valid-location-city" />
-				<div class="input-group-append">
-					<div class="input-group-text" id="valid-location-verification-result">
-						<span class="spinner-border spinner-border-sm fs-6 p-2">&nbsp;</span>
-					</div>
+				<div class="input-group-text" id="valid-location-verification-result">
+					@if (Model.ValidLocationExists)
+					{
+						<span class="text-danger fs-6">exists</span>
+					}
+					else
+					{
+						<span class="text-success fs-6">new</span>
+					}
 				</div>
 			</div>
 			<span asp-validation-for="ValidLocation.city" class="text-danger"></span>
@@ -103,7 +106,6 @@
 
 	cityInput.addEventListener('change', onChangeCity);
 	countryInput.addEventListener('change', onChangeCity);
-	addEventListener('load', onChangeCity);
 
 	function onChangeCity() {
 		verificationResult.innerHTML = '<span class="spinner-border spinner-border-sm fs-6 p-2">&nbsp;</span>';
@@ -140,9 +142,7 @@
 	function pasteFromClipboard(event) {
 		navigator.clipboard.readText().then(text => {
 			event.target.value = text
-			if (event.target.id == cityInput.id) {
-				onChangeCity();
-			}
+			event.target.dispatchEvent(new Event("change"));
 		});
 	}
 </script>
