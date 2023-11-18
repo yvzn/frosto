@@ -11,8 +11,8 @@
 @if (!string.IsNullOrWhiteSpace(Model.Message))
 {
 	<div class="alert alert-success" role="alert">
-		@Model.Message
-	</div>
+	@Model.Message
+</div>
 }
 
 <table class="table">
@@ -27,29 +27,45 @@
 		</tr>
 	</thead>
 	<tbody>
-	@foreach (var item in Model.NewLocations)
-	{
-		<tr @(item.Timestamp > Model.LastUpdate ? @"class=table-info" : "" )>
-			<td>
-				@Html.DisplayFor(modelItem => item.city)
-			</td>
-			<td>
-				@Html.DisplayFor(modelItem => item.country)
-			</td>
-			<td>
-				@Html.DisplayFor(modelItem => item.users)
-			</td>
-			<td>
-				@Html.DisplayFor(modelItem => item.Timestamp)
-			</td>
-			<td>
-				<a asp-page="./Validate" asp-route-id="@item.Id">Validate</a>
-			</td>
-		</tr>
-	}
+		@foreach (var item in Model.NewLocations)
+		{
+			<tr @(item.Timestamp > Model.LastUpdate ? @"class=table-info" : "")>
+				<td>
+					<input type="checkbox" name="location" aria-label="Mark as complete" />
+				</td>
+				<td>
+					@Html.DisplayFor(modelItem => item.city)
+				</td>
+				<td>
+					@Html.DisplayFor(modelItem => item.country)
+				</td>
+				<td>
+					@Html.DisplayFor(modelItem => item.users)
+				</td>
+				<td>
+					@Html.DisplayFor(modelItem => item.Timestamp)
+				</td>
+				<td>
+					<a asp-page="./Validate" asp-route-id="@item.Id">Validate</a>
+				</td>
+			</tr>
+		}
 	</tbody>
 </table>
 
 <footer>
 	Last update: @Model.LastUpdate
 </footer>
+
+<script>
+	addEventListener('load', function () {
+		for (var checkbox of document.querySelectorAll('input[type=checkbox]')) {
+			checkbox.addEventListener('click', onLocationChecked);
+		}
+	});
+
+	function onLocationChecked(event) {
+		var checkbox = event.target;
+		checkbox.closest('tr')?.classList.toggle('table-info');
+	}
+</script>
