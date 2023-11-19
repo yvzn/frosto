@@ -98,6 +98,18 @@
 	</div>
 </div>
 
+<div class="row">
+	<form method="post" class="p-5 my-5 border rounded-3 border-danger bg-danger-subtle">
+		<h2 class="text-danger mb-3">Danger zone</h2>
+
+		<details>
+			<summary>Sensitive actions:</summary>
+			<input asp-for="ValidLocation.Id" />
+			<button type="submit" class="btn btn-danger mt-3" asp-page-handler="Discard">Discard</button>
+		</details>
+	</form>
+</div>
+
 <script>
 	var cityInput = document.getElementById('valid-location-city');
 	var countryInput = document.getElementById('valid-location-country');

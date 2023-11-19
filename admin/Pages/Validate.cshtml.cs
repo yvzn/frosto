@@ -55,5 +55,11 @@ namespace admin
 
 			return RedirectToPage("./Index", new { m = $"Updated {ValidLocation?.city} ({ValidLocation?.RowKey})" });
 		}
+
+		public async Task<IActionResult> OnPostDiscardAsync() {
+			_logger.LogInformation("Discarding sign-up {LocationId}", ValidLocation?.Id);
+			await _signUpService.DeleteSignUpAsync(ValidLocation?.Id, HttpContext.RequestAborted);
+			return RedirectToPage("./Index", new { m = $"Sign-Up discarded {ValidLocation?.city} ({ValidLocation?.RowKey})" });
+		}
 	}
 }
