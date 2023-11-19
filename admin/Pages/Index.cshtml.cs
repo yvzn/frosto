@@ -6,21 +6,19 @@ namespace admin.Pages;
 
 public class IndexModel : PageModel
 {
-	private LocationService _locationService;
+	private SignUpService _signUpService;
 
-	public IndexModel(LocationService locationService)
+	public IndexModel(SignUpService signUpService)
 	{
-		_locationService = locationService;
+		_signUpService = signUpService;
 	}
 
-	public IEnumerable<Location> NewLocations { get; private set; } = Array.Empty<Location>();
-	public DateTimeOffset LastUpdate { get; private set; } = default;
+	public IEnumerable<SignUp> NewSignUps { get; private set; } = Array.Empty<SignUp>();
 	public string? Message { get; private set; } = string.Empty;
 
 	public async Task OnGetAsync()
 	{
-		NewLocations = (await _locationService.GetNewLocationsAsync(HttpContext.RequestAborted)).OrderByDescending(l => l.Timestamp).ToList();
-		LastUpdate = (await _locationService.GetLastUpdateAsync(HttpContext.RequestAborted)) ?? DateTimeOffset.UtcNow.Date.AddDays(1).AddTicks(-1);
+		NewSignUps = (await _signUpService.GetNewSignUpsAsync(HttpContext.RequestAborted)).OrderByDescending(l => l.Timestamp).ToList();
 		Message = Request.Query["m"];
 	}
 }

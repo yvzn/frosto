@@ -5,7 +5,7 @@
 }
 
 <div class="text-center">
-	<h1 class="display-4">New locations</h1>
+	<h1 class="display-4">Sign-ups</h1>
 </div>
 
 @if (!string.IsNullOrWhiteSpace(Model.Message))
@@ -16,31 +16,28 @@
 }
 
 <table class="table">
-	<caption>@Model.NewLocations.Count() items</caption>
+	<caption>@Model.NewSignUps.Count() items</caption>
 	<thead>
 		<tr>
+			<td></td>
 			<th>City</th>
 			<th>Country</th>
-			<th>Users</th>
 			<th>Last Modified</th>
 			<td></td>
 		</tr>
 	</thead>
 	<tbody>
-		@foreach (var item in Model.NewLocations)
+		@foreach (var item in Model.NewSignUps)
 		{
-			<tr @(item.Timestamp > Model.LastUpdate ? @"class=table-info" : "")>
+			<tr class="table-info">
 				<td>
-					<input type="checkbox" name="location" aria-label="Mark as complete" />
+					<input type="checkbox" name="location" checked aria-label="Mark as active" />
 				</td>
 				<td>
 					@Html.DisplayFor(modelItem => item.city)
 				</td>
 				<td>
 					@Html.DisplayFor(modelItem => item.country)
-				</td>
-				<td>
-					@Html.DisplayFor(modelItem => item.users)
 				</td>
 				<td>
 					@Html.DisplayFor(modelItem => item.Timestamp)
@@ -52,10 +49,6 @@
 		}
 	</tbody>
 </table>
-
-<footer>
-	Last update: @Model.LastUpdate
-</footer>
 
 <script>
 	addEventListener('load', function () {

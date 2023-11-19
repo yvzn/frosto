@@ -40,57 +40,6 @@ public class LocationService
 		return default;
 	}
 
-	public async Task<DateTimeOffset?> GetLastUpdateAsync(CancellationToken cancellationToken)
-	{
-		DateTimeOffset? lastUpdate = default;
-		DateTimeOffset today = DateTimeOffset.UtcNow.Date;
-
-		await foreach (var validLocationEntity in _validLocationTableClient.QueryAsync<LocationEntity>(_ => true, cancellationToken: cancellationToken))
-		{
-			if (validLocationEntity.Timestamp < today && (!lastUpdate.HasValue || validLocationEntity.Timestamp > lastUpdate.Value))
-			{
-				lastUpdate = validLocationEntity.Timestamp;
-			}
-		}
-
-		return lastUpdate;
-	}
-
-	public async Task<IList<Location>> GetNewLocationsAsync(CancellationToken cancellationToken)
-	{
-		DateTimeOffset today = DateTimeOffset.UtcNow.Date;
-
-		var validLocationKeys = new HashSet<string>();
-		await foreach (var validLocationEntity in _validLocationTableClient.QueryAsync<LocationEntity>(_ => true, cancellationToken: cancellationToken))
-		{
-			validLocationKeys.Add((validLocationEntity.PartitionKey?.Trim(), validLocationEntity.RowKey?.Trim()).ToId().ToLower());
-		}
-
-		var result = new List<Location>();
-
-		await foreach (var locationEntity in _locationTableClient.QueryAsync<LocationEntity>(_ => true, cancellationToken: cancellationToken))
-		{
-			if (validLocationKeys.Contains((locationEntity.PartitionKey?.Trim(), locationEntity.RowKey?.Trim()).ToId().ToLower()))
-			{
-				continue;
-			}
-
-			result.Add(new()
-			{
-				city = locationEntity.city ?? "",
-				country = locationEntity.country ?? "",
-				coordinates = locationEntity.coordinates ?? "",
-				users = locationEntity.users ?? "",
-				channel = locationEntity.channel ?? "",
-				PartitionKey = locationEntity.PartitionKey ?? "",
-				RowKey = locationEntity.RowKey ?? "",
-				Timestamp = locationEntity.Timestamp,
-			});
-		}
-
-		return result;
-	}
-
 	internal async Task<bool> PutValidLocationAsync(Location? validLocation, CancellationToken cancellationToken)
 	{
 		if (validLocation is null)
@@ -169,7 +118,7 @@ public class LocationService
 		};
 	}
 
-	internal async Task<object?> FindLocationAsync(string city, string country, CancellationToken cancellationToken)
+	internal async Task<Location?> FindLocationAsync(string city, string country, CancellationToken cancellationToken)
 	{
 		await foreach (var validLocationEntity in _validLocationTableClient.QueryAsync<LocationEntity>(e => e.city == city && e.country == country, cancellationToken: cancellationToken))
 		{
