@@ -7,6 +7,7 @@ namespace admin.Models;
 public class Location
 {
 	[Required]
+	[RegularExpression(@"^[^\d]+$")]
 	[DisplayName("City")]
 	public string city { get; set; } = "";
 	[Required]

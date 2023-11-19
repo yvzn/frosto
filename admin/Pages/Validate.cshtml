@@ -153,8 +153,10 @@
 
 	function pasteFromClipboard(event) {
 		navigator.clipboard.readText().then(text => {
-			event.target.value = text
-			event.target.dispatchEvent(new Event("change"));
+			if (!event.target.dataset.valRegexPattern || new RegExp(event.target.dataset.valRegexPattern).exec(text)) {
+				event.target.value = text
+				event.target.dispatchEvent(new Event("change"));
+			}
 		});
 	}
 </script>
