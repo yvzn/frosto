@@ -22,6 +22,8 @@ public static class SignUp
 		IAsyncCollector<LocationEntity> locationEntities,
 		[Table("user", Connection = "ALERTS_CONNECTION_STRING")]
 		IAsyncCollector<UserEntity> userEntities,
+		[Table("signup", Connection = "ALERTS_CONNECTION_STRING")]
+		IAsyncCollector<SignUpEntity> signUpEntities,
 		ILogger log)
 	{
 		var requestBody = await new StreamReader(request.Body).ReadToEndAsync();
@@ -32,11 +34,18 @@ public static class SignUp
 		}
 
 		var locationEntity = ParseLocationEntity(requestParams);
-		await locationEntities.AddAsync(locationEntity);
 
 		var userEntity = ParseUserEntity(requestParams);
 		userEntity.PartitionKey = locationEntity.RowKey;
-		await userEntities.AddAsync(userEntity);
+
+		var signUpEntity = ParseSignUpEntity(requestParams);
+		signUpEntity.RowKey = locationEntity.RowKey;
+
+		await Task.WhenAll(
+			locationEntities.AddAsync(locationEntity),
+			userEntities.AddAsync(userEntity),
+			signUpEntities.AddAsync(signUpEntity)
+		);
 
 		return new RedirectResult(AppSettings.SiteUrl + "sign-up-complete.html");
 	}
@@ -64,5 +73,14 @@ public static class SignUp
 			RowKey = Guid.NewGuid().ToString(),
 			email = requestParams["email"],
 			userConsent = requestParams["userConsent"],
+		};
+
+	private static SignUpEntity ParseSignUpEntity(NameValueCollection requestParams)
+		=> new SignUpEntity
+		{
+			PartitionKey = requestParams["country"],
+			RowKey = default,
+			city = requestParams["city"],
+			country = requestParams["country"],
 		};
 }
