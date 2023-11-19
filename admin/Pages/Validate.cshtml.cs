@@ -9,11 +9,13 @@ namespace admin
 	public class ValidateModel : PageModel
 	{
 		private readonly LocationService _locationService;
+		private readonly SignUpService _signUpService;
 		private readonly ILogger<ValidateModel> _logger;
 
-		public ValidateModel(LocationService locationService, ILogger<ValidateModel> logger)
+		public ValidateModel(LocationService locationService, SignUpService signUpService, ILogger<ValidateModel> logger)
 		{
 			_locationService = locationService;
+			_signUpService = signUpService;
 			_logger = logger;
 		}
 
@@ -49,6 +51,7 @@ namespace admin
 
 			_logger.LogInformation("Saving location {LocationId}", ValidLocation?.Id);
 			await _locationService.PutValidLocationAsync(ValidLocation, HttpContext.RequestAborted);
+			await _signUpService.DeleteSignUpAsync(ValidLocation?.Id, HttpContext.RequestAborted);
 
 			return RedirectToPage("./Index", new { m = $"Updated {ValidLocation?.city} ({ValidLocation?.RowKey})" });
 		}

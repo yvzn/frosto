@@ -5,6 +5,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddScoped<LocationService>();
+builder.Services.AddScoped<SignUpService>();
 
 var app = builder.Build();
 
