@@ -1,7 +1,7 @@
 @page "{id}"
 @model admin.ValidateModel
 @{
-	ViewData["Title"] = "Edit Location";
+    ViewData["Title"] = $"Edit {Model.ValidLocation.city} Location";
 }
 
 <div class="row">
@@ -152,6 +152,10 @@
 	cityCoordinates.addEventListener('click', pasteFromClipboard);
 
 	function pasteFromClipboard(event) {
+		if (!navigator.clipboard.readText) {
+			return;
+		}
+
 		navigator.clipboard.readText().then(text => {
 			if (!event.target.dataset.valRegexPattern || new RegExp(event.target.dataset.valRegexPattern).exec(text)) {
 				event.target.value = text
