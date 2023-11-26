@@ -2,7 +2,7 @@ using admin.Models;
 using admin.Services;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace admin;
+namespace admin.Pages;
 
 public class CitiesModel : PageModel
 {
