@@ -6,6 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddScoped<LocationService>();
 builder.Services.AddScoped<SignUpService>();
+builder.Services.AddScoped<BatchService>();
 
 var app = builder.Build();
 
