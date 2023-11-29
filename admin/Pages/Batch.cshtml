@@ -9,13 +9,13 @@
 		<h2 class="text-muted mb-3">Batch configuration</h2>
 		<div class="form-group mb-3">
 			<label asp-for="BatchConfig.periodInDays" class="form-label"></label>
-			<input asp-for="BatchConfig.periodInDays" class="form-control" />
+			<input asp-for="BatchConfig.periodInDays" class="form-control" required />
 			<span asp-validation-for="BatchConfig.periodInDays" class="text-danger"></span>
 		</div>
 
 		<div class="form-group mb-3">
 			<label asp-for="BatchConfig.batchCountPerDay" class="form-label"></label>
-			<input asp-for="BatchConfig.batchCountPerDay" class="form-control" />
+			<input asp-for="BatchConfig.batchCountPerDay" class="form-control" required />
 			<span asp-validation-for="BatchConfig.batchCountPerDay" class="text-danger"></span>
 		</div>
 

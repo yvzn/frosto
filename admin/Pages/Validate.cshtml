@@ -1,7 +1,7 @@
 @page "{id}"
 @model admin.Pages.ValidateModel
 @{
-    ViewData["Title"] = $"Edit {Model.ValidLocation.city} Location";
+	ViewData["Title"] = $"Edit {Model.ValidLocation.city} Location";
 }
 
 <div class="row">
@@ -46,7 +46,7 @@
 		<div class="form-group mb-3">
 			<label asp-for="ValidLocation.city" class="form-label"></label>
 			<div class="input-group">
-				<input asp-for="ValidLocation.city" class="form-control" id="valid-location-city" />
+				<input asp-for="ValidLocation.city" class="form-control" id="valid-location-city" required />
 				<div class="input-group-text" id="valid-location-verification-result">
 					@if (Model.ValidLocationExists)
 					{
@@ -62,8 +62,8 @@
 		</div>
 		<div class="form-group mb-3">
 			<label asp-for="ValidLocation.country" class="form-label"></label>
-			<input asp-for="ValidLocation.country" class="form-control" list="country-names"
-				id="valid-location-country" />
+			<input asp-for="ValidLocation.country" class="form-control" list="country-names" id="valid-location-country"
+				required />
 			<span asp-validation-for="ValidLocation.country" class="text-danger"></span>
 
 			<datalist id="country-names">
@@ -75,12 +75,12 @@
 		</div>
 		<div class="form-group mb-3">
 			<label asp-for="ValidLocation.coordinates" class="form-label"></label>
-			<input asp-for="ValidLocation.coordinates" class="form-control" id="valid-location-coordinates" />
+			<input asp-for="ValidLocation.coordinates" class="form-control" id="valid-location-coordinates" required />
 			<span asp-validation-for="ValidLocation.coordinates" class="text-danger"></span>
 		</div>
 		<div class="form-group mb-3">
 			<label asp-for="ValidLocation.users" class="form-label"></label>
-			<input asp-for="ValidLocation.users" class="form-control" />
+			<input asp-for="ValidLocation.users" class="form-control" required />
 			<span asp-validation-for="ValidLocation.users" class="text-danger"></span>
 		</div>
 		<div class="form-group mb-3">
