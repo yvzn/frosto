@@ -17,6 +17,8 @@ using MailKit.Security;
 using System.Net.Http;
 using System.Text;
 using System.Collections.Generic;
+using System.Threading;
+using ExecutionContext = Microsoft.Azure.WebJobs.ExecutionContext;
 
 namespace batch;
 
@@ -131,8 +133,8 @@ public static class SendNotification2
 
 		var requestContent = new StringContent(JsonSerializer.Serialize(message), Encoding.UTF8, "application/json");
 
-		Task<HttpResponseMessage> request() => httpClient.PostAsync(AppSettings.SendMailApiUrl, requestContent);
-		var response = await RetryPolicy.ForMailApiAsync.ExecuteAsync(request);
+		async ValueTask<HttpResponseMessage> request(CancellationToken cancellationToken) => await httpClient.PostAsync(AppSettings.SendMailApiUrl, requestContent, cancellationToken);
+		var response = await RetryPolicy.For.MailApiAsync.ExecuteAsync(request);
 
 		if (!response.IsSuccessStatusCode)
 		{
@@ -166,8 +168,8 @@ public static class SendNotification2
 		requestContent.Headers.Add("X-Tipimail-ApiUser", AppSettings.TipiMailApiUser);
 		requestContent.Headers.Add("X-Tipimail-ApiKey", AppSettings.TipiMailApiKey);
 
-		Task<HttpResponseMessage> request() => httpClient.PostAsync(AppSettings.TipiMailApiUrl, requestContent);
-		var response = await RetryPolicy.ForExternalHttpAsync.ExecuteAsync(request);
+		async ValueTask<HttpResponseMessage> request(CancellationToken cancellationToken) => await httpClient.PostAsync(AppSettings.TipiMailApiUrl, requestContent, cancellationToken);
+		var response = await RetryPolicy.For.ExternalHttpAsync.ExecuteAsync(request);
 
 		if (!response.IsSuccessStatusCode)
 		{
@@ -213,22 +215,22 @@ public static class SendNotification2
 		signer.Sign(message, headers);
 
 		// Sending the email
-		async Task<string?> sendmail()
+		async ValueTask<string?> sendmail(CancellationToken cancellationToken)
 		{
 			using var client = new SmtpClient();
 
-			await client.ConnectAsync(AppSettings.SmtpUrl, port: 465, SecureSocketOptions.SslOnConnect);
-			await client.AuthenticateAsync(AppSettings.SmtpLogin, AppSettings.SmtpPassword);
+			await client.ConnectAsync(AppSettings.SmtpUrl, port: 465, SecureSocketOptions.SslOnConnect, cancellationToken);
+			await client.AuthenticateAsync(AppSettings.SmtpLogin, AppSettings.SmtpPassword, cancellationToken);
 
 			var response = default(string);
-			response = await client.SendAsync(message);
+			response = await client.SendAsync(message, cancellationToken);
 
-			await client.DisconnectAsync(true);
+			await client.DisconnectAsync(true, cancellationToken);
 
 			return response;
 		}
 
-		var response = await RetryPolicy.ForSmtpAsync.ExecuteAsync(sendmail);
+		var response = await RetryPolicy.For.SmtpAsync.ExecuteAsync(sendmail);
 
 		return (success: response is not null && response.StartsWith("2."), error: response);
 	}

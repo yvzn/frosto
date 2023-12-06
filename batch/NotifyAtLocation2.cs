@@ -14,6 +14,7 @@ using Azure.Data.Tables;
 using batch.Models;
 using batch.Services;
 using System.Net;
+using System.Threading;
 
 namespace batch;
 
@@ -42,8 +43,8 @@ public static class NotifyAtLocation2
 
 		var tableClient = new TableClient(AppSettings.AlertsConnectionString, "validlocation");
 
-		Task<Azure.Response<LocationEntity>> query() => tableClient.GetEntityAsync<LocationEntity>(entityKey.PartitionKey, entityKey.RowKey);
-		var location = await RetryPolicy.ForDataAccessAsync.ExecuteAsync(query);
+		async ValueTask<Azure.Response<LocationEntity>> query(CancellationToken cancellationToken) => await tableClient.GetEntityAsync<LocationEntity>(entityKey.PartitionKey, entityKey.RowKey, cancellationToken: cancellationToken);
+		var location = await RetryPolicy.For.DataAccessAsync.ExecuteAsync(query);
 
 		var response = location.GetRawResponse();
 		if (response.IsError)
@@ -125,8 +126,8 @@ public static class NotifyAtLocation2
 
 		try
 		{
-			Task<HttpResponseMessage> request() => httpClient.GetAsync(requestUri);
-			response = await RetryPolicy.ForExternalHttpAsync.ExecuteAsync(request);
+			async ValueTask<HttpResponseMessage> request(CancellationToken cancellationToken) => await httpClient.GetAsync(requestUri, cancellationToken);
+			response = await RetryPolicy.For.ExternalHttpAsync.ExecuteAsync(request);
 		}
 		catch (Exception ex)
 		{
@@ -196,8 +197,8 @@ public static class NotifyAtLocation2
 
 		try
 		{
-			Task<HttpResponseMessage> request() => httpClient.PostAsJsonAsync(requestUri.AbsoluteUri, notification);
-			response = await RetryPolicy.ForInternalHttpAsync.ExecuteAsync(request);
+			async ValueTask<HttpResponseMessage> request(CancellationToken cancellationToken) => await httpClient.PostAsJsonAsync(requestUri.AbsoluteUri, notification, cancellationToken);
+			response = await RetryPolicy.For.InternalHttpAsync.ExecuteAsync(request);
 
 			if (!response.IsSuccessStatusCode && response.StatusCode != HttpStatusCode.BadGateway)
 			{

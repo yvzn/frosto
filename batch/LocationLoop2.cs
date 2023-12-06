@@ -40,8 +40,8 @@ public class LocationLoop2
 
 		var tableClient = new TableClient(AppSettings.AlertsConnectionString, "validlocation");
 
-		Azure.AsyncPageable<LocationEntity> query() => tableClient.QueryAsync(locationFilter);
-		var validLocations = RetryPolicy.ForDataAccess.Execute(query);
+		Azure.AsyncPageable<LocationEntity> query(CancellationToken cancellationToken) => tableClient.QueryAsync(locationFilter, cancellationToken: cancellationToken);
+		var validLocations = RetryPolicy.For.DataAccessAsync.Execute(query);
 
 		int locationIndex = -1;
 		await foreach (var location in validLocations)
@@ -71,8 +71,8 @@ public class LocationLoop2
 			var visibilityTimeout = TimeSpan.FromMilliseconds(1_000 * locationIndex + random.Next(500));
 			await Task.Delay(visibilityTimeout, CancellationToken.None);
 
-			Task<HttpResponseMessage> request() => httpClient.GetAsync(requestUri.AbsoluteUri);
-			response = await RetryPolicy.ForInternalHttpAsync.ExecuteAsync(request);
+			async ValueTask<HttpResponseMessage> request(CancellationToken cancellationToken) => await httpClient.GetAsync(requestUri.AbsoluteUri, cancellationToken);
+			response = await RetryPolicy.For.InternalHttpAsync.ExecuteAsync(request);
 
 			if (!response.IsSuccessStatusCode && response.StatusCode != HttpStatusCode.BadGateway)
 			{
