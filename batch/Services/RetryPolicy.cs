@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Net.Http;
 using System.Net.Sockets;
@@ -24,14 +25,13 @@ internal class RetryPolicy
 	{
 		var defaultTimeout = TimeSpan.FromSeconds(15);
 		var maxRetries = 5;
+		ImmutableArray<Type> httpExceptions = new[] { typeof(SocketException), typeof(IOException), typeof(HttpRequestException) }.ToImmutableArray();
 
 		InternalHttpAsync = new ResiliencePipelineBuilder<HttpResponseMessage>()
 			.AddRetry(new()
 			{
 				ShouldHandle = new PredicateBuilder<HttpResponseMessage>()
-					.Handle<SocketException>()
-					.Handle<IOException>()
-					.Handle<HttpRequestException>()
+					.Handle<Exception>(ex => httpExceptions.Contains(ex.GetType()))
 					.HandleResult(r => !r.IsSuccessStatusCode && r.StatusCode != System.Net.HttpStatusCode.BadRequest && r.StatusCode != System.Net.HttpStatusCode.BadGateway),
 				Delay = TimeSpan.FromSeconds(1),
 				MaxRetryAttempts = maxRetries,
@@ -44,9 +44,7 @@ internal class RetryPolicy
 			.AddRetry(new()
 			{
 				ShouldHandle = new PredicateBuilder<HttpResponseMessage>()
-					.Handle<SocketException>()
-					.Handle<IOException>()
-					.Handle<HttpRequestException>()
+					.Handle<Exception>(ex => httpExceptions.Contains(ex.GetType()))
 					.HandleResult(r => !r.IsSuccessStatusCode),
 				Delay = TimeSpan.FromSeconds(1),
 				MaxRetryAttempts = maxRetries,
@@ -72,9 +70,7 @@ internal class RetryPolicy
 			.AddRetry(new()
 			{
 				ShouldHandle = new PredicateBuilder<HttpResponseMessage>()
-					.Handle<SocketException>()
-					.Handle<IOException>()
-					.Handle<HttpRequestException>()
+					.Handle<Exception>(ex => httpExceptions.Contains(ex.GetType()))
 					.HandleResult(r => !r.IsSuccessStatusCode),
 				Delay = TimeSpan.FromSeconds(1),
 				MaxRetryAttempts = maxRetries,
