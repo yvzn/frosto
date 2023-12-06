@@ -17,9 +17,11 @@ The _Frost Alert_ application is aimed to provide notifications when a frost epi
 The application consists in the following components:
 
 - **site**: landing page with subscription form
-- **api**: _Azure Function App_ that receives the subscription form data, fetches weather forecasts and sends notifications
-- **logic-app**: _Azure Logic App_ that receives the subscription form data and sends notifications
+- **api**: _Azure Function App_ that receives the subscription form data
+- **batch**: _Azure Function App_ that fetches weather forecasts and sends notifications
+- **logic-app**: _Azure Logic App_ that sends notifications
 - **admin**: _ASP.NET_ webapp with admin tools
+- **backup**: _Azure Function App_ that perform data backups
 
 [Frosto website (in french)](https://www.alertegelee.fr/)
 
