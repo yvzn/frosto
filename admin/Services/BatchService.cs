@@ -85,8 +85,8 @@ internal static class IListExtensions
 
 				return new BatchEntity
 				{
-					PartitionKey = $"day-{day}-group-{group}",
-					RowKey = Guid.NewGuid().ToString(),
+					PartitionKey = $"day-{day}",
+					RowKey = $"day-{day}-group-{group}",
 					locations = string.Join(' ', batch),
 				};
 			});
