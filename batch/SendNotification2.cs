@@ -133,7 +133,13 @@ public static class SendNotification2
 
 		var requestContent = new StringContent(JsonSerializer.Serialize(message), Encoding.UTF8, "application/json");
 
-		async ValueTask<HttpResponseMessage> request(CancellationToken cancellationToken) => await httpClient.PostAsync(AppSettings.SendMailApiUrl, requestContent, cancellationToken);
+		async ValueTask<HttpResponseMessage> request(CancellationToken cancellationToken)
+		{
+			HttpResponseMessage httpResponse;
+			httpResponse = await httpClient.PostAsync(AppSettings.SendMailApiUrl, requestContent, cancellationToken);
+			return httpResponse;
+		}
+
 		var response = await RetryPolicy.For.MailApiAsync.ExecuteAsync(request);
 
 		if (!response.IsSuccessStatusCode)
@@ -168,7 +174,13 @@ public static class SendNotification2
 		requestContent.Headers.Add("X-Tipimail-ApiUser", AppSettings.TipiMailApiUser);
 		requestContent.Headers.Add("X-Tipimail-ApiKey", AppSettings.TipiMailApiKey);
 
-		async ValueTask<HttpResponseMessage> request(CancellationToken cancellationToken) => await httpClient.PostAsync(AppSettings.TipiMailApiUrl, requestContent, cancellationToken);
+		async ValueTask<HttpResponseMessage> request(CancellationToken cancellationToken)
+		{
+			HttpResponseMessage httpResponse;
+			httpResponse = await httpClient.PostAsync(AppSettings.TipiMailApiUrl, requestContent, cancellationToken);
+			return httpResponse;
+		}
+
 		var response = await RetryPolicy.For.ExternalHttpAsync.ExecuteAsync(request);
 
 		if (!response.IsSuccessStatusCode)

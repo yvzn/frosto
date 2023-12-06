@@ -77,7 +77,7 @@ internal class RetryPolicy
 				BackoffType = DelayBackoffType.Exponential,
 				UseJitter = true,
 			})
-			.AddTimeout(defaultTimeout.Multiply(2))
+			.AddTimeout(defaultTimeout.Multiply(4))
 			.Build();
 
 		SmtpAsync = new ResiliencePipelineBuilder<string?>()
@@ -91,7 +91,7 @@ internal class RetryPolicy
 				BackoffType = DelayBackoffType.Exponential,
 				UseJitter = true,
 			})
-			.AddTimeout(defaultTimeout)
+			.AddTimeout(defaultTimeout.Multiply(4))
 			.Build();
 	}
 }
