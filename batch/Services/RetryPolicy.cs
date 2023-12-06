@@ -1,110 +1,95 @@
 using System;
+using System.IO;
 using System.Net.Http;
 using System.Net.Sockets;
 using Polly;
-using Polly.Registry;
 
 namespace batch.Services;
 
-internal static class RetryPolicy
+internal class RetryPolicy
 {
-	public static IAsyncPolicy<HttpResponseMessage> ForInternalHttpAsync => (IAsyncPolicy<HttpResponseMessage>)policyRegistry["ForInternalHttpAsync"];
+	public ResiliencePipeline<HttpResponseMessage> InternalHttpAsync { get; }
 
-	public static IAsyncPolicy<HttpResponseMessage> ForExternalHttpAsync => (IAsyncPolicy<HttpResponseMessage>)policyRegistry["ForExternalHttpAsync"];
+	public ResiliencePipeline<HttpResponseMessage> ExternalHttpAsync { get; }
 
-	public static ISyncPolicy ForDataAccess => (ISyncPolicy)policyRegistry["ForDataAccess"];
+	public ResiliencePipeline DataAccessAsync { get; }
 
-	public static IAsyncPolicy ForDataAccessAsync => (IAsyncPolicy)policyRegistry["ForDataAccessAsync"];
+	public ResiliencePipeline<HttpResponseMessage> MailApiAsync { get; }
 
-	public static IAsyncPolicy<HttpResponseMessage> ForMailApiAsync => (IAsyncPolicy<HttpResponseMessage>)policyRegistry["ForMailApiAsync"];
+	public ResiliencePipeline<string?> SmtpAsync { get; }
 
-	public static IAsyncPolicy<string?> ForSmtpAsync => (IAsyncPolicy<string?>)policyRegistry["ForSmtpAsync"];
+	public static RetryPolicy For { get; } = new();
 
-	private static readonly PolicyRegistry policyRegistry = BuildPolicyRegistry();
-
-	private static PolicyRegistry BuildPolicyRegistry()
+	private RetryPolicy()
 	{
-		var registry = new PolicyRegistry();
-
 		var defaultTimoutInSeconds = 15;
+		var maxRetries = 5;
 
-		var defaultRetry = new[] {
-			TimeSpan.FromSeconds(1),
-			TimeSpan.FromSeconds(1),
-			TimeSpan.FromSeconds(1)
-		};
-
-		var exponentialBackoff = new[] {
-			TimeSpan.FromSeconds(1),
-			TimeSpan.FromSeconds(2),
-			TimeSpan.FromSeconds(4)
-#if !DEBUG
-			, TimeSpan.FromSeconds(8)
-			, TimeSpan.FromSeconds(16)
-#endif
-		};
-
-		registry["ForInternalHttpAsync"] = Policy.WrapAsync(
-			new IAsyncPolicy<HttpResponseMessage>[] {
-				Policy
+		InternalHttpAsync = new ResiliencePipelineBuilder<HttpResponseMessage>()
+			.AddRetry(new()
+			{
+				ShouldHandle = new PredicateBuilder<HttpResponseMessage>()
 					.Handle<SocketException>()
-					.Or<HttpRequestException>()
-					.OrResult<HttpResponseMessage>(r => !r.IsSuccessStatusCode && r.StatusCode != System.Net.HttpStatusCode.BadRequest && r.StatusCode != System.Net.HttpStatusCode.BadGateway)
-					.WaitAndRetryAsync(defaultRetry),
-				Policy
-					.TimeoutAsync<HttpResponseMessage>(defaultTimoutInSeconds)
-			});
+					.Handle<HttpRequestException>()
+					.HandleResult(r => !r.IsSuccessStatusCode && r.StatusCode != System.Net.HttpStatusCode.BadRequest && r.StatusCode != System.Net.HttpStatusCode.BadGateway),
+				Delay = TimeSpan.FromSeconds(1),
+				MaxRetryAttempts = maxRetries,
+				BackoffType = DelayBackoffType.Constant
+			})
+			.AddTimeout(TimeSpan.FromSeconds(defaultTimoutInSeconds))
+			.Build();
 
-		registry["ForExternalHttpAsync"] = Policy.WrapAsync(
-			new IAsyncPolicy<HttpResponseMessage>[] {
-				Policy
+		ExternalHttpAsync = new ResiliencePipelineBuilder<HttpResponseMessage>()
+			.AddRetry(new()
+			{
+				ShouldHandle = new PredicateBuilder<HttpResponseMessage>()
 					.Handle<SocketException>()
-					.Or<HttpRequestException>()
-					.OrResult<HttpResponseMessage>(r => !r.IsSuccessStatusCode)
-					.WaitAndRetryAsync(exponentialBackoff),
-				Policy
-					.TimeoutAsync<HttpResponseMessage>(defaultTimoutInSeconds)
-			});
+					.Handle<HttpRequestException>()
+					.HandleResult(r => !r.IsSuccessStatusCode),
+				Delay = TimeSpan.FromSeconds(1),
+				MaxRetryAttempts = maxRetries,
+				BackoffType = DelayBackoffType.Exponential,
+			})
+			.AddTimeout(TimeSpan.FromSeconds(defaultTimoutInSeconds))
+			.Build();
 
-		registry["ForDataAccess"] = Policy.Wrap(
-			new ISyncPolicy[] {
-				Policy
-					.Handle<Azure.RequestFailedException>()
-					.WaitAndRetry(defaultRetry),
-				Policy
-					.Timeout(defaultTimoutInSeconds)
-			});
+		DataAccessAsync = new ResiliencePipelineBuilder()
+			.AddRetry(new()
+			{
+				ShouldHandle = new PredicateBuilder()
+					.Handle<Azure.RequestFailedException>(),
+				Delay = TimeSpan.FromSeconds(1),
+				MaxRetryAttempts = maxRetries,
+				BackoffType = DelayBackoffType.Constant
+			})
+			.AddTimeout(TimeSpan.FromSeconds(defaultTimoutInSeconds))
+			.Build();
 
-		registry["ForDataAccessAsync"] = Policy.WrapAsync(
-			new IAsyncPolicy[] {
-				Policy
-					.Handle<Azure.RequestFailedException>()
-					.WaitAndRetryAsync(defaultRetry),
-				Policy
-					.TimeoutAsync(defaultTimoutInSeconds)
-			});
-
-		registry["ForMailApiAsync"] = Policy.WrapAsync(
-			new IAsyncPolicy<HttpResponseMessage>[] {
-				Policy
+		MailApiAsync = new ResiliencePipelineBuilder<HttpResponseMessage>()
+			.AddRetry(new()
+			{
+				ShouldHandle = new PredicateBuilder<HttpResponseMessage>()
 					.Handle<SocketException>()
-					.Or<HttpRequestException>()
-					.OrResult<HttpResponseMessage>(r => !r.IsSuccessStatusCode)
-					.WaitAndRetryAsync(exponentialBackoff),
-				Policy
-					.TimeoutAsync<HttpResponseMessage>(2 * defaultTimoutInSeconds)
-			});
+					.Handle<HttpRequestException>()
+					.HandleResult(r => !r.IsSuccessStatusCode),
+				Delay = TimeSpan.FromSeconds(1),
+				MaxRetryAttempts = maxRetries,
+				BackoffType = DelayBackoffType.Exponential,
+			})
+			.AddTimeout(TimeSpan.FromSeconds(2 *  defaultTimoutInSeconds))
+			.Build();
 
-		registry["ForSmtpAsync"] = Policy.WrapAsync(
-			new IAsyncPolicy<string?>[] {
-				Policy
+		SmtpAsync = new ResiliencePipelineBuilder<string?>()
+			.AddRetry(new()
+			{
+				ShouldHandle = new PredicateBuilder<string?>()
 					.Handle<Exception>()
-					.OrResult<string?>(response => response is null || !response.StartsWith("2."))
-					.WaitAndRetryAsync(exponentialBackoff),
-				Policy
-					.TimeoutAsync<string?>(defaultTimoutInSeconds)
-			});
-
-		return registry;
+					.HandleResult(response => response is null || !response.StartsWith("2.")),
+				Delay = TimeSpan.FromSeconds(1),
+				MaxRetryAttempts = maxRetries,
+				BackoffType = DelayBackoffType.Exponential,
+			})
+			.AddTimeout(TimeSpan.FromSeconds(defaultTimoutInSeconds))
+			.Build();
 	}
 }
