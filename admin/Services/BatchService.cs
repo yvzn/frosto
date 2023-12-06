@@ -80,13 +80,13 @@ internal static class IListExtensions
 		=> batches.Select((batch, batchNumber)
 			=>
 			{
-				int day = batchNumber / batchCountPerDay;
-				int group = batchNumber % batchCountPerDay;
+				int dayNumber = batchNumber / batchCountPerDay;
+				int groupNumber = batchNumber % batchCountPerDay;
 
 				return new BatchEntity
 				{
-					PartitionKey = $"day-{day}",
-					RowKey = $"day-{day}-group-{group}",
+					PartitionKey = $"day-{dayNumber}",
+					RowKey = $"day-{dayNumber}-group-{groupNumber}",
 					locations = string.Join(' ', batch),
 				};
 			});

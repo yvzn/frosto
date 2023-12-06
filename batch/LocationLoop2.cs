@@ -1,5 +1,4 @@
 using System;
-using System.Linq.Expressions;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -18,8 +17,8 @@ public class LocationLoop2
 
 	private static readonly HttpClient httpClient = new();
 
-	[FunctionName("LocationLoop2")]
-	public static async Task RunAsync(
+	[FunctionName("LocationLoop2-0")]
+	public static async Task RunGroup0Async(
 		[TimerTrigger("0 0 4 * 1-5,9-12 *"
 #if DEBUG
 			, RunOnStartup=true
@@ -32,22 +31,100 @@ public class LocationLoop2
 		await Task.Delay(5_000);
 #endif
 
-		Expression<Func<LocationEntity, bool>> locationFilter = _ => true;
+		_ = LoopOverBatchAsync(groupNumber: 0, log);
+	}
 
-#if DEBUG
-		locationFilter = location => location.uat == true;
-#endif
+	[FunctionName("LocationLoop2-1")]
+	public static void RunGroup1(
+		[TimerTrigger("0 30 4 * 1-5,9-12 *")]
+		TimerInfo timerInfo,
+		ILogger log)
+	{
+		_ = LoopOverBatchAsync(groupNumber: 1, log);
+	}
 
-		var tableClient = new TableClient(AppSettings.AlertsConnectionString, "validlocation");
+	[FunctionName("LocationLoop2-2")]
+	public static void RunGroup2(
+		[TimerTrigger("0 0 5 * 1-5,9-12 *")]
+		TimerInfo timerInfo,
+		ILogger log)
+	{
+		_ = LoopOverBatchAsync(groupNumber: 2, log);
+	}
 
-		Azure.AsyncPageable<LocationEntity> query(CancellationToken cancellationToken) => tableClient.QueryAsync(locationFilter, cancellationToken: cancellationToken);
-		var validLocations = RetryPolicy.For.DataAccessAsync.Execute(query);
+	private static async Task LoopOverBatchAsync(int groupNumber, ILogger log)
+	{
+		var dayNumber = (DateTime.UtcNow - DateTime.UnixEpoch).Days % AppSettings.PeriodInDays;
+		await LoopOverBatchAsync(dayNumber, groupNumber, log);
+	}
+
+	private static async Task LoopOverBatchAsync(int dayNumber, int groupNumber, ILogger log)
+	{
+		var partitionKey = $"day-{dayNumber}";
+		var rowKey = $"day-{dayNumber}-group-{groupNumber}";
+
+		log.LogInformation("Scheduling batch {BatchRowKey} for weather", rowKey);
+
+		var tableClient = new TableClient(AppSettings.AlertsConnectionString, "batch");
+
+		async ValueTask<Azure.NullableResponse<BatchEntity>> query(CancellationToken cancellationToken) => await tableClient.GetEntityIfExistsAsync<BatchEntity>(partitionKey, rowKey, cancellationToken: cancellationToken);
+		var batchEntity = await RetryPolicy.For.DataAccessAsync.Execute(query);
+
+		if (batchEntity.HasValue)
+		{
+			LoopOverBatch(batchEntity.Value, log);
+		}
+		else
+		{
+			log.LogInformation("Skipping batch {DayNumber}-{GroupNumber} because it does not exist", dayNumber, groupNumber);
+		}
+	}
+
+	private static void LoopOverBatch(BatchEntity batchEntity, ILogger log)
+	{
+		var validLocationIds = batchEntity.locations?.Split(' ');
+		if (validLocationIds is null || validLocationIds.Length is 0)
+		{
+			log.LogWarning("Skipping batch {BatchRowKey} because it has no locations", batchEntity.RowKey);
+			return;
+		}
 
 		int locationIndex = -1;
-		await foreach (var location in validLocations)
+		foreach (var locationId in validLocationIds)
 		{
+			var (partitionKey, rowKey) = locationId.ToKeys();
+			if (partitionKey is null || rowKey is null)
+			{
+				log.LogWarning("Skipping location {LocationId} in batch {BatchRowKey} because of invalid identifier", locationId, batchEntity.RowKey);
+				continue;
+			}
+
 			Interlocked.Increment(ref locationIndex);
-			var _ = ScheduleLocationAsync(location, locationIndex, log);
+			_ = ScheduleLocationAsync(partitionKey, rowKey, locationIndex, log);
+		}
+	}
+
+	private static async Task<bool> ScheduleLocationAsync(string partitionKey, string rowKey, int locationIndex, ILogger log)
+	{
+		var tableClient = new TableClient(AppSettings.AlertsConnectionString, "validlocation");
+
+		async ValueTask<Azure.NullableResponse<LocationEntity>> query(CancellationToken cancellationToken) => await tableClient.GetEntityIfExistsAsync<LocationEntity>(partitionKey, rowKey, cancellationToken: cancellationToken);
+		var locationEntity = await RetryPolicy.For.DataAccessAsync.Execute(query);
+
+		Func<Azure.NullableResponse<LocationEntity>, bool> locationFilter = location => location.HasValue;
+
+#if DEBUG
+		locationFilter = location => location.HasValue && location.Value.uat == true;
+#endif
+
+		if (locationFilter.Invoke(locationEntity))
+		{
+			return await ScheduleLocationAsync(locationEntity.Value, locationIndex, log);
+		}
+		else
+		{
+			log.LogWarning("Skipping location {LocationPartitionKey} {LocationRowKey} because it does not exist", partitionKey, rowKey);
+			return false;
 		}
 	}
 
@@ -86,5 +163,21 @@ public class LocationLoop2
 			log.LogError(ex, "Failed to schedule location {City} {Country} for weather: HTTP {StatusCode} {RequestUri}", location.city, location.country, response?.StatusCode, requestUri);
 			return false;
 		}
+	}
+}
+
+
+internal static class LocationExtensions
+{
+	public static (string? PartitionKey, string? RowKey) ToKeys(this string? id)
+	{
+		var split = id?.Split('|');
+		if (split?.Length is > 1)
+		{
+			var partitionKey = split[0];
+			var rowKey = split[1];
+			return (partitionKey, rowKey);
+		}
+		return (default, default);
 	}
 }

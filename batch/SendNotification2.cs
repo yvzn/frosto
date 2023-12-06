@@ -60,7 +60,7 @@ public static class SendNotification2
 
 		try
 		{
-			_ = await SendNotificationAsync(notification, channel, ctx, log);
+			_ = SendNotificationAsync(notification, channel, ctx, log);
 			return new OkResult();
 		}
 		catch (Exception)

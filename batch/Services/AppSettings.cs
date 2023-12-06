@@ -35,6 +35,9 @@ internal static class AppSettings
 	private static readonly string alertsConnectionString = TryGetEnvironmentVariable("ALERTS_CONNECTION_STRING");
 	public static string AlertsConnectionString => alertsConnectionString;
 
+	private static readonly int periodInDays = int.Parse(TryGetEnvironmentVariable("PERIOD_IN_DAYS"));
+	public static int PeriodInDays => periodInDays;
+
 	private static string TryGetEnvironmentVariable(string variable)
 		=> Environment.GetEnvironmentVariable(variable) ?? throw new Exception($"{variable} variable not set");
 }
