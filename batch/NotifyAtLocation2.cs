@@ -44,7 +44,7 @@ public static class NotifyAtLocation2
 		var tableClient = new TableClient(AppSettings.AlertsConnectionString, "validlocation");
 
 		async ValueTask<Azure.Response<LocationEntity>> query(CancellationToken cancellationToken) => await tableClient.GetEntityAsync<LocationEntity>(entityKey.PartitionKey, entityKey.RowKey, cancellationToken: cancellationToken);
-		var location = await RetryPolicy.For.DataAccessAsync.ExecuteAsync(query);
+		var location = await RetryStrategy.For.DataAccess.ExecuteAsync(query);
 
 		var response = location.GetRawResponse();
 		if (response.IsError)
@@ -127,7 +127,7 @@ public static class NotifyAtLocation2
 		try
 		{
 			async ValueTask<HttpResponseMessage> request(CancellationToken cancellationToken) => await httpClient.GetAsync(requestUri, cancellationToken);
-			response = await RetryPolicy.For.ExternalHttpAsync.ExecuteAsync(request);
+			response = await RetryStrategy.For.ExternalHttp.ExecuteAsync(request);
 		}
 		catch (Exception ex)
 		{
@@ -198,18 +198,18 @@ public static class NotifyAtLocation2
 		try
 		{
 			async ValueTask<HttpResponseMessage> request(CancellationToken cancellationToken) => await httpClient.PostAsJsonAsync(requestUri.AbsoluteUri, notification, cancellationToken);
-			response = await RetryPolicy.For.InternalHttpAsync.ExecuteAsync(request);
+			response = await RetryStrategy.For.InternalHttp.ExecuteAsync(request);
 
 			if (!response.IsSuccessStatusCode && response.StatusCode != HttpStatusCode.BadGateway)
 			{
 				var responseContent = response is null ? "<empty response>" : await response.Content.ReadAsStringAsync();
-				log.LogError("Failed to schedule notification to {Users}: HTTP {StatusCode} {RequestUri} [{ResponseContent}]", users, response?.StatusCode, requestUri, responseContent);
-				throw new Exception(string.Format("Failed to schedule notification to {0}: HTTP {1} {2} [{3}]", users, response?.StatusCode, requestUri, responseContent));
+				log.LogError("Failed to schedule notification to {Users}: HTTP {StatusCode} {RequestUri} [{ResponseContent}]", users, response?.StatusCode, requestUri.AbsoluteUri, responseContent);
+				throw new Exception(string.Format("Failed to schedule notification to {0}: HTTP {1} {2} [{3}]", users, response?.StatusCode, requestUri.AbsoluteUri, responseContent));
 			}
 		}
 		catch (Exception ex)
 		{
-			log.LogError(ex, "Failed to schedule notification to {Users}: HTTP {StatusCode} {RequestUri}", users, response?.StatusCode, requestUri);
+			log.LogError(ex, "Failed to schedule notification to {Users}: HTTP {StatusCode} {RequestUri}", users, response?.StatusCode, requestUri.AbsoluteUri);
 			throw;
 		}
 	}

@@ -140,7 +140,7 @@ public static class SendNotification2
 			return httpResponse;
 		}
 
-		var response = await RetryPolicy.For.MailApiAsync.ExecuteAsync(request);
+		var response = await RetryStrategy.For.MailApi.ExecuteAsync(request);
 
 		if (!response.IsSuccessStatusCode)
 		{
@@ -181,7 +181,7 @@ public static class SendNotification2
 			return httpResponse;
 		}
 
-		var response = await RetryPolicy.For.ExternalHttpAsync.ExecuteAsync(request);
+		var response = await RetryStrategy.For.ExternalHttp.ExecuteAsync(request);
 
 		if (!response.IsSuccessStatusCode)
 		{
@@ -242,7 +242,7 @@ public static class SendNotification2
 			return response;
 		}
 
-		var response = await RetryPolicy.For.SmtpAsync.ExecuteAsync(sendmail);
+		var response = await RetryStrategy.For.Smtp.ExecuteAsync(sendmail);
 
 		return (success: response is not null && response.StartsWith("2."), error: response);
 	}

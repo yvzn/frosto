@@ -68,7 +68,7 @@ public class LocationLoop2
 		var tableClient = new TableClient(AppSettings.AlertsConnectionString, "batch");
 
 		async ValueTask<Azure.NullableResponse<BatchEntity>> query(CancellationToken cancellationToken) => await tableClient.GetEntityIfExistsAsync<BatchEntity>(partitionKey, rowKey, cancellationToken: cancellationToken);
-		var batchEntity = await RetryPolicy.For.DataAccessAsync.Execute(query);
+		var batchEntity = await RetryStrategy.For.DataAccess.Execute(query);
 
 		if (batchEntity.HasValue)
 		{
@@ -109,7 +109,7 @@ public class LocationLoop2
 		var tableClient = new TableClient(AppSettings.AlertsConnectionString, "validlocation");
 
 		async ValueTask<Azure.NullableResponse<LocationEntity>> query(CancellationToken cancellationToken) => await tableClient.GetEntityIfExistsAsync<LocationEntity>(partitionKey, rowKey, cancellationToken: cancellationToken);
-		var locationEntity = await RetryPolicy.For.DataAccessAsync.Execute(query);
+		var locationEntity = await RetryStrategy.For.DataAccess.Execute(query);
 
 		Func<Azure.NullableResponse<LocationEntity>, bool> locationFilter = location => location.HasValue;
 
@@ -149,18 +149,18 @@ public class LocationLoop2
 			await Task.Delay(visibilityTimeout, CancellationToken.None);
 
 			async ValueTask<HttpResponseMessage> request(CancellationToken cancellationToken) => await httpClient.GetAsync(requestUri.AbsoluteUri, cancellationToken);
-			response = await RetryPolicy.For.InternalHttpAsync.ExecuteAsync(request);
+			response = await RetryStrategy.For.InternalHttp.ExecuteAsync(request);
 
 			if (!response.IsSuccessStatusCode && response.StatusCode != HttpStatusCode.BadGateway)
 			{
-				log.LogError("Failed to schedule location {City} {Country} for weather: HTTP {StatusCode} {RequestUri}", location.city, location.country, response.StatusCode, requestUri);
+				log.LogError("Failed to schedule location {City} {Country} for weather: HTTP {StatusCode} {RequestUri}", location.city, location.country, response.StatusCode, requestUri.AbsoluteUri);
 				return false;
 			}
 			return true;
 		}
 		catch (Exception ex)
 		{
-			log.LogError(ex, "Failed to schedule location {City} {Country} for weather: HTTP {StatusCode} {RequestUri}", location.city, location.country, response?.StatusCode, requestUri);
+			log.LogError(ex, "Failed to schedule location {City} {Country} for weather: HTTP {StatusCode} {RequestUri}", location.city, location.country, response?.StatusCode, requestUri.AbsoluteUri);
 			return false;
 		}
 	}

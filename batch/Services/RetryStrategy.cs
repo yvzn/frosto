@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Immutable;
 using System.IO;
 using System.Net.Http;
 using System.Net.Sockets;
@@ -7,31 +6,33 @@ using Polly;
 
 namespace batch.Services;
 
-internal class RetryPolicy
+internal class RetryStrategy
 {
-	public ResiliencePipeline<HttpResponseMessage> InternalHttpAsync { get; }
+	public ResiliencePipeline<HttpResponseMessage> InternalHttp { get; }
 
-	public ResiliencePipeline<HttpResponseMessage> ExternalHttpAsync { get; }
+	public ResiliencePipeline<HttpResponseMessage> ExternalHttp { get; }
 
-	public ResiliencePipeline DataAccessAsync { get; }
+	public ResiliencePipeline DataAccess { get; }
 
-	public ResiliencePipeline<HttpResponseMessage> MailApiAsync { get; }
+	public ResiliencePipeline<HttpResponseMessage> MailApi { get; }
 
-	public ResiliencePipeline<string?> SmtpAsync { get; }
+	public ResiliencePipeline<string?> Smtp { get; }
 
-	public static RetryPolicy For { get; } = new();
+	// singleton
+	public static RetryStrategy For { get; } = new();
 
-	private RetryPolicy()
+	private RetryStrategy()
 	{
 		var defaultTimeout = TimeSpan.FromSeconds(15);
+		var longTimeout = defaultTimeout.Multiply(4);
 		var maxRetries = 5;
-		ImmutableArray<Type> httpExceptions = new[] { typeof(SocketException), typeof(IOException), typeof(HttpRequestException) }.ToImmutableArray();
+		static bool IsHttpException(Exception ex) => ex is SocketException or IOException or HttpRequestException;
 
-		InternalHttpAsync = new ResiliencePipelineBuilder<HttpResponseMessage>()
+		InternalHttp = new ResiliencePipelineBuilder<HttpResponseMessage>()
 			.AddRetry(new()
 			{
 				ShouldHandle = new PredicateBuilder<HttpResponseMessage>()
-					.Handle<Exception>(ex => httpExceptions.Contains(ex.GetType()))
+					.Handle<Exception>(IsHttpException)
 					.HandleResult(r => !r.IsSuccessStatusCode && r.StatusCode != System.Net.HttpStatusCode.BadRequest && r.StatusCode != System.Net.HttpStatusCode.BadGateway),
 				Delay = TimeSpan.FromSeconds(1),
 				MaxRetryAttempts = maxRetries,
@@ -40,11 +41,11 @@ internal class RetryPolicy
 			.AddTimeout(defaultTimeout)
 			.Build();
 
-		ExternalHttpAsync = new ResiliencePipelineBuilder<HttpResponseMessage>()
+		ExternalHttp = new ResiliencePipelineBuilder<HttpResponseMessage>()
 			.AddRetry(new()
 			{
 				ShouldHandle = new PredicateBuilder<HttpResponseMessage>()
-					.Handle<Exception>(ex => httpExceptions.Contains(ex.GetType()))
+					.Handle<Exception>(IsHttpException)
 					.HandleResult(r => !r.IsSuccessStatusCode),
 				Delay = TimeSpan.FromSeconds(1),
 				MaxRetryAttempts = maxRetries,
@@ -54,7 +55,7 @@ internal class RetryPolicy
 			.AddTimeout(defaultTimeout)
 			.Build();
 
-		DataAccessAsync = new ResiliencePipelineBuilder()
+		DataAccess = new ResiliencePipelineBuilder()
 			.AddRetry(new()
 			{
 				ShouldHandle = new PredicateBuilder()
@@ -66,32 +67,32 @@ internal class RetryPolicy
 			.AddTimeout(defaultTimeout)
 			.Build();
 
-		MailApiAsync = new ResiliencePipelineBuilder<HttpResponseMessage>()
+		MailApi = new ResiliencePipelineBuilder<HttpResponseMessage>()
 			.AddRetry(new()
 			{
 				ShouldHandle = new PredicateBuilder<HttpResponseMessage>()
-					.Handle<Exception>(ex => httpExceptions.Contains(ex.GetType()))
+					.Handle<Exception>(IsHttpException)
 					.HandleResult(r => !r.IsSuccessStatusCode),
 				Delay = TimeSpan.FromSeconds(1),
 				MaxRetryAttempts = maxRetries,
 				BackoffType = DelayBackoffType.Exponential,
 				UseJitter = true,
 			})
-			.AddTimeout(defaultTimeout.Multiply(4))
+			.AddTimeout(longTimeout)
 			.Build();
 
-		SmtpAsync = new ResiliencePipelineBuilder<string?>()
+		Smtp = new ResiliencePipelineBuilder<string?>()
 			.AddRetry(new()
 			{
 				ShouldHandle = new PredicateBuilder<string?>()
-					.Handle<Exception>()
+					.Handle<Exception>(/* any exception */)
 					.HandleResult(response => response is null || !response.StartsWith("2.")),
 				Delay = TimeSpan.FromSeconds(1),
 				MaxRetryAttempts = maxRetries,
 				BackoffType = DelayBackoffType.Exponential,
 				UseJitter = true,
 			})
-			.AddTimeout(defaultTimeout.Multiply(4))
+			.AddTimeout(longTimeout)
 			.Build();
 	}
 }
