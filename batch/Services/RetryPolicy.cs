@@ -22,7 +22,7 @@ internal class RetryPolicy
 
 	private RetryPolicy()
 	{
-		var defaultTimoutInSeconds = 15;
+		var defaultTimeout = TimeSpan.FromSeconds(15);
 		var maxRetries = 5;
 
 		InternalHttpAsync = new ResiliencePipelineBuilder<HttpResponseMessage>()
@@ -30,13 +30,14 @@ internal class RetryPolicy
 			{
 				ShouldHandle = new PredicateBuilder<HttpResponseMessage>()
 					.Handle<SocketException>()
+					.Handle<IOException>()
 					.Handle<HttpRequestException>()
 					.HandleResult(r => !r.IsSuccessStatusCode && r.StatusCode != System.Net.HttpStatusCode.BadRequest && r.StatusCode != System.Net.HttpStatusCode.BadGateway),
 				Delay = TimeSpan.FromSeconds(1),
 				MaxRetryAttempts = maxRetries,
 				BackoffType = DelayBackoffType.Constant
 			})
-			.AddTimeout(TimeSpan.FromSeconds(defaultTimoutInSeconds))
+			.AddTimeout(defaultTimeout)
 			.Build();
 
 		ExternalHttpAsync = new ResiliencePipelineBuilder<HttpResponseMessage>()
@@ -44,13 +45,15 @@ internal class RetryPolicy
 			{
 				ShouldHandle = new PredicateBuilder<HttpResponseMessage>()
 					.Handle<SocketException>()
+					.Handle<IOException>()
 					.Handle<HttpRequestException>()
 					.HandleResult(r => !r.IsSuccessStatusCode),
 				Delay = TimeSpan.FromSeconds(1),
 				MaxRetryAttempts = maxRetries,
 				BackoffType = DelayBackoffType.Exponential,
+				UseJitter = true,
 			})
-			.AddTimeout(TimeSpan.FromSeconds(defaultTimoutInSeconds))
+			.AddTimeout(defaultTimeout)
 			.Build();
 
 		DataAccessAsync = new ResiliencePipelineBuilder()
@@ -62,7 +65,7 @@ internal class RetryPolicy
 				MaxRetryAttempts = maxRetries,
 				BackoffType = DelayBackoffType.Constant
 			})
-			.AddTimeout(TimeSpan.FromSeconds(defaultTimoutInSeconds))
+			.AddTimeout(defaultTimeout)
 			.Build();
 
 		MailApiAsync = new ResiliencePipelineBuilder<HttpResponseMessage>()
@@ -70,13 +73,15 @@ internal class RetryPolicy
 			{
 				ShouldHandle = new PredicateBuilder<HttpResponseMessage>()
 					.Handle<SocketException>()
+					.Handle<IOException>()
 					.Handle<HttpRequestException>()
 					.HandleResult(r => !r.IsSuccessStatusCode),
 				Delay = TimeSpan.FromSeconds(1),
 				MaxRetryAttempts = maxRetries,
 				BackoffType = DelayBackoffType.Exponential,
+				UseJitter = true,
 			})
-			.AddTimeout(TimeSpan.FromSeconds(2 *  defaultTimoutInSeconds))
+			.AddTimeout(defaultTimeout.Multiply(2))
 			.Build();
 
 		SmtpAsync = new ResiliencePipelineBuilder<string?>()
@@ -88,8 +93,9 @@ internal class RetryPolicy
 				Delay = TimeSpan.FromSeconds(1),
 				MaxRetryAttempts = maxRetries,
 				BackoffType = DelayBackoffType.Exponential,
+				UseJitter = true,
 			})
-			.AddTimeout(TimeSpan.FromSeconds(defaultTimoutInSeconds))
+			.AddTimeout(defaultTimeout)
 			.Build();
 	}
 }
