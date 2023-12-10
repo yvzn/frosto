@@ -78,7 +78,6 @@ internal class RetryStrategy
 				BackoffType = DelayBackoffType.Exponential,
 				UseJitter = true,
 			})
-			.AddTimeout(longTimeout)
 			.Build();
 
 		Smtp = new ResiliencePipelineBuilder<string?>()
