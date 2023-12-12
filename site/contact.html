@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<meta name="description" content="Contacter l'équipe du service alerte gel météo" />
+	<link rel="icon" type="image/svg+xml" href="./asset/favicon.svg" />
+	<title>Alerte gelées : Contacter l'équipe</title>
+</head>
+
+<body>
+	<header>
+		<nav class="navbar navbar-dark bg-dark shadow-sm">
+			<div class="container">
+				<a class="navbar-brand" href="/">Alerte gelées</a>
+			</div>
+		</nav>
+	</header>
+	<section class="container py-5">
+		<div class="row flex-lg-row-reverse align-items-center py-lg-5">
+			<article class="col-10 col-sm-8 col-lg-6 p-4 p-md-5">
+				<img src="./asset/undraw_messenger_re_8bky.svg" class="d-block mx-lg-auto img-fluid"
+					alt="Une personne postant une enveloppe avec un message électronique" width="300" height="287" />
+			</article>
+			<article class="col-lg-6 p-4 p-md-5">
+				<h1 class="fw-light">Contacter l'équipe</h1>
+				<p class="lead text-muted">Pour toute question (ou juste pour discuter), envoyez un courrier
+					électronique à l'adresse suivante : </p>
+				<p class="text-muted"><span id="ademl">[Veuillez activer Javascript pour nous contacter]</span></p>
+				<p><a href="./index.html" class="d-inline-block my-4">Revenir à l'accueil</a></p>
+			</article>
+		</div>
+	</section>
+
+	<script type="module" src="./main.js"></script>
+	<script type="text/javascript">
+		document.getElementById("ademl").innerHTML = '<a class="btn btn-primary my-2" href="mailto:' + ['yvan', '%40', 'alertegelee.', 'fr'].join('') + '">Contactez-nous</a>';
+	</script>
+</body>
+
+</html>

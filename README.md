@@ -8,7 +8,7 @@ https://www.alertegelee.fr/
 
 Ce service open source est maintenu par des bénévoles.
 
-Pour nous contacter, envoyez un courrier électronique à l'adresse suivante: alertegelee (arobase) outlook.fr
+Pour nous contacter: https://www.alertegelee.fr/contact.html
 
 ## Structure
 
