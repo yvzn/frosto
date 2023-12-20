@@ -3,6 +3,7 @@ using System.IO;
 using System.Net.Http;
 using System.Net.Sockets;
 using Polly;
+using Polly.Timeout;
 
 namespace batch.Services;
 
@@ -27,12 +28,13 @@ internal class RetryStrategy
 		var longTimeout = defaultTimeout.Multiply(4);
 		var maxRetries = 5;
 		static bool IsHttpException(Exception ex) => ex is SocketException or IOException or HttpRequestException;
+		static bool IsTimeoutException(Exception ex) => ex is TimeoutRejectedException;
 
 		InternalHttp = new ResiliencePipelineBuilder<HttpResponseMessage>()
 			.AddRetry(new()
 			{
 				ShouldHandle = new PredicateBuilder<HttpResponseMessage>()
-					.Handle<Exception>(IsHttpException)
+					.Handle<Exception>(ex => IsHttpException(ex) || IsTimeoutException(ex))
 					.HandleResult(r => !r.IsSuccessStatusCode && r.StatusCode != System.Net.HttpStatusCode.BadRequest && r.StatusCode != System.Net.HttpStatusCode.BadGateway),
 				Delay = TimeSpan.FromSeconds(1),
 				MaxRetryAttempts = maxRetries,
@@ -45,7 +47,7 @@ internal class RetryStrategy
 			.AddRetry(new()
 			{
 				ShouldHandle = new PredicateBuilder<HttpResponseMessage>()
-					.Handle<Exception>(IsHttpException)
+					.Handle<Exception>(ex => IsHttpException(ex) || IsTimeoutException(ex))
 					.HandleResult(r => !r.IsSuccessStatusCode),
 				Delay = TimeSpan.FromSeconds(1),
 				MaxRetryAttempts = maxRetries,
