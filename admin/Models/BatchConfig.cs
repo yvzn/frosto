@@ -11,5 +11,5 @@ public class BatchConfig
 
 	[Required]
 	[DisplayName("Batches per day")]
-	public int batchCountPerDay { get; set; } = 3;
+	public int batchCountPerDay { get; set; } = 4;
 }
