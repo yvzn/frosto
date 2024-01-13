@@ -52,6 +52,15 @@ public class LocationLoop2
 		_ = LoopOverBatchAsync(groupNumber: 2, log);
 	}
 
+	[FunctionName("LocationLoop2-3")]
+	public static void RunGroup3(
+		[TimerTrigger("0 30 5 * 1-5,9-12 *")]
+		TimerInfo timerInfo,
+		ILogger log)
+	{
+		_ = LoopOverBatchAsync(groupNumber: 3, log);
+	}
+
 	private static async Task LoopOverBatchAsync(int groupNumber, ILogger log)
 	{
 		var dayNumber = (DateTime.UtcNow - DateTime.UnixEpoch).Days % AppSettings.PeriodInDays;
