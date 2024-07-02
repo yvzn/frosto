@@ -1,30 +1,42 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using System.Threading.Tasks;
 using System.IO;
 using System.Web;
 using api.Data;
-using Microsoft.Extensions.Logging;
 using System.Collections.Specialized;
 using System;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.Azure;
+using Azure.Data.Tables;
 
 namespace api;
 
-public static class SignUp
+public class SignUp
 {
-	[FunctionName("SignUp")]
-	public static async Task<IActionResult> RunAsync(
+	private readonly TableClient locationEntities;
+	private readonly TableClient userEntities;
+	private readonly TableClient signUpEntities;
+
+	public SignUp(IAzureClientFactory<TableClient> azureClientFactory)
+	{
+		locationEntities = azureClientFactory.CreateClient("locationTableClient");
+		userEntities = azureClientFactory.CreateClient("userTableClient");
+		signUpEntities = azureClientFactory.CreateClient("signupTableClient");
+
+#if DEBUG
+		_ = Task.WhenAll(
+			locationEntities.CreateIfNotExistsAsync(),
+			userEntities.CreateIfNotExistsAsync(),
+			signUpEntities.CreateIfNotExistsAsync()
+		);
+#endif
+	}
+
+	[Function("SignUp")]
+	public async Task<IActionResult> RunAsync(
 		[HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "sign-up")]
-		HttpRequest request,
-		[Table("location", Connection = "ALERTS_CONNECTION_STRING")]
-		IAsyncCollector<LocationEntity> locationEntities,
-		[Table("user", Connection = "ALERTS_CONNECTION_STRING")]
-		IAsyncCollector<UserEntity> userEntities,
-		[Table("signup", Connection = "ALERTS_CONNECTION_STRING")]
-		IAsyncCollector<SignUpEntity> signUpEntities,
-		ILogger log)
+		HttpRequest request)
 	{
 		var requestBody = await new StreamReader(request.Body).ReadToEndAsync();
 		var requestParams = HttpUtility.ParseQueryString(requestBody);
@@ -42,9 +54,9 @@ public static class SignUp
 		signUpEntity.RowKey = locationEntity.RowKey;
 
 		await Task.WhenAll(
-			locationEntities.AddAsync(locationEntity),
-			userEntities.AddAsync(userEntity),
-			signUpEntities.AddAsync(signUpEntity)
+			locationEntities.AddEntityAsync(locationEntity),
+			userEntities.AddEntityAsync(userEntity),
+			signUpEntities.AddEntityAsync(signUpEntity)
 		);
 
 		return new RedirectResult(AppSettings.SiteUrl + "sign-up-complete.html");
@@ -52,7 +64,7 @@ public static class SignUp
 
 	private static bool IsValid(NameValueCollection requestParams)
 		=> string.Equals("true", requestParams["userConsent"], StringComparison.InvariantCultureIgnoreCase)
-			&& requestParams["email"]?.Contains("@") is true
+			&& requestParams["email"]?.Contains('@') is true
 			&& requestParams["country"]?.Length is > 0
 			&& requestParams["city"]?.Length is > 0;
 
