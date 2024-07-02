@@ -69,26 +69,29 @@ public class SignUp
 			&& requestParams["city"]?.Length is > 0;
 
 	private static LocationEntity ParseLocationEntity(NameValueCollection requestParams)
-		=> new LocationEntity
+		=> new ()
 		{
 			PartitionKey = requestParams["country"],
 			RowKey = Guid.NewGuid().ToString(),
 			city = requestParams["city"],
+			zipCode = requestParams["zipCode"],
 			country = requestParams["country"],
 			users = requestParams["email"],
+			lang = requestParams["lang"],
 		};
 
 	private static UserEntity ParseUserEntity(NameValueCollection requestParams)
-		=> new UserEntity
+		=> new ()
 		{
 			PartitionKey = default,
 			RowKey = Guid.NewGuid().ToString(),
 			email = requestParams["email"],
 			userConsent = requestParams["userConsent"],
+			lang = requestParams["lang"],
 		};
 
 	private static SignUpEntity ParseSignUpEntity(NameValueCollection requestParams)
-		=> new SignUpEntity
+		=> new ()
 		{
 			PartitionKey = requestParams["country"],
 			RowKey = default,

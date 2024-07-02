@@ -9,6 +9,7 @@ public class UserEntity : ITableEntity
 {
 	public string? email { get; set; }
 	public string? userConsent { get; set; }
+	public string? lang { get; set; }
 
 	public string? PartitionKey { get; set; }
 	public string? RowKey { get; set; }
