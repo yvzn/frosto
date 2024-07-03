@@ -35,7 +35,7 @@ jobs:
       arguments: '--no-build --configuration $(buildConfiguration) -r $(buildPlatform) --no-self-contained'
   - task: PublishPipelineArtifact@1
     inputs:
-      targetPath: 'admin/bin/$(buildConfiguration)/net7.0/$(buildPlatform)/publish.zip'
+      targetPath: 'admin/bin/$(buildConfiguration)/net8.0/$(buildPlatform)/publish.zip'
       publishLocation: 'pipeline'
       artifact: 'admin'
 
