@@ -12,10 +12,15 @@
 			<div class="input-group">
 				<input asp-for="Location.city" class="form-control" disabled readonly />
 				<a class="btn btn-outline-secondary"
-					href="https://www.google.com/maps/place/@Model.Location.city.Trim(),+@Model.Location.country.Trim()/"
+					href="https://www.google.com/maps/place/@Model.Location.zipCode.Trim()+@Model.Location.city.Trim(),+@Model.Location.country.Trim()/"
 					target="_blank" rel="noopener noreferrer">Search</a>
 			</div>
 			<span asp-validation-for="Location.city" class="text-danger"></span>
+		</div>
+		<div class="form-group mb-3">
+			<label asp-for="Location.zipCode" class="form-label"></label>
+			<input asp-for="Location.zipCode" class="form-control" disabled readonly />
+			<span asp-validation-for="Location.zipCode" class="text-danger"></span>
 		</div>
 		<div class="form-group mb-3">
 			<label asp-for="Location.country" class="form-label"></label>
@@ -35,6 +40,11 @@
 		<div class="form-group mb-3">
 			<label asp-for="Location.channel" class="form-label"></label>
 			<input asp-for="Location.channel" class="form-control" disabled readonly />
+		</div>
+		<div class="form-group mb-3">
+			<label asp-for="Location.lang" class="form-label"></label>
+			<input asp-for="Location.lang" class="form-control" disabled readonly />
+			<span asp-validation-for="Location.lang" class="text-danger"></span>
 		</div>
 
 		<button type="submit" class="btn btn-outline-secondary ">Reset</button>
@@ -59,6 +69,11 @@
 				</div>
 			</div>
 			<span asp-validation-for="ValidLocation.city" class="text-danger"></span>
+		</div>
+		<div class="form-group mb-3">
+			<label asp-for="ValidLocation.zipCode" class="form-label"></label>
+			<input asp-for="ValidLocation.zipCode" class="form-control" required />
+			<span asp-validation-for="ValidLocation.zipCode" class="text-danger"></span>
 		</div>
 		<div class="form-group mb-3">
 			<label asp-for="ValidLocation.country" class="form-label"></label>
@@ -86,6 +101,11 @@
 		<div class="form-group mb-3">
 			<label asp-for="ValidLocation.channel" class="form-label"></label>
 			<select asp-for="ValidLocation.channel" asp-items="Model.ChannelOptions" class="form-select"></select>
+		</div>
+		<div class="form-group mb-3">
+			<label asp-for="ValidLocation.lang" class="form-label"></label>
+			<input asp-for="ValidLocation.lang" class="form-control" required />
+			<span asp-validation-for="ValidLocation.lang" class="text-danger"></span>
 		</div>
 
 		<input asp-for="ValidLocation.Id" />

@@ -32,6 +32,8 @@ public class LocationService
 				coordinates = locationEntity.Value.coordinates ?? "",
 				users = locationEntity.Value.users ?? "",
 				channel = locationEntity.Value.channel ?? "",
+				zipCode = locationEntity.Value.zipCode ?? "",
+				lang = locationEntity.Value.lang ?? "",
 				PartitionKey = locationEntity.Value.PartitionKey ?? "",
 				RowKey = locationEntity.Value.RowKey ?? "",
 				Timestamp = locationEntity.Value.Timestamp,
@@ -52,12 +54,15 @@ public class LocationService
 		var entity = await _locationTableClient.GetEntityAsync<LocationEntity>(partitionKey, rowKey, cancellationToken: cancellationToken);
 		var validLocationEntity = entity.Value;
 
+
 		validLocationEntity.city = validLocation.city.Trim();
-		validLocationEntity.country = validLocation.country.Trim()[0].ToString().ToUpper() + validLocation.country.Trim()[1..].ToLower();
+		validLocationEntity.country = Capitalize(validLocation.country);
 		validLocationEntity.coordinates = validLocation.coordinates.Replace(" ", "");
 		validLocationEntity.users = validLocation.users.Trim();
 		validLocationEntity.channel = string.IsNullOrWhiteSpace(validLocation.channel) ? default : validLocation.channel.Trim().ToLower();
-		validLocationEntity.PartitionKey = validLocationEntity.country;
+		validLocationEntity.zipCode = validLocation.zipCode.Trim();
+		validLocationEntity.lang = validLocation.lang.Trim().ToLower();
+		validLocationEntity.PartitionKey = Capitalize(validLocation.country);
 		validLocationEntity.RowKey = validLocation.RowKey;
 
 		await _validLocationTableClient.AddEntityAsync(validLocationEntity, cancellationToken: cancellationToken);
@@ -77,6 +82,8 @@ public class LocationService
 				coordinates = validLocationEntity.coordinates ?? "",
 				users = validLocationEntity.users ?? "",
 				channel = validLocationEntity.channel ?? "",
+				zipCode = validLocationEntity.zipCode ?? "",
+				lang = validLocationEntity.lang ?? "",
 				PartitionKey = validLocationEntity.PartitionKey ?? "",
 				RowKey = validLocationEntity.RowKey ?? "",
 				Timestamp = validLocationEntity.Timestamp,
@@ -120,7 +127,10 @@ public class LocationService
 
 	internal async Task<Location?> FindLocationAsync(string city, string country, CancellationToken cancellationToken)
 	{
-		await foreach (var validLocationEntity in _validLocationTableClient.QueryAsync<LocationEntity>(e => e.city == city && e.country == country, cancellationToken: cancellationToken))
+		var cityQuery = city.Trim();
+		var countryQuery = country.Trim();
+
+		await foreach (var validLocationEntity in _validLocationTableClient.QueryAsync<LocationEntity>(e => e.city == cityQuery && e.country == countryQuery, cancellationToken: cancellationToken))
 		{
 			return new Location()
 			{
@@ -129,6 +139,8 @@ public class LocationService
 				coordinates = validLocationEntity.coordinates ?? "",
 				users = validLocationEntity.users ?? "",
 				channel = validLocationEntity.channel ?? "",
+				zipCode = validLocationEntity.zipCode ?? "",
+				lang = validLocationEntity.lang ?? "",
 				PartitionKey = validLocationEntity.PartitionKey ?? "",
 				RowKey = validLocationEntity.RowKey ?? "",
 				Timestamp = validLocationEntity.Timestamp,
@@ -137,5 +149,7 @@ public class LocationService
 
 		return default;
 	}
+
+	private static string Capitalize(string s) => s.Trim()[0].ToString().ToUpper() + s.Trim()[1..].ToLower();
 }
 

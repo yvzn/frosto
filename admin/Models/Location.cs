@@ -22,6 +22,10 @@ public class Location
 	public string users { get; set; } = "";
 	[DisplayName("Channel")]
 	public string? channel { get; set; } = "";
+	[DisplayName("Zip Code")]
+	public string zipCode { get; set; } = "";
+	[DisplayName("Language")]
+	public string lang { get; set; } = "";
 
 	[Required]
 	internal string PartitionKey { get; set; } = "";
