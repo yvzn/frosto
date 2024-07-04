@@ -7,9 +7,9 @@ public class BatchConfig
 {
 	[Required]
 	[DisplayName("Periodicity in days")]
-	public int periodInDays { get; set; } = 2;
+	public int periodInDays { get; set; } = 3;
 
 	[Required]
 	[DisplayName("Batches per day")]
-	public int batchCountPerDay { get; set; } = 4;
+	public int batchCountPerDay { get; set; } = 7;
 }
