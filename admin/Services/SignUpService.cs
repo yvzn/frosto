@@ -1,18 +1,12 @@
 using admin.Models;
 using Azure.Data.Tables;
+using Microsoft.Extensions.Azure;
 
 namespace admin.Services;
 
-public class SignUpService
+public class SignUpService(IAzureClientFactory<TableClient> azureClientFactory)
 {
-	private readonly TableClient _signUpTableClient;
-
-	public SignUpService(IConfiguration configuration)
-	{
-		_signUpTableClient = new TableClient(
-			configuration.GetConnectionString("Alerts"),
-			tableName: "signup");
-	}
+	private readonly TableClient _signUpTableClient = azureClientFactory.CreateClient("signupTableClient");
 
 	public async Task<IList<SignUp>> GetNewSignUpsAsync(CancellationToken cancellationToken)
 	{
@@ -35,10 +29,7 @@ public class SignUpService
 
 	internal async Task<bool> DeleteSignUpAsync(string? id, CancellationToken cancellationToken)
 	{
-		if (id is null)
-		{
-			throw new ArgumentNullException(nameof(id));
-		}
+		ArgumentNullException.ThrowIfNull(id);
 
 		var (partitionKey, rowKey) = id.ToKeys();
 

@@ -1,22 +1,13 @@
 using admin.Models;
 using Azure.Data.Tables;
+using Microsoft.Extensions.Azure;
 
 namespace admin.Services;
 
-public class LocationService
+public class LocationService(IAzureClientFactory<TableClient> azureClientFactory)
 {
-	private readonly TableClient _validLocationTableClient;
-	private readonly TableClient _locationTableClient;
-
-	public LocationService(IConfiguration configuration)
-	{
-		_validLocationTableClient = new TableClient(
-			configuration.GetConnectionString("Alerts"),
-			tableName: "validlocation");
-		_locationTableClient = new TableClient(
-			configuration.GetConnectionString("Alerts"),
-			tableName: "location");
-	}
+	private readonly TableClient _validLocationTableClient = azureClientFactory.CreateClient("validlocationTableClient");
+	private readonly TableClient _locationTableClient = azureClientFactory.CreateClient("locationTableClient");
 
 	public async Task<Location?> GetLocationAsync(string id, CancellationToken cancellationToken)
 	{
@@ -44,10 +35,7 @@ public class LocationService
 
 	internal async Task<bool> PutValidLocationAsync(Location? validLocation, CancellationToken cancellationToken)
 	{
-		if (validLocation is null)
-		{
-			throw new ArgumentNullException(nameof(validLocation));
-		}
+		ArgumentNullException.ThrowIfNull(validLocation);
 
 		var (partitionKey, rowKey) = validLocation.Id.ToKeys();
 

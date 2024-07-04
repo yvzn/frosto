@@ -1,27 +1,18 @@
 using System.Runtime.CompilerServices;
 using admin.Models;
 using Azure.Data.Tables;
+using Microsoft.Extensions.Azure;
 
 namespace admin.Services;
 
-public class BatchService
+public class BatchService(IAzureClientFactory<TableClient> azureClientFactory)
 {
-	private readonly TableClient _batchTableClient;
-	private readonly TableClient _validLocationTableClient;
-
-	public BatchService(IConfiguration configuration)
-	{
-		_batchTableClient = new TableClient(
-			configuration.GetConnectionString("Alerts"),
-			tableName: "batch");
-		_validLocationTableClient = new TableClient(
-			configuration.GetConnectionString("Alerts"),
-			tableName: "validlocation");
-	}
+	private readonly TableClient _batchTableClient = azureClientFactory.CreateClient("batchTableClient");
+	private readonly TableClient _validLocationTableClient = azureClientFactory.CreateClient("validlocationTableClient");
 
 	internal async Task DeleteAllBatches(CancellationToken cancellationToken)
 	{
-		await foreach (var batchEntity in _batchTableClient.QueryAsync<TableEntity>(select: new[] { "PartitionKey", "RowKey" }, cancellationToken: cancellationToken))
+		await foreach (var batchEntity in _batchTableClient.QueryAsync<TableEntity>(select: ["PartitionKey", "RowKey"], cancellationToken: cancellationToken))
 		{
 			await _batchTableClient.DeleteEntityAsync(batchEntity.PartitionKey, batchEntity.RowKey, cancellationToken: cancellationToken);
 		}
@@ -45,7 +36,7 @@ public class BatchService
 
 	private async IAsyncEnumerable<string> GetValidLocationIdsAsync([EnumeratorCancellation] CancellationToken cancellationToken)
 	{
-		await foreach (var validLocationEntity in _validLocationTableClient.QueryAsync<TableEntity>(select: new[] { "PartitionKey", "RowKey" }, cancellationToken: cancellationToken))
+		await foreach (var validLocationEntity in _validLocationTableClient.QueryAsync<TableEntity>(select: ["PartitionKey", "RowKey"], cancellationToken: cancellationToken))
 		{
 			yield return (validLocationEntity.PartitionKey, validLocationEntity.RowKey).ToId();
 		}
@@ -64,7 +55,7 @@ internal static class IAsyncEnumerableExtensions
 			var batchNumber = itemIndex % batchCount;
 			if (batches[batchNumber] is null)
 			{
-				batches[batchNumber] = new HashSet<TValue>();
+				batches[batchNumber] = [];
 			}
 			batches[batchNumber].Add(value);
 			++itemIndex;
