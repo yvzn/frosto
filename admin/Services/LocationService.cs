@@ -33,7 +33,7 @@ public class LocationService(IAzureClientFactory<TableClient> azureClientFactory
 		return default;
 	}
 
-	internal async Task<bool> PutValidLocationAsync(Location? validLocation, CancellationToken cancellationToken)
+	internal async Task<bool> CreateValidLocationAsync(Location? validLocation, CancellationToken cancellationToken)
 	{
 		ArgumentNullException.ThrowIfNull(validLocation);
 
@@ -41,7 +41,6 @@ public class LocationService(IAzureClientFactory<TableClient> azureClientFactory
 
 		var entity = await _locationTableClient.GetEntityAsync<LocationEntity>(partitionKey, rowKey, cancellationToken: cancellationToken);
 		var validLocationEntity = entity.Value;
-
 
 		validLocationEntity.city = validLocation.city.Trim();
 		validLocationEntity.country = Capitalize(validLocation.country);
@@ -54,6 +53,30 @@ public class LocationService(IAzureClientFactory<TableClient> azureClientFactory
 		validLocationEntity.RowKey = validLocation.RowKey;
 
 		await _validLocationTableClient.AddEntityAsync(validLocationEntity, cancellationToken: cancellationToken);
+
+		return true;
+	}
+
+	internal async Task<bool> UpdateValidLocationAsync(Location? validLocation, CancellationToken cancellationToken)
+	{
+		ArgumentNullException.ThrowIfNull(validLocation);
+
+		var (partitionKey, rowKey) = validLocation.Id.ToKeys();
+
+		var entity = await _validLocationTableClient.GetEntityAsync<LocationEntity>(partitionKey, rowKey, cancellationToken: cancellationToken);
+		var validLocationEntity = entity.Value;
+
+		validLocationEntity.city = validLocation.city.Trim();
+		validLocationEntity.country = Capitalize(validLocation.country);
+		validLocationEntity.coordinates = validLocation.coordinates.Replace(" ", "");
+		validLocationEntity.users = validLocation.users.Trim();
+		validLocationEntity.channel = string.IsNullOrWhiteSpace(validLocation.channel) ? default : validLocation.channel.Trim().ToLower();
+		validLocationEntity.zipCode = validLocation.zipCode.Trim();
+		validLocationEntity.lang = validLocation.lang.Trim().ToLower();
+		validLocationEntity.PartitionKey = Capitalize(validLocation.country);
+		validLocationEntity.RowKey = validLocation.RowKey;
+
+		await _validLocationTableClient.UpdateEntityAsync(validLocationEntity, validLocationEntity.ETag, cancellationToken: cancellationToken);
 
 		return true;
 	}
@@ -113,7 +136,31 @@ public class LocationService(IAzureClientFactory<TableClient> azureClientFactory
 		};
 	}
 
-	internal async Task<Location?> FindLocationAsync(string city, string country, CancellationToken cancellationToken)
+	public async Task<Location?> GetValidLocationAsync(string id, CancellationToken cancellationToken)
+	{
+		var (partitionKey, rowKey) = id.ToKeys();
+
+		var validLocationEntity = await _validLocationTableClient.GetEntityAsync<LocationEntity>(partitionKey, rowKey, cancellationToken: cancellationToken);
+		if (validLocationEntity.HasValue)
+		{
+			return new()
+			{
+				city = validLocationEntity.Value.city ?? "",
+				country = validLocationEntity.Value.country ?? "",
+				coordinates = validLocationEntity.Value.coordinates ?? "",
+				users = validLocationEntity.Value.users ?? "",
+				channel = validLocationEntity.Value.channel ?? "",
+				zipCode = validLocationEntity.Value.zipCode ?? "",
+				lang = validLocationEntity.Value.lang ?? "",
+				PartitionKey = validLocationEntity.Value.PartitionKey ?? "",
+				RowKey = validLocationEntity.Value.RowKey ?? "",
+				Timestamp = validLocationEntity.Value.Timestamp,
+			};
+		}
+		return default;
+	}
+
+	internal async Task<Location?> FindValidLocationAsync(string city, string country, CancellationToken cancellationToken)
 	{
 		var cityQuery = city.Trim();
 		var countryQuery = country.Trim();

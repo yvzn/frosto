@@ -25,7 +25,7 @@ public class LocationController : ControllerBase
 	[Route("")]
 	public async Task<IActionResult> GetLocationAsync([FromQuery(Name = "city")] string city, [FromQuery(Name = "country")] string country)
 	{
-		var location = await _locationService.FindLocationAsync(city, country, HttpContext.RequestAborted);
+		var location = await _locationService.FindValidLocationAsync(city, country, HttpContext.RequestAborted);
 		return location is null ? NotFound() : Ok(location);
 	}
 }

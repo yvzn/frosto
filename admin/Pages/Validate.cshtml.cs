@@ -34,7 +34,7 @@ public class ValidateModel : PageModel
 	{
 		Location = await _locationService.GetLocationAsync(id, HttpContext.RequestAborted) ?? new();
 		ValidLocation = await _locationService.GetLocationAsync(id, HttpContext.RequestAborted) ?? new();
-		ValidLocationExists = await _locationService.FindLocationAsync(ValidLocation.city, ValidLocation.country, HttpContext.RequestAborted) is not null;
+		ValidLocationExists = await _locationService.FindValidLocationAsync(ValidLocation.city, ValidLocation.country, HttpContext.RequestAborted) is not null;
 	}
 
 	public async Task<IActionResult> OnPostAsync()
@@ -50,7 +50,7 @@ public class ValidateModel : PageModel
 		}
 
 		_logger.LogInformation("Saving location {LocationId}", ValidLocation?.Id);
-		await _locationService.PutValidLocationAsync(ValidLocation, HttpContext.RequestAborted);
+		await _locationService.CreateValidLocationAsync(ValidLocation, HttpContext.RequestAborted);
 		await _signUpService.DeleteSignUpAsync(ValidLocation?.Id, HttpContext.RequestAborted);
 
 		return RedirectToPage("./Index", new { m = $"Updated {ValidLocation?.city} ({ValidLocation?.RowKey})" });

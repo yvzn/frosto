@@ -14,20 +14,23 @@
 		<tr>
 			<th>City</th>
 			<th>Country</th>
+			<td></td>
 		</tr>
 	</thead>
 	<tbody>
-	@foreach (var item in Model.ValidLocations)
-	{
-		<tr>
-			<td>
-				@Html.DisplayFor(modelItem => item.city)
-			</td>
-			<td>
-				@Html.DisplayFor(modelItem => item.country)
-			</td>
-
-		</tr>
-	}
+		@foreach (var item in Model.ValidLocations)
+		{
+			<tr>
+				<td>
+					@Html.DisplayFor(modelItem => item.city)
+				</td>
+				<td>
+					@Html.DisplayFor(modelItem => item.country)
+				</td>
+				<td>
+					<a asp-page="./Edit" asp-route-id="@item.Id">Edit</a>
+				</td>
+			</tr>
+		}
 	</tbody>
 </table>
