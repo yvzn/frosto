@@ -13,6 +13,7 @@
 	<thead>
 		<tr>
 			<th>City</th>
+			<th>Zip Code</th>
 			<th>Country</th>
 			<td></td>
 		</tr>
@@ -23,6 +24,9 @@
 			<tr>
 				<td>
 					@Html.DisplayFor(modelItem => item.city)
+				</td>
+				<td>
+					@Html.DisplayFor(modelItem => item.zipCode)
 				</td>
 				<td>
 					@Html.DisplayFor(modelItem => item.country)

@@ -24,7 +24,7 @@ public class ValidateModel : PageModel
 	[BindProperty]
 	public Location ValidLocation { get; set; } = new();
 
-	public bool ValidLocationExists { get; set; } = false;
+	public string? ValidLocationExists { get; set; }
 
 	public SelectList ChannelOptions { get; set; } = new(new[] { "", "api", "smtp", "default", "tipimail" });
 
@@ -34,7 +34,9 @@ public class ValidateModel : PageModel
 	{
 		Location = await _locationService.GetLocationAsync(id, HttpContext.RequestAborted) ?? new();
 		ValidLocation = await _locationService.GetLocationAsync(id, HttpContext.RequestAborted) ?? new();
-		ValidLocationExists = await _locationService.FindValidLocationAsync(ValidLocation.city, ValidLocation.country, HttpContext.RequestAborted) is not null;
+
+		var existingLocation = await _locationService.FindValidLocationAsync(ValidLocation.city, ValidLocation.country, HttpContext.RequestAborted);
+		ValidLocationExists = existingLocation?.Id;
 	}
 
 	public async Task<IActionResult> OnPostAsync()

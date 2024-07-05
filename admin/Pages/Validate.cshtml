@@ -18,14 +18,14 @@
 			<span asp-validation-for="Location.city" class="text-danger"></span>
 		</div>
 		<div class="form-group mb-3">
-			<label asp-for="Location.zipCode" class="form-label"></label>
-			<input asp-for="Location.zipCode" class="form-control" disabled readonly />
-			<span asp-validation-for="Location.zipCode" class="text-danger"></span>
-		</div>
-		<div class="form-group mb-3">
 			<label asp-for="Location.country" class="form-label"></label>
 			<input asp-for="Location.country" class="form-control" disabled readonly />
 			<span asp-validation-for="Location.country" class="text-danger"></span>
+		</div>
+		<div class="form-group mb-3">
+			<label asp-for="Location.zipCode" class="form-label"></label>
+			<input asp-for="Location.zipCode" class="form-control" disabled readonly />
+			<span asp-validation-for="Location.zipCode" class="text-danger"></span>
 		</div>
 		<div class="form-group mb-3">
 			<label asp-for="Location.coordinates" class="form-label"></label>
@@ -57,23 +57,20 @@
 			<label asp-for="ValidLocation.city" class="form-label"></label>
 			<div class="input-group">
 				<input asp-for="ValidLocation.city" class="form-control" id="valid-location-city" required />
-				<div class="input-group-text" id="valid-location-verification-result">
-					@if (Model.ValidLocationExists)
-					{
-						<span class="text-danger fs-6">exists</span>
-					}
-					else
-					{
-						<span class="text-success fs-6">new</span>
-					}
-				</div>
+				@if (Model.ValidLocationExists == null)
+				{
+					<a class="btn btn-outline-success d-flex align-items-center fs-6"
+						id="valid-location-verification-result"
+						href="#" disabled>new</a>
+				}
+				else
+				{
+					<a class="btn btn-outline-danger d-flex align-items-center fs-6"
+						id="valid-location-verification-result"
+						asp-page="./Edit" asp-route-id="@Model.ValidLocationExists">exists</a>
+				}
 			</div>
 			<span asp-validation-for="ValidLocation.city" class="text-danger"></span>
-		</div>
-		<div class="form-group mb-3">
-			<label asp-for="ValidLocation.zipCode" class="form-label"></label>
-			<input asp-for="ValidLocation.zipCode" class="form-control" required />
-			<span asp-validation-for="ValidLocation.zipCode" class="text-danger"></span>
 		</div>
 		<div class="form-group mb-3">
 			<label asp-for="ValidLocation.country" class="form-label"></label>
@@ -87,6 +84,11 @@
 					<option value="@country"></option>
 				}
 			</datalist>
+		</div>
+		<div class="form-group mb-3">
+			<label asp-for="ValidLocation.zipCode" class="form-label"></label>
+			<input asp-for="ValidLocation.zipCode" class="form-control" required />
+			<span asp-validation-for="ValidLocation.zipCode" class="text-danger"></span>
 		</div>
 		<div class="form-group mb-3">
 			<label asp-for="ValidLocation.coordinates" class="form-label"></label>
@@ -140,7 +142,10 @@
 	countryInput.addEventListener('change', onChangeCity);
 
 	function onChangeCity() {
-		verificationResult.innerHTML = '<span class="spinner-border spinner-border-sm fs-6 p-2">&nbsp;</span>';
+		verificationResult.classList.remove('btn-outline-danger');
+		verificationResult.classList.remove('btn-outline-success');
+		verificationResult.innerHTML = '<span class="spinner-border spinner-border-sm">&nbsp;</span>';
+		verificationResult.href = 'javascript:void(0)';
 		getLocation(cityInput.value, countryInput.value)
 			.then(
 				notifyDuplicatedEntity,
@@ -148,12 +153,18 @@
 			);
 	}
 
-	function notifyDuplicatedEntity() {
-		verificationResult.innerHTML = '<span class="text-danger fs-6">exists</span>';
+	function notifyDuplicatedEntity(id) {
+		verificationResult.classList.remove('btn-outline-success');
+		verificationResult.classList.add('btn-outline-danger');
+		verificationResult.innerHTML = '<span>exists</span>';
+		verificationResult.href = '../Edit/' + id;
+
 	}
 
 	function notifyUniqueEntity() {
-		verificationResult.innerHTML = '<span class="text-success fs-6">new</span>';
+		verificationResult.classList.remove('btn-outline-danger');
+		verificationResult.classList.add('btn-outline-success');
+		verificationResult.innerHTML = '<span>new</span>';
 	}
 
 	async function getLocation(city, country) {
@@ -166,6 +177,7 @@
 		if (!json.id) {
 			throw new Error(JSON.stringify(json));
 		}
+		return json.id;
 	}
 
 	cityInput.addEventListener('click', pasteFromClipboard);
