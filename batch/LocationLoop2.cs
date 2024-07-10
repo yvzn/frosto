@@ -6,73 +6,71 @@ using System.Threading.Tasks;
 using Azure.Data.Tables;
 using batch.Models;
 using batch.Services;
-using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 
 namespace batch;
 
-public class LocationLoop2
+public class LocationLoop2(ILogger<LocationLoop2> logger)
 {
 	private static readonly Random random = new();
 
 	private static readonly HttpClient httpClient = new();
 
-	[FunctionName("LocationLoop2-0")]
-	public static async Task RunGroup0Async(
+	private readonly ILogger<LocationLoop2> logger = logger;
+
+	[Function("LocationLoop2-0")]
+	public async Task RunGroup0Async(
 		[TimerTrigger("0 0 4 * 1-5,9-12 *"
 #if DEBUG
 			, RunOnStartup=true
 #endif
 		)]
-		TimerInfo timerInfo,
-		ILogger log)
+		TimerInfo timerInfo)
 	{
 #if DEBUG
 		await Task.Delay(5_000);
 #endif
 
-		_ = LoopOverBatchAsync(groupNumber: 0, log);
+		_ = LoopOverBatchAsync(groupNumber: 0);
 	}
 
-	[FunctionName("LocationLoop2-1")]
-	public static void RunGroup1(
+	[Function("LocationLoop2-1")]
+	public void RunGroup1(
 		[TimerTrigger("0 30 4 * 1-5,9-12 *")]
-		TimerInfo timerInfo,
-		ILogger log)
+		TimerInfo timerInfo)
 	{
-		_ = LoopOverBatchAsync(groupNumber: 1, log);
+		_ = LoopOverBatchAsync(groupNumber: 1);
 	}
 
-	[FunctionName("LocationLoop2-2")]
-	public static void RunGroup2(
+	[Function("LocationLoop2-2")]
+	public void RunGroup2(
 		[TimerTrigger("0 0 5 * 1-5,9-12 *")]
-		TimerInfo timerInfo,
-		ILogger log)
+		TimerInfo timerInfo)
 	{
-		_ = LoopOverBatchAsync(groupNumber: 2, log);
+		_ = LoopOverBatchAsync(groupNumber: 2);
 	}
 
-	[FunctionName("LocationLoop2-3")]
-	public static void RunGroup3(
+	[Function("LocationLoop2-3")]
+	public void RunGroup3(
 		[TimerTrigger("0 30 5 * 1-5,9-12 *")]
-		TimerInfo timerInfo,
-		ILogger log)
+		TimerInfo timerInfo)
 	{
-		_ = LoopOverBatchAsync(groupNumber: 3, log);
+		_ = LoopOverBatchAsync(groupNumber: 3);
 	}
 
-	private static async Task LoopOverBatchAsync(int groupNumber, ILogger log)
+	private async Task LoopOverBatchAsync(int groupNumber)
 	{
 		var dayNumber = (DateTime.UtcNow - DateTime.UnixEpoch).Days % AppSettings.PeriodInDays;
-		await LoopOverBatchAsync(dayNumber, groupNumber, log);
+		await LoopOverBatchAsync(dayNumber, groupNumber);
 	}
 
-	private static async Task LoopOverBatchAsync(int dayNumber, int groupNumber, ILogger log)
+	private async Task LoopOverBatchAsync(int dayNumber, int groupNumber)
 	{
 		var partitionKey = $"day-{dayNumber}";
 		var rowKey = $"day-{dayNumber}-group-{groupNumber}";
 
-		log.LogInformation("Scheduling batch {BatchRowKey} for weather", rowKey);
+		logger.LogInformation("Scheduling batch {BatchRowKey} for weather", rowKey);
 
 		var tableClient = new TableClient(AppSettings.AlertsConnectionString, "batch");
 
@@ -81,20 +79,20 @@ public class LocationLoop2
 
 		if (batchEntity.HasValue)
 		{
-			LoopOverBatch(batchEntity.Value, log);
+			LoopOverBatch(batchEntity.Value!);
 		}
 		else
 		{
-			log.LogInformation("Skipping batch {DayNumber}-{GroupNumber} because it does not exist", dayNumber, groupNumber);
+			logger.LogInformation("Skipping batch {DayNumber}-{GroupNumber} because it does not exist", dayNumber, groupNumber);
 		}
 	}
 
-	private static void LoopOverBatch(BatchEntity batchEntity, ILogger log)
+	private void LoopOverBatch(BatchEntity batchEntity)
 	{
 		var validLocationIds = batchEntity.locations?.Split(' ');
 		if (validLocationIds is null || validLocationIds.Length is 0)
 		{
-			log.LogWarning("Skipping batch {BatchRowKey} because it has no locations", batchEntity.RowKey);
+			logger.LogWarning("Skipping batch {BatchRowKey} because it has no locations", batchEntity.RowKey);
 			return;
 		}
 
@@ -104,16 +102,16 @@ public class LocationLoop2
 			var (partitionKey, rowKey) = locationId.ToKeys();
 			if (partitionKey is null || rowKey is null)
 			{
-				log.LogWarning("Skipping location {LocationId} in batch {BatchRowKey} because of invalid identifier", locationId, batchEntity.RowKey);
+				logger.LogWarning("Skipping location {LocationId} in batch {BatchRowKey} because of invalid identifier", locationId, batchEntity.RowKey);
 				continue;
 			}
 
 			Interlocked.Increment(ref locationIndex);
-			_ = ScheduleLocationAsync(partitionKey, rowKey, locationIndex, log);
+			_ = ScheduleLocationAsync(partitionKey, rowKey, locationIndex);
 		}
 	}
 
-	private static async Task<bool> ScheduleLocationAsync(string partitionKey, string rowKey, int locationIndex, ILogger log)
+	private async Task<bool> ScheduleLocationAsync(string partitionKey, string rowKey, int locationIndex)
 	{
 		var tableClient = new TableClient(AppSettings.AlertsConnectionString, "validlocation");
 
@@ -123,30 +121,30 @@ public class LocationLoop2
 		Func<Azure.NullableResponse<LocationEntity>, bool> locationFilter = location => location.HasValue;
 
 #if DEBUG
-		locationFilter = location => location.HasValue && location.Value.uat == true;
+		locationFilter = location => location.HasValue && location.Value?.uat == true;
 #endif
 
 		if (locationFilter.Invoke(locationEntity))
 		{
-			return await ScheduleLocationAsync(locationEntity.Value, locationIndex, log);
+			return await ScheduleLocationAsync(locationEntity.Value!, locationIndex);
 		}
 		else
 		{
-			log.LogWarning("Skipping location {LocationPartitionKey} {LocationRowKey} because it does not exist", partitionKey, rowKey);
+			logger.LogWarning("Skipping location {LocationPartitionKey} {LocationRowKey} because it does not exist", partitionKey, rowKey);
 			return false;
 		}
 	}
 
-	private static async Task<bool> ScheduleLocationAsync(LocationEntity location, int locationIndex, ILogger log)
+	private async Task<bool> ScheduleLocationAsync(LocationEntity location, int locationIndex)
 	{
 		var users = location.users?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 		if (users is null || users.Length == 0)
 		{
-			log.LogWarning("Skipping location {City} {Country} because no user configured", location.city, location.country);
+			logger.LogWarning("Skipping location {City} {Country} because no user configured", location.city, location.country);
 			return false;
 		}
 
-		log.LogInformation("Scheduling location {City} {Country} for weather", location.city, location.country);
+		logger.LogInformation("Scheduling location {City} {Country} for weather", location.city, location.country);
 
 		var requestUri = new InternalRequestUri("NotifyAtLocation2", new() { { "p", location.PartitionKey }, { "r", location.RowKey } });
 
@@ -162,14 +160,14 @@ public class LocationLoop2
 
 			if (!response.IsSuccessStatusCode && response.StatusCode != HttpStatusCode.BadGateway)
 			{
-				log.LogError("Failed to schedule location {City} {Country} for weather: HTTP {StatusCode} {RequestUri}", location.city, location.country, response.StatusCode, requestUri.AbsoluteUri);
+				logger.LogError("Failed to schedule location {City} {Country} for weather: HTTP {StatusCode} {RequestUri}", location.city, location.country, response.StatusCode, requestUri.AbsoluteUri);
 				return false;
 			}
 			return true;
 		}
 		catch (Exception ex)
 		{
-			log.LogError(ex, "Failed to schedule location {City} {Country} for weather: HTTP {StatusCode} {RequestUri}", location.city, location.country, response?.StatusCode, requestUri.AbsoluteUri);
+			logger.LogError(ex, "Failed to schedule location {City} {Country} for weather: HTTP {StatusCode} {RequestUri}", location.city, location.country, response?.StatusCode, requestUri.AbsoluteUri);
 			return false;
 		}
 	}

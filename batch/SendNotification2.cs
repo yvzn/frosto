@@ -2,8 +2,6 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using batch.Models;
@@ -18,22 +16,21 @@ using System.Net.Http;
 using System.Text;
 using System.Collections.Generic;
 using System.Threading;
-using ExecutionContext = Microsoft.Azure.WebJobs.ExecutionContext;
+using Microsoft.Azure.Functions.Worker;
 
 namespace batch;
 
-public static class SendNotification2
+public class SendNotification2(ILogger<SendNotification2> logger)
 {
 	private static readonly HttpClient httpClient = new();
-
 	internal static ISet<string> channels = new HashSet<string>() { "default", "api", "tipimail", "smtp" };
+	private readonly ILogger<SendNotification2> logger = logger;
 
-	[FunctionName("SendNotification2")]
-	public static async Task<IActionResult> RunAsync(
+	[Function("SendNotification2")]
+	public async Task<IActionResult> RunAsync(
 		[HttpTrigger(AuthorizationLevel.Function, "post", Route = null)]
 		HttpRequest req,
-		ExecutionContext ctx,
-		ILogger log)
+		ExecutionContext ctx)
 	{
 		var notification = default(Notification);
 		try
@@ -41,26 +38,26 @@ public static class SendNotification2
 			notification = await DecodeAsync(req);
 			if (notification is null || !IsValid(notification))
 			{
-				log.LogWarning("Skip sending notification {NotificationSubject} to <{Users}> : invalid", notification?.subject, string.Join(" ", notification?.to ?? Array.Empty<string>()));
+				logger.LogWarning("Skip sending notification {NotificationSubject} to <{Users}> : invalid", notification?.subject, string.Join(" ", notification?.to ?? Array.Empty<string>()));
 				return new BadRequestResult();
 			}
 		}
 		catch (Exception ex)
 		{
-			log.LogWarning(ex, "Skip sending notification {NotificationSubject} to <{Users}> : invalid", notification?.subject, string.Join(" ", notification?.to ?? Array.Empty<string>()));
+			logger.LogWarning(ex, "Skip sending notification {NotificationSubject} to <{Users}> : invalid", notification?.subject, string.Join(" ", notification?.to ?? Array.Empty<string>()));
 			return new BadRequestResult();
 		}
 
 		var channel = Decode(req);
 		if (channel is null)
 		{
-			log.LogWarning("Skip sending notification {NotificationSubject} to <{Users}> on {ChannelName} channel : invalid channel", notification?.subject, string.Join(" ", notification?.to ?? Array.Empty<string>()), channel);
+			logger.LogWarning("Skip sending notification {NotificationSubject} to <{Users}> on {ChannelName} channel : invalid channel", notification?.subject, string.Join(" ", notification?.to ?? Array.Empty<string>()), channel);
 			return new BadRequestResult();
 		}
 
 		try
 		{
-			_ = SendNotificationAsync(notification, channel, ctx, log);
+			_ = SendNotificationAsync(notification, channel, ctx);
 			return new OkResult();
 		}
 		catch (Exception)
@@ -71,7 +68,7 @@ public static class SendNotification2
 
 	private static string? Decode(HttpRequest req)
 	{
-		var queryParam = req.Query["c"];
+		var queryParam = req.Query["c"].ToString();
 		if (channels.Contains(queryParam)) return queryParam;
 		return default;
 	}
@@ -85,11 +82,11 @@ public static class SendNotification2
 			&& !string.IsNullOrWhiteSpace(notification.subject)
 			&& notification.to.Where(user => !string.IsNullOrWhiteSpace(user)).Any();
 
-	private static async Task<bool> SendNotificationAsync(Notification notification, string channel, ExecutionContext ctx, ILogger log)
+	private async Task<bool> SendNotificationAsync(Notification notification, string channel, ExecutionContext ctx)
 	{
 		var users = string.Join(" ", notification.to);
 
-		log.LogInformation("Sending notification to <{Users}> on {ChannelName} channel", users, channel);
+		logger.LogInformation("Sending notification to <{Users}> on {ChannelName} channel", users, channel);
 
 		var success = true;
 		var error = default(string);
@@ -101,7 +98,7 @@ public static class SendNotification2
 		}
 		catch (Exception ex)
 		{
-			log.LogError(ex, "Failed to send notification to <{Users}>: {StatusMessage}", users, error);
+			logger.LogError(ex, "Failed to send notification to <{Users}>: {StatusMessage}", users, error);
 			throw;
 		}
 
@@ -194,7 +191,7 @@ public static class SendNotification2
 
 	private static async Task<(bool success, string? error)> SendMailSmtpAsync(Notification notification, ExecutionContext ctx)
 	{
-		var privateKey = File.OpenRead($"{ctx.FunctionAppDirectory}{Path.DirectorySeparatorChar}dkim_private.pem");
+		var privateKey = File.OpenRead($"{FunctionAppDirectory}{Path.DirectorySeparatorChar}dkim_private.pem");
 
 		var signer = new DkimSigner(
 			privateKey,
@@ -245,5 +242,16 @@ public static class SendNotification2
 		var response = await RetryStrategy.For.Smtp.ExecuteAsync(sendmail);
 
 		return (success: response is not null && response.StartsWith("2."), error: response);
+	}
+
+	private static string FunctionAppDirectory
+	{
+		get
+		{
+			// https://stackoverflow.com/questions/68082798/access-functionappdirectory-in-net-5-azure-function
+			var local_root = Environment.GetEnvironmentVariable("AzureWebJobsScriptRoot");
+			var azure_root = $"{Environment.GetEnvironmentVariable("HOME")}/site/wwwroot";
+			return local_root ?? azure_root;
+		}
 	}
 }
