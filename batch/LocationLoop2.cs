@@ -7,17 +7,20 @@ using Azure.Data.Tables;
 using batch.Models;
 using batch.Services;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Logging;
 
 namespace batch;
 
-public class LocationLoop2(ILogger<LocationLoop2> logger)
+public class LocationLoop2(IAzureClientFactory<TableClient> azureClientFactory, ILogger<LocationLoop2> logger)
 {
 	private static readonly Random random = new();
 
 	private static readonly HttpClient httpClient = new();
 
-	private readonly ILogger<LocationLoop2> logger = logger;
+	private readonly TableClient batchTableClient = azureClientFactory.CreateClient("batchtableClient");
+
+	private readonly TableClient validLocationTableClient = azureClientFactory.CreateClient("validlocationTableClient");
 
 	[Function("LocationLoop2-0")]
 	public async Task RunGroup0Async(
@@ -72,9 +75,7 @@ public class LocationLoop2(ILogger<LocationLoop2> logger)
 
 		logger.LogInformation("Scheduling batch {BatchRowKey} for weather", rowKey);
 
-		var tableClient = new TableClient(AppSettings.AlertsConnectionString, "batch");
-
-		async ValueTask<Azure.NullableResponse<BatchEntity>> query(CancellationToken cancellationToken) => await tableClient.GetEntityIfExistsAsync<BatchEntity>(partitionKey, rowKey, cancellationToken: cancellationToken);
+		async ValueTask<Azure.NullableResponse<BatchEntity>> query(CancellationToken cancellationToken) => await batchTableClient.GetEntityIfExistsAsync<BatchEntity>(partitionKey, rowKey, cancellationToken: cancellationToken);
 		var batchEntity = await RetryStrategy.For.DataAccess.Execute(query);
 
 		if (batchEntity.HasValue)
@@ -113,9 +114,7 @@ public class LocationLoop2(ILogger<LocationLoop2> logger)
 
 	private async Task<bool> ScheduleLocationAsync(string partitionKey, string rowKey, int locationIndex)
 	{
-		var tableClient = new TableClient(AppSettings.AlertsConnectionString, "validlocation");
-
-		async ValueTask<Azure.NullableResponse<LocationEntity>> query(CancellationToken cancellationToken) => await tableClient.GetEntityIfExistsAsync<LocationEntity>(partitionKey, rowKey, cancellationToken: cancellationToken);
+		async ValueTask<Azure.NullableResponse<LocationEntity>> query(CancellationToken cancellationToken) => await validLocationTableClient.GetEntityIfExistsAsync<LocationEntity>(partitionKey, rowKey, cancellationToken: cancellationToken);
 		var locationEntity = await RetryStrategy.For.DataAccess.Execute(query);
 
 		Func<Azure.NullableResponse<LocationEntity>, bool> locationFilter = location => location.HasValue;
