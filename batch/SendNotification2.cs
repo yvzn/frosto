@@ -20,11 +20,11 @@ using Microsoft.Azure.Functions.Worker;
 
 namespace batch;
 
-public class SendNotification2(ILogger<SendNotification2> logger)
+public class SendNotification2(IHttpClientFactory httpClientFactory, ILogger<SendNotification2> logger)
 {
-	private static readonly HttpClient httpClient = new();
 	internal static ISet<string> channels = new HashSet<string>() { "default", "api", "tipimail", "smtp" };
-	private readonly ILogger<SendNotification2> logger = logger;
+
+	private readonly HttpClient httpClient = httpClientFactory.CreateClient();
 
 	[Function("SendNotification2")]
 	public async Task<IActionResult> RunAsync(
