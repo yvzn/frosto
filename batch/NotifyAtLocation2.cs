@@ -15,10 +15,11 @@ using System.Net;
 using System.Threading;
 using Microsoft.Azure.Functions.Worker;
 using System.Net.Http.Json;
+using Microsoft.Extensions.Azure;
 
 namespace batch;
 
-public class NotifyAtLocation2(ILogger<NotifyAtLocation2> logger)
+public class NotifyAtLocation2(IAzureClientFactory<TableClient> azureClientFactory, ILogger<NotifyAtLocation2> logger)
 {
 #if DEBUG
 	private static readonly decimal threshold = 20.0m;
@@ -28,7 +29,7 @@ public class NotifyAtLocation2(ILogger<NotifyAtLocation2> logger)
 
 	private static readonly HttpClient httpClient = new();
 
-	private readonly ILogger<NotifyAtLocation2> logger = logger;
+	private readonly TableClient validLocationTableClient = azureClientFactory.CreateClient("validlocationTableClient");
 
 	[Function("NotifyAtLocation2")]
 	public async Task<IActionResult> RunAsync(
@@ -42,9 +43,7 @@ public class NotifyAtLocation2(ILogger<NotifyAtLocation2> logger)
 			return new BadRequestResult();
 		}
 
-		var tableClient = new TableClient(AppSettings.AlertsConnectionString, "validlocation");
-
-		async ValueTask<Azure.Response<LocationEntity>> query(CancellationToken cancellationToken) => await tableClient.GetEntityAsync<LocationEntity>(entityKey.PartitionKey, entityKey.RowKey, cancellationToken: cancellationToken);
+		async ValueTask<Azure.Response<LocationEntity>> query(CancellationToken cancellationToken) => await validLocationTableClient.GetEntityAsync<LocationEntity>(entityKey.PartitionKey, entityKey.RowKey, cancellationToken: cancellationToken);
 		var location = await RetryStrategy.For.DataAccess.ExecuteAsync(query);
 
 		var response = location.GetRawResponse();
