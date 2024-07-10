@@ -19,7 +19,7 @@ using Microsoft.Extensions.Azure;
 
 namespace batch;
 
-public class NotifyAtLocation2(IAzureClientFactory<TableClient> azureClientFactory, ILogger<NotifyAtLocation2> logger)
+public class NotifyAtLocation2(IHttpClientFactory httpClientFactory, IAzureClientFactory<TableClient> azureClientFactory, ILogger<NotifyAtLocation2> logger)
 {
 #if DEBUG
 	private static readonly decimal threshold = 20.0m;
@@ -27,7 +27,7 @@ public class NotifyAtLocation2(IAzureClientFactory<TableClient> azureClientFacto
 	private static readonly decimal threshold = 1.0m;
 #endif
 
-	private static readonly HttpClient httpClient = new();
+	private readonly HttpClient httpClient = httpClientFactory.CreateClient();
 
 	private readonly TableClient validLocationTableClient = azureClientFactory.CreateClient("validlocationTableClient");
 

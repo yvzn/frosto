@@ -12,11 +12,11 @@ using Microsoft.Extensions.Logging;
 
 namespace batch;
 
-public class LocationLoop2(IAzureClientFactory<TableClient> azureClientFactory, ILogger<LocationLoop2> logger)
+public class LocationLoop2(IHttpClientFactory httpClientFactory, IAzureClientFactory<TableClient> azureClientFactory, ILogger<LocationLoop2> logger)
 {
 	private static readonly Random random = new();
 
-	private static readonly HttpClient httpClient = new();
+	private readonly HttpClient httpClient = httpClientFactory.CreateClient();
 
 	private readonly TableClient batchTableClient = azureClientFactory.CreateClient("batchtableClient");
 
