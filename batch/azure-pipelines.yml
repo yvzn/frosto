@@ -24,7 +24,7 @@ jobs:
       arguments: '--configuration Release'
   - task: PublishPipelineArtifact@1
     inputs:
-      targetPath: 'batch/bin/Release/net6.0/publish.zip'
+      targetPath: 'batch/bin/Release/net8.0/publish.zip'
       publishLocation: 'pipeline'
       artifact: 'batch'
 
