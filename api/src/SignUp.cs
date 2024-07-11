@@ -59,7 +59,8 @@ public class SignUp
 			signUpEntities.AddEntityAsync(signUpEntity)
 		);
 
-		return new RedirectResult(AppSettings.SiteUrl + "sign-up-complete.html");
+		request.HttpContext.Response.Headers.Append("Location", AppSettings.SiteUrl + "sign-up-complete.html");
+		return new StatusCodeResult(StatusCodes.Status303SeeOther);
 	}
 
 	private static bool IsValid(NameValueCollection requestParams)
