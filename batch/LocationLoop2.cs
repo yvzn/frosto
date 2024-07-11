@@ -24,7 +24,7 @@ public class LocationLoop2(IHttpClientFactory httpClientFactory, IAzureClientFac
 
 	[Function("LocationLoop2-0")]
 	public async Task RunGroup0Async(
-		[TimerTrigger("0 0 4 * 1-5,9-12 *"
+		[TimerTrigger("0 0 3 * 1-5,9-12 *"
 #if DEBUG
 			, RunOnStartup=true
 #endif
@@ -40,7 +40,7 @@ public class LocationLoop2(IHttpClientFactory httpClientFactory, IAzureClientFac
 
 	[Function("LocationLoop2-1")]
 	public void RunGroup1(
-		[TimerTrigger("0 30 4 * 1-5,9-12 *")]
+		[TimerTrigger("0 30 3 * 1-5,9-12 *")]
 		TimerInfo timerInfo)
 	{
 		_ = LoopOverBatchAsync(groupNumber: 1);
@@ -48,7 +48,7 @@ public class LocationLoop2(IHttpClientFactory httpClientFactory, IAzureClientFac
 
 	[Function("LocationLoop2-2")]
 	public void RunGroup2(
-		[TimerTrigger("0 0 5 * 1-5,9-12 *")]
+		[TimerTrigger("0 0 4 * 1-5,9-12 *")]
 		TimerInfo timerInfo)
 	{
 		_ = LoopOverBatchAsync(groupNumber: 2);
@@ -56,10 +56,34 @@ public class LocationLoop2(IHttpClientFactory httpClientFactory, IAzureClientFac
 
 	[Function("LocationLoop2-3")]
 	public void RunGroup3(
-		[TimerTrigger("0 30 5 * 1-5,9-12 *")]
+		[TimerTrigger("0 30 4 * 1-5,9-12 *")]
 		TimerInfo timerInfo)
 	{
 		_ = LoopOverBatchAsync(groupNumber: 3);
+	}
+
+	[Function("LocationLoop2-4")]
+	public void RunGroup4(
+		[TimerTrigger("0 0 5 * 1-5,9-12 *")]
+		TimerInfo timerInfo)
+	{
+		_ = LoopOverBatchAsync(groupNumber: 4);
+	}
+
+	[Function("LocationLoop2-5")]
+	public void RunGroup5(
+		[TimerTrigger("0 30 5 * 1-5,9-12 *")]
+		TimerInfo timerInfo)
+	{
+		_ = LoopOverBatchAsync(groupNumber: 5);
+	}
+
+	[Function("LocationLoop2-6")]
+	public void RunGroup6(
+		[TimerTrigger("0 0 6 * 1-5,9-12 *")]
+		TimerInfo timerInfo)
+	{
+		_ = LoopOverBatchAsync(groupNumber: 6);
 	}
 
 	private async Task LoopOverBatchAsync(int groupNumber)
