@@ -23,9 +23,9 @@ public class Location
 	[DisplayName("Channel")]
 	public string? channel { get; set; } = "";
 	[DisplayName("Zip Code")]
-	public string zipCode { get; set; } = "";
+	public string? zipCode { get; set; } = "";
 	[DisplayName("Language")]
-	public string lang { get; set; } = "";
+	public string? lang { get; set; } = "";
 
 	[Required]
 	internal string PartitionKey { get; set; } = "";

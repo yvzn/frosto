@@ -47,8 +47,8 @@ public class LocationService(IAzureClientFactory<TableClient> azureClientFactory
 		validLocationEntity.coordinates = validLocation.coordinates.Replace(" ", "");
 		validLocationEntity.users = validLocation.users.Trim();
 		validLocationEntity.channel = string.IsNullOrWhiteSpace(validLocation.channel) ? default : validLocation.channel.Trim().ToLower();
-		validLocationEntity.zipCode = validLocation.zipCode.Trim();
-		validLocationEntity.lang = validLocation.lang.Trim().ToLower();
+		validLocationEntity.zipCode = validLocation.zipCode?.Trim();
+		validLocationEntity.lang = validLocation.lang?.Trim().ToLower();
 		validLocationEntity.PartitionKey = Capitalize(validLocation.country);
 		validLocationEntity.RowKey = validLocation.RowKey;
 
@@ -71,8 +71,8 @@ public class LocationService(IAzureClientFactory<TableClient> azureClientFactory
 		validLocationEntity.coordinates = validLocation.coordinates.Replace(" ", "");
 		validLocationEntity.users = validLocation.users.Trim();
 		validLocationEntity.channel = string.IsNullOrWhiteSpace(validLocation.channel) ? default : validLocation.channel.Trim().ToLower();
-		validLocationEntity.zipCode = validLocation.zipCode.Trim();
-		validLocationEntity.lang = validLocation.lang.Trim().ToLower();
+		validLocationEntity.zipCode = validLocation.zipCode?.Trim();
+		validLocationEntity.lang = validLocation.lang?.Trim().ToLower();
 		validLocationEntity.PartitionKey = Capitalize(validLocation.country);
 		validLocationEntity.RowKey = validLocation.RowKey;
 
