@@ -29,8 +29,7 @@ public class SendNotification2(IHttpClientFactory httpClientFactory, ILogger<Sen
 	[Function("SendNotification2")]
 	public async Task<IActionResult> RunAsync(
 		[HttpTrigger(AuthorizationLevel.Function, "post", Route = null)]
-		HttpRequest req,
-		ExecutionContext ctx)
+		HttpRequest req)
 	{
 		var notification = default(Notification);
 		try
@@ -57,7 +56,7 @@ public class SendNotification2(IHttpClientFactory httpClientFactory, ILogger<Sen
 
 		try
 		{
-			_ = SendNotificationAsync(notification, channel, ctx);
+			_ = SendNotificationAsync(notification, channel);
 			return new OkResult();
 		}
 		catch (Exception)
@@ -82,7 +81,7 @@ public class SendNotification2(IHttpClientFactory httpClientFactory, ILogger<Sen
 			&& !string.IsNullOrWhiteSpace(notification.subject)
 			&& notification.to.Where(user => !string.IsNullOrWhiteSpace(user)).Any();
 
-	private async Task<bool> SendNotificationAsync(Notification notification, string channel, ExecutionContext ctx)
+	private async Task<bool> SendNotificationAsync(Notification notification, string channel)
 	{
 		var users = string.Join(" ", notification.to);
 
@@ -94,7 +93,7 @@ public class SendNotification2(IHttpClientFactory httpClientFactory, ILogger<Sen
 		try
 		{
 			var sendMailFunction = SelectSendMailCallback(channel);
-			(success, error) = await sendMailFunction.Invoke(notification, ctx);
+			(success, error) = await sendMailFunction.Invoke(notification);
 		}
 		catch (Exception ex)
 		{
@@ -110,7 +109,7 @@ public class SendNotification2(IHttpClientFactory httpClientFactory, ILogger<Sen
 		return success;
 	}
 
-	private static Func<Notification, ExecutionContext, Task<(bool success, string? error)>> SelectSendMailCallback(string channel)
+	private Func<Notification, Task<(bool success, string? error)>> SelectSendMailCallback(string channel)
 		=> channel switch
 		{
 			"tipimail" => SendTipiMailAsync,
@@ -119,7 +118,7 @@ public class SendNotification2(IHttpClientFactory httpClientFactory, ILogger<Sen
 			_ => SendMailApiAsync
 		};
 
-	private static async Task<(bool success, string? error)> SendMailApiAsync(Notification notification, ExecutionContext ctx)
+	private async Task<(bool success, string? error)> SendMailApiAsync(Notification notification)
 	{
 		var message = new
 		{
@@ -148,7 +147,7 @@ public class SendNotification2(IHttpClientFactory httpClientFactory, ILogger<Sen
 		return (true, default);
 	}
 
-	private static async Task<(bool success, string? error)> SendTipiMailAsync(Notification notification, ExecutionContext ctx)
+	private async Task<(bool success, string? error)> SendTipiMailAsync(Notification notification)
 	{
 		var message = new
 		{
@@ -189,7 +188,7 @@ public class SendNotification2(IHttpClientFactory httpClientFactory, ILogger<Sen
 		return (true, default);
 	}
 
-	private static async Task<(bool success, string? error)> SendMailSmtpAsync(Notification notification, ExecutionContext ctx)
+	private static async Task<(bool success, string? error)> SendMailSmtpAsync(Notification notification)
 	{
 		var privateKey = File.OpenRead($"{FunctionAppDirectory}{Path.DirectorySeparatorChar}dkim_private.pem");
 

@@ -18,7 +18,7 @@ public class LocationLoop2(IHttpClientFactory httpClientFactory, IAzureClientFac
 
 	private readonly HttpClient httpClient = httpClientFactory.CreateClient();
 
-	private readonly TableClient batchTableClient = azureClientFactory.CreateClient("batchtableClient");
+	private readonly TableClient batchTableClient = azureClientFactory.CreateClient("batchTableClient");
 
 	private readonly TableClient validLocationTableClient = azureClientFactory.CreateClient("validlocationTableClient");
 
@@ -32,7 +32,7 @@ public class LocationLoop2(IHttpClientFactory httpClientFactory, IAzureClientFac
 		TimerInfo timerInfo)
 	{
 #if DEBUG
-		await Task.Delay(5_000);
+		await Task.Delay(10_000);
 #endif
 
 		_ = LoopOverBatchAsync(groupNumber: 0);

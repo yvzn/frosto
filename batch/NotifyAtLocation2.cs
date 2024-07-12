@@ -16,6 +16,7 @@ using System.Threading;
 using Microsoft.Azure.Functions.Worker;
 using System.Net.Http.Json;
 using Microsoft.Extensions.Azure;
+using System.Globalization;
 
 namespace batch;
 
@@ -120,7 +121,7 @@ public class NotifyAtLocation2(IHttpClientFactory httpClientFactory, IAzureClien
 		var (latitude, longitude) = ParseCoordinates(coordinates);
 		if (!latitude.HasValue || !longitude.HasValue) throw new ArgumentOutOfRangeException(nameof(coordinates), coordinates, "Expected comma-separated numbers");
 
-		var requestUri = string.Format(AppSettings.WeatherApiUrl, latitude.Value, longitude.Value);
+		var requestUri = string.Format(CultureInfo.InvariantCulture, AppSettings.WeatherApiUrl, latitude.Value, longitude.Value);
 
 		var response = default(HttpResponseMessage);
 
@@ -173,11 +174,11 @@ public class NotifyAtLocation2(IHttpClientFactory httpClientFactory, IAzureClien
 
 		var split = coordinates.Split(",", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
 
-		if (split.Length > 0 && decimal.TryParse(split[0], out var parsedAt0))
+		if (split.Length > 0 && decimal.TryParse(split[0], CultureInfo.InvariantCulture, out var parsedAt0))
 		{
 			latitude = parsedAt0;
 		}
-		if (split.Length > 1 && decimal.TryParse(split[1], out var parsedAt1))
+		if (split.Length > 1 && decimal.TryParse(split[1], CultureInfo.InvariantCulture, out var parsedAt1))
 		{
 			longitude = parsedAt1;
 		}
