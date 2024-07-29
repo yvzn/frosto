@@ -20,6 +20,8 @@ public class Location
 	[Required]
 	[DisplayName("Users")]
 	public string users { get; set; } = "";
+	[DisplayName("UAT")]
+	public bool uat { get; set; } = false;
 	[DisplayName("Channel")]
 	public string? channel { get; set; } = "";
 	[DisplayName("Zip Code")]
