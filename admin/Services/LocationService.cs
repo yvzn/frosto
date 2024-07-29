@@ -16,19 +16,7 @@ public class LocationService(IAzureClientFactory<TableClient> azureClientFactory
 		var locationEntity = await _locationTableClient.GetEntityAsync<LocationEntity>(partitionKey, rowKey, cancellationToken: cancellationToken);
 		if (locationEntity.HasValue)
 		{
-			return new()
-			{
-				city = locationEntity.Value.city ?? "",
-				country = locationEntity.Value.country ?? "",
-				coordinates = locationEntity.Value.coordinates ?? "",
-				users = locationEntity.Value.users ?? "",
-				channel = locationEntity.Value.channel ?? "",
-				zipCode = locationEntity.Value.zipCode ?? "",
-				lang = locationEntity.Value.lang ?? "",
-				PartitionKey = locationEntity.Value.PartitionKey ?? "",
-				RowKey = locationEntity.Value.RowKey ?? "",
-				Timestamp = locationEntity.Value.Timestamp,
-			};
+			return EntityToModel(locationEntity.Value);
 		}
 		return default;
 	}
@@ -46,6 +34,7 @@ public class LocationService(IAzureClientFactory<TableClient> azureClientFactory
 		validLocationEntity.country = Capitalize(validLocation.country);
 		validLocationEntity.coordinates = validLocation.coordinates.Replace(" ", "");
 		validLocationEntity.users = validLocation.users.Trim();
+		validLocationEntity.uat = null;
 		validLocationEntity.channel = string.IsNullOrWhiteSpace(validLocation.channel) ? default : validLocation.channel.Trim().ToLower();
 		validLocationEntity.zipCode = validLocation.zipCode?.Trim();
 		validLocationEntity.lang = validLocation.lang?.Trim().ToLower();
@@ -70,6 +59,7 @@ public class LocationService(IAzureClientFactory<TableClient> azureClientFactory
 		validLocationEntity.country = Capitalize(validLocation.country);
 		validLocationEntity.coordinates = validLocation.coordinates.Replace(" ", "");
 		validLocationEntity.users = validLocation.users.Trim();
+		validLocationEntity.uat = validLocation.uat ? true : validLocationEntity.uat.HasValue ? false : null;
 		validLocationEntity.channel = string.IsNullOrWhiteSpace(validLocation.channel) ? default : validLocation.channel.Trim().ToLower();
 		validLocationEntity.zipCode = validLocation.zipCode?.Trim();
 		validLocationEntity.lang = validLocation.lang?.Trim().ToLower();
@@ -86,19 +76,7 @@ public class LocationService(IAzureClientFactory<TableClient> azureClientFactory
 		var result = new List<Location>();
 		await foreach (var validLocationEntity in _validLocationTableClient.QueryAsync<LocationEntity>(_ => true, cancellationToken: cancellationToken))
 		{
-			result.Add(new()
-			{
-				city = validLocationEntity.city ?? "",
-				country = validLocationEntity.country ?? "",
-				coordinates = validLocationEntity.coordinates ?? "",
-				users = validLocationEntity.users ?? "",
-				channel = validLocationEntity.channel ?? "",
-				zipCode = validLocationEntity.zipCode ?? "",
-				lang = validLocationEntity.lang ?? "",
-				PartitionKey = validLocationEntity.PartitionKey ?? "",
-				RowKey = validLocationEntity.RowKey ?? "",
-				Timestamp = validLocationEntity.Timestamp,
-			});
+			result.Add(EntityToModel(validLocationEntity));
 		}
 
 		return result;
@@ -143,19 +121,7 @@ public class LocationService(IAzureClientFactory<TableClient> azureClientFactory
 		var validLocationEntity = await _validLocationTableClient.GetEntityAsync<LocationEntity>(partitionKey, rowKey, cancellationToken: cancellationToken);
 		if (validLocationEntity.HasValue)
 		{
-			return new()
-			{
-				city = validLocationEntity.Value.city ?? "",
-				country = validLocationEntity.Value.country ?? "",
-				coordinates = validLocationEntity.Value.coordinates ?? "",
-				users = validLocationEntity.Value.users ?? "",
-				channel = validLocationEntity.Value.channel ?? "",
-				zipCode = validLocationEntity.Value.zipCode ?? "",
-				lang = validLocationEntity.Value.lang ?? "",
-				PartitionKey = validLocationEntity.Value.PartitionKey ?? "",
-				RowKey = validLocationEntity.Value.RowKey ?? "",
-				Timestamp = validLocationEntity.Value.Timestamp,
-			};
+			return EntityToModel(validLocationEntity.Value);
 		}
 		return default;
 	}
@@ -167,22 +133,27 @@ public class LocationService(IAzureClientFactory<TableClient> azureClientFactory
 
 		await foreach (var validLocationEntity in _validLocationTableClient.QueryAsync<LocationEntity>(e => e.city == cityQuery && e.country == countryQuery, cancellationToken: cancellationToken))
 		{
-			return new Location()
-			{
-				city = validLocationEntity.city ?? "",
-				country = validLocationEntity.country ?? "",
-				coordinates = validLocationEntity.coordinates ?? "",
-				users = validLocationEntity.users ?? "",
-				channel = validLocationEntity.channel ?? "",
-				zipCode = validLocationEntity.zipCode ?? "",
-				lang = validLocationEntity.lang ?? "",
-				PartitionKey = validLocationEntity.PartitionKey ?? "",
-				RowKey = validLocationEntity.RowKey ?? "",
-				Timestamp = validLocationEntity.Timestamp,
-			};
+			return EntityToModel(validLocationEntity);
 		}
-
 		return default;
+	}
+
+	private static Location EntityToModel(LocationEntity locationEntity)
+	{
+		return new()
+		{
+			city = locationEntity.city ?? "",
+			country = locationEntity.country ?? "",
+			coordinates = locationEntity.coordinates ?? "",
+			users = locationEntity.users ?? "",
+			uat = locationEntity.uat ?? default,
+			channel = locationEntity.channel ?? "",
+			zipCode = locationEntity.zipCode ?? "",
+			lang = locationEntity.lang ?? "",
+			PartitionKey = locationEntity.PartitionKey ?? "",
+			RowKey = locationEntity.RowKey ?? "",
+			Timestamp = locationEntity.Timestamp,
+		};
 	}
 
 	private static string Capitalize(string s) => s.Trim()[0].ToString().ToUpper() + s.Trim()[1..].ToLower();
