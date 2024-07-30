@@ -27,6 +27,9 @@ internal class RetryStrategy
 		var defaultTimeout = TimeSpan.FromSeconds(15);
 		var longTimeout = defaultTimeout.Multiply(4);
 		var maxRetries = 5;
+#if DEBUG
+		maxRetries = 1;
+#endif
 		static bool IsHttpException(Exception ex) => ex is SocketException or IOException or HttpRequestException;
 		static bool IsTimeoutException(Exception ex) => ex is TimeoutRejectedException;
 

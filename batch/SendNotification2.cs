@@ -190,7 +190,7 @@ public class SendNotification2(IHttpClientFactory httpClientFactory, ILogger<Sen
 
 	private static async Task<(bool success, string? error)> SendMailSmtpAsync(Notification notification)
 	{
-		var privateKey = File.OpenRead($"{FunctionAppDirectory}{Path.DirectorySeparatorChar}dkim_private.pem");
+		var privateKey = File.OpenRead(Path.Combine(FunctionAppDirectory, "dkim_private.pem"));
 
 		var signer = new DkimSigner(
 			privateKey,
