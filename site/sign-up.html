@@ -30,16 +30,22 @@
 				</article>
 				<article class="col-md-10 mx-auto col-lg-6">
 					<form class="p-4 p-md-5 border rounded-3 bg-light" action=%VITE_SIGNUP_URL%
-						method="post" enctype="application/x-www-form-urlencoded">
+						aria-label="Vos coordonnées" method="post" enctype="application/x-www-form-urlencoded">
 						<div class="form-floating mb-3">
 							<input type="email" class="form-control" id="email" name="email"
-								placeholder="exemple: name@exemple.com" required="required" autocomplete="email" />
+								placeholder="exemple: nom.prenom@exemple.com" required="required"
+								autocomplete="email" />
 							<label for="email">Adresse e-mail</label>
 						</div>
 						<div class="form-floating mb-3">
 							<input type="text" class="form-control" id="city" name="city" placeholder="exemple: Nantes"
 								required="required" autocomplete="address-level2" />
 							<label for="city">Ville</label>
+						</div>
+						<div class="form-floating mb-3">
+							<input type="text" class="form-control" id="zipCode" name="zipCode"
+								placeholder="exemple: 44100" autocomplete="postal-code" />
+							<label for="city">Code postal</label>
 						</div>
 						<div class="form-floating mb-3">
 							<input type="text" class="form-control" id="country" name="country"
@@ -53,6 +59,7 @@
 								<small>J'accepte que mes coordonnées personnelles soient utilisées
 									dans le cadre de ce service.</small></label>
 						</div>
+						<input type="hidden" id="lang" name="lang" value="fr" />
 						<button class="w-100 btn btn-lg btn-primary" type="submit"
 							aria-live="polite">S'inscrire</button>
 					</form>
