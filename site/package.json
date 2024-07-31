@@ -9,9 +9,8 @@
 		"postbuild": "purgecss --content dist/*.html dist/assets/*.js --css dist/assets/*.css --output dist/assets/"
 	},
 	"devDependencies": {
-		"purgecss": "^5.0.0",
-		"vite": "^5.0.13",
-		"vite-plugin-dotenv-in-html": "^5.0.0"
+		"purgecss": "^6.0.0",
+		"vite": "^5.0.13"
 	},
 	"dependencies": {
 		"bootstrap": "^5.2.1"

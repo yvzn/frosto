@@ -29,7 +29,7 @@
 						notre part.</p>
 				</article>
 				<article class="col-md-10 mx-auto col-lg-6">
-					<form class="p-4 p-md-5 border rounded-3 bg-light" action=import.meta.env.VITE_SIGNUP_URL
+					<form class="p-4 p-md-5 border rounded-3 bg-light" action=%VITE_SIGNUP_URL%
 						method="post" enctype="application/x-www-form-urlencoded">
 						<div class="form-floating mb-3">
 							<input type="email" class="form-control" id="email" name="email"
@@ -70,7 +70,7 @@
 		</section>
 	</main>
 
-	<script type="module" src="./sign-up.js" defer></script>
+	<script type="module" src="./sign-up.js"></script>
 </body>
 
 </html>

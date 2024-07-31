@@ -1,6 +1,5 @@
 import { resolve } from 'path';
 import { defineConfig } from 'vite';
-import dotEnvHTMLPlugin from 'vite-plugin-dotenv-in-html';
 
 const config = defineConfig(({ mode }) => {
 	return {
@@ -17,9 +16,7 @@ const config = defineConfig(({ mode }) => {
 			}
 		},
 		base: '',
-		plugins: [
-			dotEnvHTMLPlugin(mode),
-		]
+		plugins: []
 	};
 });
 
