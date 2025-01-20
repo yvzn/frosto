@@ -160,15 +160,33 @@ public class NotifyAtLocation2(IHttpClientFactory httpClientFactory, IAzureClien
 			throw;
 		}
 
-		return weatherApiResult?.daily.time
-			.Zip(
-				weatherApiResult?.daily.temperature_2m_min ?? Array.Empty<decimal>(),
-				weatherApiResult?.daily.temperature_2m_max ?? Array.Empty<decimal>())
-			.Select(tuple => new Forecast(
-				DateOnly.FromDateTime(tuple.First),
-				tuple.Second,
-				tuple.Third))
-			.ToList();
+		if (weatherApiResult?.hourly.time.Count is > 0)
+		{
+			return weatherApiResult?.hourly.time
+				.Zip(weatherApiResult?.hourly.soil_temperature_6cm ?? Array.Empty<decimal>())
+				.GroupBy(tuple => DateOnly.FromDateTime(tuple.First))
+				.Select(group => new Forecast(
+					group.Key,
+					group.Min(tuple => tuple.Second),
+					group.Max(tuple => tuple.Second)))
+				.ToList();
+		}
+
+		if (weatherApiResult?.daily.time.Count is > 0)
+		{
+			return weatherApiResult?.daily.time
+				.Zip(
+					weatherApiResult?.daily.temperature_2m_min ?? Array.Empty<decimal>(),
+					weatherApiResult?.daily.temperature_2m_max ?? Array.Empty<decimal>())
+				.Select(tuple => new Forecast(
+					tuple.First,
+					tuple.Second,
+					tuple.Third))
+				.ToList();
+		}
+
+		logger.LogError("Weather forecast for {Coordinates} has no data", coordinates);
+		throw new Exception(string.Format("Weather forecast for {0} has no data", coordinates));
 	}
 
 	private static (decimal? latitude, decimal? longitude) ParseCoordinates(string coordinates)
