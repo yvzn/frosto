@@ -24,7 +24,7 @@ jobs:
       arguments: '--configuration Release'
   - task: PublishPipelineArtifact@1
     inputs:
-      targetPath: 'batch/bin/Release/net8.0/publish.zip'
+      targetPath: 'batch/bin/Release/net9.0/publish.zip'
       publishLocation: 'pipeline'
       artifact: 'batch'
 
@@ -67,4 +67,4 @@ jobs:
             appType: 'functionAppLinux'
             appName: '$(batchAppName)'
             package: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
-            runtimeStack: 'DOTNET|8.0'
+            runtimeStack: 'DOTNET-ISOLATED|9.0'
