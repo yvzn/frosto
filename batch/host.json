@@ -11,11 +11,11 @@
 		"applicationInsights": {
 			"samplingSettings": {
 				"isEnabled": true,
-				"excludedTypes": "Request",
-				"enableLiveMetrics": false,
-				"enableDependencyTracking": true,
-				"enablePerformanceCountersCollection": false
-			}
+				"excludedTypes": "Request;Exception"
+			},
+			"enableLiveMetrics": false,
+			"enableDependencyTracking": true,
+			"enablePerformanceCountersCollection": false
 		}
 	}
 }
