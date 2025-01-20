@@ -1,5 +1,5 @@
-using System;
 using Azure.Data.Tables;
+using batch.Services;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,8 +16,7 @@ var host = new HostBuilder()
 
 		services.AddAzureClients(clientBuilder =>
 		{
-			clientBuilder
-				.AddTableServiceClient(Environment.GetEnvironmentVariable("ALERTS_CONNECTION_STRING"));
+			clientBuilder.AddTableServiceClient(AppSettings.AlertsConnectionString);
 
 			string[] tableNames = ["validlocation", "batch"];
 			foreach (var tableName in tableNames)

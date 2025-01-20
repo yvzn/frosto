@@ -9,18 +9,34 @@ namespace batch.Services;
 
 internal static class Formatter
 {
-	internal static readonly CultureInfo CultureInfo = CultureInfo.CreateSpecificCulture("fr-FR");
+	internal static readonly CultureInfo FrenchCultureInfo = CultureInfo.CreateSpecificCulture("fr-FR");
 
-	public static string FormatSubject(List<Forecast> forecasts)
+	public static string FormatSubject(List<Forecast> forecasts, LocationEntity location)
 	{
 		var header = "Températures proches de zéro prévues ces prochains jours";
-		var forecastsBelow0 = forecasts.Where(f => f.Minimum < 0).ToList();
-		if (forecastsBelow0.Any())
+
+		var forecastsBelow0 = forecasts.Where(f => f.Minimum < 0).ToArray();
+		if (forecastsBelow0.Length != 0)
 		{
 			var first = forecastsBelow0.OrderBy(f => f.Date).First();
 			header = string.Format(
-				Formatter.CultureInfo,
+				FrenchCultureInfo,
 				"Températures négatives prévues {0:dddd d MMMM}: {1}°",
+				first.Date,
+				first.Minimum
+			);
+		}
+
+		var forecastsBelowThreshold = location.minThreshold.HasValue
+			? [.. forecasts.Where(f => f.Minimum <= Convert.ToDecimal(location.minThreshold.Value))]
+			: Array.Empty<Forecast>();
+		if (forecastsBelowThreshold.Length != 0)
+		{
+			var first = forecastsBelowThreshold.OrderBy(f => f.Date).First();
+			header = string.Format(
+				FrenchCultureInfo,
+				"Températures en dessous de {0}° prévues {1:dddd d MMMM}: {2}°",
+				location.minThreshold,
 				first.Date,
 				first.Minimum
 			);
@@ -46,7 +62,7 @@ internal static class HtmlFormatter
 {2}
 
 <p>Cordialement,
-<br>L'équipe Alertegelee.fr
+<br>Yvan de Alertegelee.fr
 
 <p>Pour vous désinscrire, répondez ""STOP"" à ce message.
 
@@ -65,7 +81,7 @@ internal static class HtmlFormatter
 		foreach (var forecast in forecasts.OrderBy(f => f.Date))
 		{
 			table.Append(string.Format(
-				Formatter.CultureInfo,
+				Formatter.FrenchCultureInfo,
 				tableRowTemplate,
 				forecast.Date,
 				forecast.Minimum,
@@ -81,7 +97,7 @@ internal static class HtmlFormatter
 		table.Append(tableFooterTemplate);
 
 		return string.Format(
-				Formatter.CultureInfo,
+				Formatter.FrenchCultureInfo,
 				messageTemplate,
 				location.city,
 				location.country,
@@ -102,7 +118,7 @@ Les prévisions de température des prochains jours ({0}, {1}):
 {2}
 
 Cordialement,
-L'équipe Alertegelee.fr
+Yvan de Alertegelee.fr
 
 Pour vous désinscrire, répondez ""STOP"" à ce message.
 
@@ -114,7 +130,7 @@ Les données météo sont fournies par Open-Meteo.com -- Weather data by Open-Me
 	{
 		var table = new StringBuilder();
 		table.Append(string.Format(
-			Formatter.CultureInfo,
+			Formatter.FrenchCultureInfo,
 			tableRowTemplate,
 			"date", "mini", "", "maxi", ""
  		));
@@ -124,7 +140,7 @@ Les données météo sont fournies par Open-Meteo.com -- Weather data by Open-Me
 		foreach (var forecast in forecasts.OrderBy(f => f.Date))
 		{
 			table.Append(string.Format(
-				Formatter.CultureInfo,
+				Formatter.FrenchCultureInfo,
 				tableRowTemplate,
 				forecast.Date,
 				forecast.Minimum,
@@ -138,7 +154,7 @@ Les données météo sont fournies par Open-Meteo.com -- Weather data by Open-Me
 		}
 
 		return string.Format(
-				Formatter.CultureInfo,
+				Formatter.FrenchCultureInfo,
 				textTemplate,
 				location.city,
 				location.country,

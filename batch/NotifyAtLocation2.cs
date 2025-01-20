@@ -23,9 +23,9 @@ namespace batch;
 public class NotifyAtLocation2(IHttpClientFactory httpClientFactory, IAzureClientFactory<TableClient> azureClientFactory, ILogger<NotifyAtLocation2> logger)
 {
 #if DEBUG
-	private static readonly decimal threshold = 20.0m;
+	private static readonly decimal defaultThreshold = 20.0m;
 #else
-	private static readonly decimal threshold = 1.0m;
+	private static readonly decimal defaultThreshold = 1.0m;
 #endif
 
 	private readonly HttpClient httpClient = httpClientFactory.CreateClient();
@@ -87,10 +87,14 @@ public class NotifyAtLocation2(IHttpClientFactory httpClientFactory, IAzureClien
 
 		var forecasts = await GetWeatherForecastsAsync(location.coordinates);
 
+		var threshold = location.minThreshold.HasValue
+			? Convert.ToDecimal(location.minThreshold.Value)
+			: defaultThreshold;
+
 		var forecastsBelowThreshold = forecasts?.Where(f => f.Minimum <= threshold).ToList();
-		if (forecastsBelowThreshold?.Any() is true)
+		if (forecastsBelowThreshold?.Count is > 0)
 		{
-			var subject = Formatter.FormatSubject(forecastsBelowThreshold);
+			var subject = Formatter.FormatSubject(forecastsBelowThreshold, location);
 			var body = HtmlFormatter.FormatBody(forecastsBelowThreshold, location);
 			var text = TextFormatter.FormatBody(forecastsBelowThreshold, location);
 			var notification = new Notification
@@ -98,7 +102,7 @@ public class NotifyAtLocation2(IHttpClientFactory httpClientFactory, IAzureClien
 				subject = subject,
 				body = body,
 				raw = text,
-				to = users
+				to = users,
 			};
 
 
@@ -116,7 +120,7 @@ public class NotifyAtLocation2(IHttpClientFactory httpClientFactory, IAzureClien
 	{
 		logger.LogInformation("Get weather for {Coordinates}", coordinates);
 
-		if (coordinates is null) throw new ArgumentNullException(nameof(coordinates));
+		ArgumentNullException.ThrowIfNull(coordinates, nameof(coordinates));
 
 		var (latitude, longitude) = ParseCoordinates(coordinates);
 		if (!latitude.HasValue || !longitude.HasValue) throw new ArgumentOutOfRangeException(nameof(coordinates), coordinates, "Expected comma-separated numbers");
