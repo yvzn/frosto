@@ -47,4 +47,4 @@ jobs:
             appType: 'functionApp'
             appName: '$(functionAppName)'
             package: '$(Pipeline.Workspace)/api/*.zip'
-            runtimeStack: 'DOTNET|6.0'
+            runtimeStack: 'DOTNET-ISOLATED|8.0'

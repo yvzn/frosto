@@ -67,4 +67,4 @@ jobs:
             appType: 'functionAppLinux'
             appName: '$(batchAppName)'
             package: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
-            runtimeStack: 'DOTNET|6.0'
+            runtimeStack: 'DOTNET|8.0'
