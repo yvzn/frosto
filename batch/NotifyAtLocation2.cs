@@ -85,7 +85,7 @@ public class NotifyAtLocation2(IHttpClientFactory httpClientFactory, IAzureClien
 			return;
 		}
 
-		var forecasts = await GetWeatherForecastsAsync(location.coordinates);
+		var forecasts = await GetWeatherForecastsAsync(location);
 
 		var threshold = location.minThreshold.HasValue
 			? Convert.ToDecimal(location.minThreshold.Value)
@@ -116,16 +116,20 @@ public class NotifyAtLocation2(IHttpClientFactory httpClientFactory, IAzureClien
 		}
 	}
 
-	private async Task<IList<Forecast>?> GetWeatherForecastsAsync(string? coordinates)
+	private async Task<IList<Forecast>?> GetWeatherForecastsAsync(LocationEntity location)
 	{
-		logger.LogInformation("Get weather for {Coordinates}", coordinates);
+		logger.LogInformation("Get weather for {Coordinates}", location.coordinates);
 
-		ArgumentNullException.ThrowIfNull(coordinates, nameof(coordinates));
+		ArgumentNullException.ThrowIfNull(location.coordinates, nameof(location));
 
-		var (latitude, longitude) = ParseCoordinates(coordinates);
-		if (!latitude.HasValue || !longitude.HasValue) throw new ArgumentOutOfRangeException(nameof(coordinates), coordinates, "Expected comma-separated numbers");
+		var (latitude, longitude) = ParseCoordinates(location.coordinates);
+		if (!latitude.HasValue || !longitude.HasValue) throw new ArgumentOutOfRangeException(nameof(location), location.coordinates, "Expected comma-separated numbers");
 
-		var requestUri = string.Format(CultureInfo.InvariantCulture, AppSettings.WeatherApiUrl, latitude.Value, longitude.Value);
+		var timeZone = location.timezone ?? "Europe/Berlin";
+
+		var weatherApiUrl = location.weatherApiUrl ?? AppSettings.WeatherApiUrl;
+
+		var requestUri = string.Format(CultureInfo.InvariantCulture, weatherApiUrl, latitude.Value, longitude.Value, timeZone);
 
 		var response = default(HttpResponseMessage);
 
@@ -137,15 +141,15 @@ public class NotifyAtLocation2(IHttpClientFactory httpClientFactory, IAzureClien
 		catch (Exception ex)
 		{
 			var responseContent = response is null ? "<empty response>" : await response.Content.ReadAsStringAsync();
-			logger.LogError(ex, "Failed to get weather for {Coordinates}: HTTP {StatusCode} {RequestUri} [{ResponseContent}]", coordinates, response?.StatusCode, requestUri, responseContent);
+			logger.LogError(ex, "Failed to get weather for {Coordinates}: HTTP {StatusCode} {RequestUri} [{ResponseContent}]", location.coordinates, response?.StatusCode, requestUri, responseContent);
 			throw;
 		}
 
 		if (!response.IsSuccessStatusCode)
 		{
 			var responseContent = response is null ? "<empty response>" : await response.Content.ReadAsStringAsync();
-			logger.LogError("Failed to get weather for {Coordinates}: HTTP {StatusCode} {RequestUri} [{ResponseContent}]", coordinates, response?.StatusCode, requestUri, responseContent);
-			throw new Exception(string.Format("Failed to get weather for {0}: HTTP {1} {2} [{3}]", coordinates, response?.StatusCode, requestUri, responseContent));
+			logger.LogError("Failed to get weather for {Coordinates}: HTTP {StatusCode} {RequestUri} [{ResponseContent}]", location.coordinates, response?.StatusCode, requestUri, responseContent);
+			throw new Exception(string.Format("Failed to get weather for {0}: HTTP {1} {2} [{3}]", location.coordinates, response?.StatusCode, requestUri, responseContent));
 		}
 
 		var weatherApiResult = default(WeatherApiResult);
@@ -156,7 +160,7 @@ public class NotifyAtLocation2(IHttpClientFactory httpClientFactory, IAzureClien
 		}
 		catch (Exception ex)
 		{
-			logger.LogError(ex, "Failed to parse weather forecast for {Coordinates}", coordinates);
+			logger.LogError(ex, "Failed to parse weather forecast for {Coordinates}", location.coordinates);
 			throw;
 		}
 
@@ -185,8 +189,8 @@ public class NotifyAtLocation2(IHttpClientFactory httpClientFactory, IAzureClien
 				.ToList();
 		}
 
-		logger.LogError("Weather forecast for {Coordinates} has no data", coordinates);
-		throw new Exception(string.Format("Weather forecast for {0} has no data", coordinates));
+		logger.LogError("Weather forecast for {Coordinates} has no data", location.coordinates);
+		throw new Exception(string.Format("Weather forecast for {0} has no data", location.coordinates));
 	}
 
 	private static (decimal? latitude, decimal? longitude) ParseCoordinates(string coordinates)
