@@ -19,7 +19,7 @@ builder.Services.AddAzureClients(clientBuilder =>
         clientBuilder
             .AddClient<TableClient, TableClientOptions>(
                 (_, _, provider) => provider.GetService<TableServiceClient>()!.GetTableClient(tableName))
-        .WithName($"{tableName}TableClient");        
+        .WithName($"{tableName}TableClient");
     }
 });
 
@@ -32,7 +32,7 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 app.UseExceptionHandler("/Error");
 
-app.UseStaticFiles();
+app.MapStaticAssets();
 
 app.UseRouting();
 
