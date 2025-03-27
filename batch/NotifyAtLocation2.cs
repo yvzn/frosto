@@ -116,7 +116,7 @@ public class NotifyAtLocation2(IHttpClientFactory httpClientFactory, IAzureClien
 		}
 	}
 
-	private async Task<IList<Forecast>?> GetWeatherForecastsAsync(LocationEntity location)
+	private async Task<IList<Forecast>> GetWeatherForecastsAsync(LocationEntity location)
 	{
 		logger.LogInformation("Get weather for {Coordinates}", location.coordinates);
 
@@ -164,33 +164,66 @@ public class NotifyAtLocation2(IHttpClientFactory httpClientFactory, IAzureClien
 			throw;
 		}
 
+		var forecasts = new List<Forecast>();
+
 		if (weatherApiResult?.hourly.time.Count is > 0)
 		{
-			return weatherApiResult?.hourly.time
-				.Zip(weatherApiResult?.hourly.soil_temperature_6cm ?? Array.Empty<decimal>())
-				.GroupBy(tuple => DateOnly.FromDateTime(tuple.First))
-				.Select(group => new Forecast(
-					group.Key,
-					group.Min(tuple => tuple.Second),
-					group.Max(tuple => tuple.Second)))
-				.ToList();
+			var emptyArray = new decimal?[weatherApiResult.hourly.time.Count];
+
+			forecasts.AddRange(
+				weatherApiResult.hourly.time
+					.Zip(weatherApiResult.hourly.soil_temperature_0cm ?? emptyArray)
+					.Where(tuple => tuple.Second.HasValue)
+					.GroupBy(tuple => DateOnly.FromDateTime(tuple.First))
+					.Select(group => new Forecast(
+						group.Key,
+						group.Min(tuple => tuple.Second!.Value),
+						group.Max(tuple => tuple.Second!.Value)))
+			);
+
+			forecasts.AddRange(
+				weatherApiResult.hourly.time
+					.Zip(weatherApiResult.hourly.soil_temperature_6cm ?? emptyArray)
+					.Where(tuple => tuple.Second.HasValue)
+					.GroupBy(tuple => DateOnly.FromDateTime(tuple.First))
+					.Select(group => new Forecast(
+						group.Key,
+						group.Min(tuple => tuple.Second!.Value),
+						group.Max(tuple => tuple.Second!.Value)))
+			);
 		}
 
 		if (weatherApiResult?.daily.time.Count is > 0)
 		{
-			return weatherApiResult?.daily.time
-				.Zip(
-					weatherApiResult?.daily.temperature_2m_min ?? Array.Empty<decimal>(),
-					weatherApiResult?.daily.temperature_2m_max ?? Array.Empty<decimal>())
-				.Select(tuple => new Forecast(
-					tuple.First,
-					tuple.Second,
-					tuple.Third))
-				.ToList();
+			var emptyArray = new decimal?[weatherApiResult.hourly.time.Count];
+
+			forecasts.AddRange(
+				weatherApiResult.daily.time
+					.Zip(
+						weatherApiResult.daily.temperature_2m_min ?? emptyArray,
+						weatherApiResult.daily.temperature_2m_max ?? emptyArray)
+					.Where(tuple => tuple.Second.HasValue && tuple.Third.HasValue)
+					.Select(tuple => new Forecast(
+						tuple.First,
+						tuple.Second!.Value,
+						tuple.Third!.Value))
+			);
 		}
 
-		logger.LogError("Weather forecast for {Coordinates} has no data", location.coordinates);
-		throw new Exception(string.Format("Weather forecast for {0} has no data", location.coordinates));
+		forecasts = [.. forecasts
+			.GroupBy(f => f.Date)
+			.Select(group => new Forecast(
+				group.Key,
+				group.Min(f => f.Minimum),
+				group.Max(f => f.Maximum)))];
+
+		if (forecasts.Count is > 0)
+		{
+			return forecasts;
+		}
+
+		logger.LogError("Weather forecast for {Coordinates} has no data [{RequestUri}]", location.coordinates, weatherApiUrl);
+		throw new Exception(string.Format("Weather forecast for {0} has no data [{1}]", location.coordinates, weatherApiResult));
 	}
 
 	private static (decimal? latitude, decimal? longitude) ParseCoordinates(string coordinates)
