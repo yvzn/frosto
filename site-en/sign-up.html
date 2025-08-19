@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<meta name="description"
+		content="Sign up for the frost weather alert service to receive a free notification if negative temperatures are forecast in the coming days" />
+	<link rel="icon" type="image/svg+xml" href="./asset/favicon.svg" />
+	<title>Sign up - Frost Alerts</title>
+</head>
+
+<body>
+	<header>
+		<nav class="navbar navbar-dark bg-dark shadow-sm">
+			<div class="container">
+				<a class="navbar-brand" href="/" aria-label="Back to home">Frost Alerts</a>
+			</div>
+		</nav>
+	</header>
+	<main>
+		<section class="py-5 container">
+			<div class="row py-lg-5">
+				<article class="col-lg-6 p-4 p-md-5">
+					<h1 class="fw-light mb-3">Sign up</h1>
+					<p class="lead text-muted col-lg-10">Enter your contact details, you will only be alerted if
+						negative temperatures are forecast.</p>
+					<p class="lead text-muted col-lg-10">Free service. No other commercial solicitations from us.</p>
+				</article>
+				<article class="col-md-10 mx-auto col-lg-6">
+					<form class="p-4 p-md-5 border rounded-3 bg-light" action="%VITE_SIGNUP_URL%"
+						aria-label="Your contact details" method="post" enctype="application/x-www-form-urlencoded">
+						<div class="form-floating mb-3">
+							<input type="email" class="form-control" id="email" name="email"
+								placeholder="example: first.last@example.com" required="required"
+								autocomplete="email" />
+							<label for="email">Email address</label>
+						</div>
+						<div class="form-floating mb-3">
+							<input type="text" class="form-control" id="city" name="city" placeholder="example: London"
+								required="required" autocomplete="address-level2" />
+							<label for="city">City</label>
+						</div>
+						<div class="form-floating mb-3">
+							<input type="text" class="form-control" id="zipCode" name="zipCode"
+								placeholder="example: SW1A 1AA" autocomplete="postal-code" />
+							<label for="city">Postal code</label>
+						</div>
+						<div class="form-floating mb-3">
+							<input type="text" class="form-control" id="country" name="country"
+								placeholder="example: United Kingdom" required="required" autocomplete="country-name" />
+							<label for="country">Country</label>
+						</div>
+						<div class="checkbox mb-3">
+							<label for="userConsent">
+								<input type="checkbox" id="userConsent" name="userConsent" value="true"
+									required="required" />
+								<small>I agree that my personal contact details are used
+									as part of this service.</small></label>
+						</div>
+						<input type="hidden" id="lang" name="lang" value="en" />
+						<button class="w-100 btn btn-lg btn-primary" type="submit" aria-live="polite">Sign up</button>
+					</form>
+				</article>
+			</div>
+		</section>
+		<section class="py-5 bg-light">
+			<div class="container pb-lg-5">
+				<p>FrostWarning.com processes the collected data to analyze weather forecasts and send alerts.</p>
+				<p>To learn more about the management of your personal data and to exercise your rights, consult
+					the <a class="text-dark" href="./legal.html">service charter</a>.
+				</p>
+			</div>
+		</section>
+	</main>
+
+	<script type="module" src="./sign-up.js"></script>
+</body>
+
+</html>
