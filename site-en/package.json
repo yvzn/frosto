@@ -9,10 +9,10 @@
 		"postbuild": "purgecss --content dist/*.html dist/assets/*.js --css dist/assets/*.css --output dist/assets/"
 	},
 	"devDependencies": {
-		"purgecss": "^6.0.0",
-		"vite": "^6.2.7"
+		"purgecss": "^7.0.2",
+		"vite": "^7.1.3"
 	},
 	"dependencies": {
-		"bootstrap": "^5.2.1"
+		"bootstrap": "^5.3.7"
 	}
 }
