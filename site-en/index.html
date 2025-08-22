@@ -5,19 +5,25 @@
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<meta name="description"
-		content="The frost weather alert service sends you a free notification if negative temperatures are forecast in the coming days" />
+		content="The frost weather alert service sends you a free notification if negative temperatures are forecast near you in the coming days" />
 	<link rel="icon" type="image/svg+xml" href="./asset/favicon.svg" />
-	<title>Frost Alerts</title>
+	<title>Frost Alert App</title>
 </head>
 
 <body>
-	<header>
-		<nav class="navbar navbar-dark bg-dark shadow-sm">
-			<div class="container">
-				<a class="navbar-brand" href="/" aria-label="Home page">Frost Alerts</a>
-			</div>
-		</nav>
+	<header class="p-3 text-bg-dark shadow-sm">
+		<div class="container">
+			<nav class="navbar navbar-dark d-flex flex-wrap align-items-center justify-content-start">
+				<a href="/" aria-label="Home page"
+					class="navbar-brand d-flex align-items-center text-white text-decoration-none">Frost
+					Alerts</a>
+				<ul class="nav ms-auto justify-content-center">
+					<li><a href="#" class="nav-link px-2 text-white" lang="fr">Version française</a></li>
+				</ul>
+			</nav>
+		</div>
 	</header>
+
 	<main>
 		<section class="container py-5">
 			<div class="row flex-lg-row-reverse align-items-center py-lg-5">
@@ -38,8 +44,8 @@
 				<div class="row">
 					<article class="col-lg-4 py-3 px-lg-4 py-lg-5">
 						<h2>Personalized</h2>
-						<p>Protect yourself against potential damage caused by frost: an alert is sent to you in
-							advance, automatically, when a frost episode is forecast.</p>
+						<p>Protect yourself against potential damage caused by frost: a warning is sent to you in
+							advance, automatically, when a frost episode is forecast near you.</p>
 					</article>
 					<article class="col-lg-4 py-3 px-lg-4 py-lg-5">
 						<h2>Free</h2>
@@ -47,7 +53,7 @@
 					</article>
 					<article class="col-lg-4 py-3 px-lg-4 py-lg-5">
 						<h2>Simple</h2>
-						<p>Enter your contact details and your city, in France or anywhere in the world.
+						<p>Enter your contact details and your city &mdash; anywhere in the world.
 							You will only be alerted in case of frost, no other commercial solicitations.</p>
 					</article>
 				</div>
@@ -62,7 +68,7 @@
 			</p>
 			<p>We strive to best protect the personal data you entrust to us. To learn more about the management of
 				your personal data and to exercise your rights, consult
-				the <a href="./legal.html">service charter</a>.
+				the <a href="./legal.html">service terms of use</a>.
 			</p>
 			<p><a href="https://github.com/yvzn/frosto/" target="_blank" rel="noopener">Open source</a> service
 				maintained by volunteers. Illustrations by <a href="https://undraw.co/" target="_blank"
