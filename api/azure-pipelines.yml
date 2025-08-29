@@ -29,7 +29,7 @@ jobs:
       arguments: '--configuration Release --arch x64 --os win --no-self-contained'
   - task: PublishPipelineArtifact@1
     inputs:
-      targetPath: 'api/bin/Release/net8.0/win-x64/publish.zip'
+      targetPath: 'api/bin/Release/net9.0/win-x64/publish.zip'
       publishLocation: 'pipeline'
       artifact: 'api'
 
@@ -47,4 +47,4 @@ jobs:
             appType: 'functionApp'
             appName: '$(functionAppName)'
             package: '$(Pipeline.Workspace)/api/*.zip'
-            runtimeStack: 'DOTNET-ISOLATED|8.0'
+            runtimeStack: 'DOTNET-ISOLATED|9.0'
