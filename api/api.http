@@ -1,0 +1,11 @@
+@apiUrl=http://localhost:7071
+
+###
+
+GET {{apiUrl}}/api/healthz
+
+###
+
+POST {{apiUrl}}/api/sign-up
+
+email=user@example.com&userConsent=true&country=US&city=Seattle&lang=en&zipCode=98101

@@ -59,7 +59,9 @@ public class SignUp
 			signUpEntities.AddEntityAsync(signUpEntity)
 		);
 
-		request.HttpContext.Response.Headers.Append("Location", AppSettings.SiteUrl + "sign-up-complete.html");
+		var siteUrl = requestParams["lang"] == "en" ? AppSettings.SiteEnUrl : AppSettings.SiteUrl;
+		var signUpCompleteUrl = siteUrl + "sign-up-complete.html";
+		request.HttpContext.Response.Headers.Append("Location", signUpCompleteUrl);
 		return new StatusCodeResult(StatusCodes.Status303SeeOther);
 	}
 
@@ -67,7 +69,8 @@ public class SignUp
 		=> string.Equals("true", requestParams["userConsent"], StringComparison.InvariantCultureIgnoreCase)
 			&& requestParams["email"]?.Contains('@') is true
 			&& requestParams["country"]?.Length is > 0
-			&& requestParams["city"]?.Length is > 0;
+			&& requestParams["city"]?.Length is > 0
+			&& requestParams["lang"]?.Length is > 0;
 
 	private static LocationEntity ParseLocationEntity(NameValueCollection requestParams)
 		=> new ()
