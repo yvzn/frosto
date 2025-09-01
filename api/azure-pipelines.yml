@@ -15,6 +15,11 @@ pool:
 jobs:
 - job: CI
   steps:
+  - task: UseDotNet@2
+    inputs:
+      packageType: 'sdk'
+      version: '9.0.101'
+      installationPath: '$(Agent.ToolsDirectory)/dotnet'
   - task: DotNetCoreCLI@2
     inputs:
       command: 'build'
