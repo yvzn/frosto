@@ -22,6 +22,7 @@
 			<td></td>
 			<th>City</th>
 			<th>Country</th>
+			<th>Language</th>
 			<th>Last Modified</th>
 			<td></td>
 		</tr>
@@ -40,6 +41,9 @@
 					@Html.DisplayFor(modelItem => item.country)
 				</td>
 				<td>
+					@Html.DisplayFor(modelItem => item.lang)
+				</td>
+				<td>
 					@Html.DisplayFor(modelItem => item.Timestamp)
 				</td>
 				<td>
@@ -50,7 +54,7 @@
 	</tbody>
 </table>
 
-@if (Model.NewSignUps.Count() < 1) 
+@if (Model.NewSignUps.Count() < 1)
 {
 	<div class="alert alert-secondary" role="alert">
 		All sign-ups completed. <a class="link-body-emphasis" asp-area="" asp-page="/Batch">Re-configure batches</a> if necessary.

@@ -2,8 +2,10 @@ namespace admin.Models;
 
 public class SignUp
 {
+
 	public string city { get; set; } = "";
 	public string country { get; set; } = "";
+	public string lang { get; set; } = "";
 
 	internal string PartitionKey { get; set; } = "";
 	internal string RowKey { get; set; } = "";

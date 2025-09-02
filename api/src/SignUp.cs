@@ -101,5 +101,6 @@ public class SignUp
 			RowKey = default,
 			city = requestParams["city"],
 			country = requestParams["country"],
+			lang = requestParams["lang"],
 		};
 }
