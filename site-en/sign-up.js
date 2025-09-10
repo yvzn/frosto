@@ -22,9 +22,25 @@ function onFormSubmit(event) {
 addEventListener('load', onLoad);
 
 function onLoad() {
+	healthCheck(3);
+}
+
+function healthCheck(retries) {
 	var request = new XMLHttpRequest();
 	var url = import.meta.env.VITE_HEALTHCHECK_URL;
+
 	request.timeout = 10 * 1000;
+	request.ontimeout = function() {
+		if (retries > 1) {
+			healthCheck(retries - 1);
+		}
+	};
+	request.onerror = function() {
+		if (retries > 1) {
+			healthCheck(retries - 1);
+		}
+	};
+
 	request.open("GET", url, true);
 	request.send();
 }
