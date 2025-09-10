@@ -1,0 +1,50 @@
+variables:
+- group: "redirect"
+
+trigger:
+  branches:
+    include:
+    - main
+  paths:
+    include:
+    - site-redirect
+
+pool:
+  vmImage: ubuntu-latest
+
+jobs:
+- job: CI
+  steps:
+  - task: Npm@1
+    displayName: 'npm install'
+    inputs:
+      command: 'ci'
+      workingDir: 'site-redirect'
+  - task: Npm@1
+    displayName: 'npm build'
+    inputs:
+      command: 'custom'
+      workingDir: 'site-redirect'
+      customCommand: 'run build'
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: 'site-redirect/dist'
+      publishLocation: 'pipeline'
+      artifact: 'site-redirect'
+
+- deployment: CD
+  dependsOn: CI
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+  environment: 'Azure'
+  strategy:
+    runOnce:
+      deploy:
+        steps:
+        - task: CopyFilesOverSSH@0
+          inputs:
+            sshEndpoint: '$(sshEndpoint)'
+            sourceFolder: '$(Pipeline.Workspace)/site-redirect'
+            contents: '**'
+            targetFolder: '$(sshTargetFolder)'
+            readyTimeout: '20000'
+            overwrite: true
