@@ -1,13 +1,44 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite App</title>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.js"></script>
-  </body>
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Redirection vers Alerte gelées</title>
+	<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+</head>
+
+<body class="d-flex flex-column">
+	<header class="p-3 text-bg-dark shadow-sm">
+		<div class="container">
+			<nav class="navbar navbar-dark d-flex flex-wrap align-items-center justify-content-start">
+				<a href="https://www.alertegelee.fr/" aria-label="Accueil du site"
+					class="navbar-brand d-flex align-items-center text-white text-decoration-none">Alerte
+					gelées</a>
+				<ul class="nav ms-auto justify-content-center">
+					<li><a href="https://www.frostalert.net/" class="nav-link px-2 text-white" lang="en">English
+							version</a></li>
+				</ul>
+			</nav>
+		</div>
+	</header>
+	<main>
+		<section class="container py-5">
+			<div class="row flex-lg-row-reverse align-items-center py-lg-5">
+				<article class="col-10 col-sm-8 col-lg-6 p-4 p-md-5">
+					<img src="/undraw_right-direction_arvo.svg" class="d-block mx-lg-auto img-fluid"
+						alt="Une personne observe des panneaux indiquant la bonne direction" width="600" height="278" />
+				</article>
+				<article class="col-lg-6 p-4 p-md-5">
+					<h1 class="fw-light">Ce lien a été mis à jour</h1>
+					<p class="lead text-muted">Veuillez vous rediriger vers le site principal&nbsp;:
+					</p>
+					<p><a href="https://www.alertegelee.fr/" class="btn btn-primary my-2">Continuer sur www.alertegelee.fr</a></p>
+				</article>
+			</div>
+		</section>
+	</main>
+	<script type="module" src="./src/main.js"></script>
+</body>
+
 </html>
