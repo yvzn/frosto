@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://www.alertgelee.fr/sitemap.xml
+Sitemap: https://www.alertegelee.fr/sitemap.xml
