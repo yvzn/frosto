@@ -1,0 +1,21 @@
+{
+	"name": "site-redirect",
+	"private": true,
+	"version": "0.0.0",
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "vite build",
+		"preview": "vite preview",
+		"postbuild": "purgecss --content dist/*.html dist/assets/*.js --css dist/assets/*.css --output dist/assets/",
+		"clean": "rimraf dist"
+	},
+	"devDependencies": {
+		"purgecss": "^7.0.2",
+		"rimraf": "^6.0.1",
+		"vite": "^7.1.4"
+	},
+	"dependencies": {
+		"bootstrap": "^5.3.8"
+	}
+}
