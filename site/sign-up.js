@@ -29,7 +29,7 @@ function healthCheck(retries) {
 	var request = new XMLHttpRequest();
 	var url = import.meta.env.VITE_HEALTHCHECK_URL;
 
-	request.timeout = 10 * 1000;
+	request.timeout = 30 * 1000;
 	request.ontimeout = function() {
 		if (retries > 1) {
 			healthCheck(retries - 1);
