@@ -40,12 +40,11 @@ jobs:
     runOnce:
       deploy:
         steps:
-        - task: AzureCLI@2
-          displayName: 'upload files to Azure'
-          inputs:
-            azureSubscription: '$(azureSubscription)'
-            scriptType: 'pscore'
-            scriptLocation: 'inlineScript'
-            inlineScript: |
-              az storage blob delete-batch --account-key $(storageAccountKey) --account-name $(storageAccountName) --source `$web --delete-snapshots include
-              az storage blob upload-batch --account-key $(storageAccountKey) --account-name $(storageAccountName) --destination `$web --source $(Pipeline.Workspace)/site-maintenance
+        - task: CopyFilesOverSSH@0
+            inputs:
+            sshEndpoint: '$(sshEndpoint)'
+            sourceFolder: '$(Pipeline.Workspace)/site-maintenance'
+            contents: '**'
+            targetFolder: '$(sshTargetFolder)'
+            readyTimeout: '20000'
+            overwrite: true
