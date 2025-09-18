@@ -1,28 +1,35 @@
-# Alertegelee.fr (frosto)
+# Alertegelee.fr — FrostAlert.net
+
+(English below)
 
 Le service alerte gel météo vous envoie gratuitement une notification si des températures négatives sont prévues dans les jours suivants.
 
 https://www.alertegelee.fr/
 
-## Contact
-
 Ce service open source est maintenu par des bénévoles.
 
 Pour nous contacter: https://www.alertegelee.fr/contact.html
 
-## Structure
+## Description
 
 The _Frost Alert_ application is aimed to provide notifications when a frost episode is due in the following days.
 
+https://frostalert.net/
+
+The service is free and open source, maintained by volunteers.
+
+To contact us: https://frostalert.net/contact.html
+
+## Structure
+
 The application consists in the following components:
 
-- **site**: landing page with subscription form
+- **site**: landing page with subscription form, in French
+- **site-en**: landing page with subscription form, in English
 - **api**: _Azure Function App_ that receives the subscription form data
 - **batch**: _Azure Function App_ that fetches weather forecasts and sends notifications
 - **logic-app**: _Azure Logic App_ that sends notifications
 - **admin**: _ASP.NET_ webapp with admin tools
-
-[Frosto website (in french)](https://www.alertegelee.fr/)
 
 ## Licensing
 
