@@ -92,28 +92,21 @@ public class NotifyAtLocation2(IHttpClientFactory httpClientFactory, IAzureClien
 			: defaultThreshold;
 
 		var forecastsBelowThreshold = forecasts?.Where(f => f.Minimum <= threshold).ToList();
-		if (forecastsBelowThreshold?.Count is > 0)
+		if (forecastsBelowThreshold?.Count is not > 0)
 		{
-			var subject = Formatter.FormatSubject(forecastsBelowThreshold, location);
-			var body = HtmlFormatter.FormatBody(forecastsBelowThreshold, location);
-			var text = TextFormatter.FormatBody(forecastsBelowThreshold, location);
-			var notification = new Notification
-			{
-				subject = subject,
-				body = body,
-				raw = text,
-				to = users,
-			};
-
-
-			string channel = "default";
-			if (!string.IsNullOrEmpty(location.channel) && SendNotification2.channels.Contains(location.channel))
-			{
-				channel = location.channel;
-			}
-
-			await ScheduleNotificationAsync(notification, channel);
+			return;
 		}
+
+		var notification = BuildNotification(forecastsBelowThreshold, location);
+		notification.to = users;
+
+		string channel = "default";
+		if (!string.IsNullOrEmpty(location.channel) && SendNotification2.channels.Contains(location.channel))
+		{
+			channel = location.channel;
+		}
+
+		await ScheduleNotificationAsync(notification, channel);
 	}
 
 	private async Task<IList<Forecast>> GetWeatherForecastsAsync(LocationEntity location)
@@ -243,6 +236,39 @@ public class NotifyAtLocation2(IHttpClientFactory httpClientFactory, IAzureClien
 		}
 
 		return (latitude, longitude);
+	}
+
+	private static Notification BuildNotification(List<Forecast> forecasts, LocationEntity location)
+	{
+		// Determine language, default to French
+		var language = location.lang ?? "fr";
+
+		var subject = language switch
+		{
+			"en" => EnglishFormatter.FormatSubject(forecasts, location),
+			_ => Formatter.FormatSubject(forecasts, location)
+		};
+
+		var body = language switch
+		{
+			"en" => EnglishHtmlFormatter.FormatBody(forecasts, location),
+			_ => HtmlFormatter.FormatBody(forecasts, location)
+		};
+
+		var text = language switch
+		{
+			"en" => EnglishTextFormatter.FormatBody(forecasts, location),
+			_ => TextFormatter.FormatBody(forecasts, location)
+		};
+
+		var notification = new Notification
+		{
+			subject = subject,
+			body = body,
+			raw = text,
+		};
+
+		return notification;
 	}
 
 	private async Task ScheduleNotificationAsync(Notification notification, string channel)
