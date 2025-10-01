@@ -28,7 +28,7 @@ public class ValidateModel : PageModel
 
 	public SelectList ChannelOptions { get; set; } = new(new[] { "", "api", "smtp", "default", "tipimail" });
 
-	public ICollection<string> CountryList { get; set; } = ["France", "Belgique", "Algérie", "Canada"];
+	public ICollection<string> CountryList { get; set; } = ["France", "Belgique", "Algérie", "Canada", "United States of America"];
 
 	public async Task OnGetAsync(string id)
 	{
