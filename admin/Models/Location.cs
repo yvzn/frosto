@@ -28,6 +28,8 @@ public class Location
 	public string? zipCode { get; set; } = "";
 	[DisplayName("Language")]
 	public string? lang { get; set; } = "";
+	[DisplayName("Timezone")]
+	public string? timezone { get; set; } = "";
 
 	[Required]
 	internal string PartitionKey { get; set; } = "";

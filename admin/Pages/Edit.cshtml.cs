@@ -17,7 +17,7 @@ public class EditModel(LocationService locationService, ILogger<EditModel> logge
 
 	public SelectList ChannelOptions { get; set; } = new(new[] { "", "api", "smtp", "default", "tipimail" });
 
-	public ICollection<string> CountryList { get; set; } = ["France", "Belgique", "Algérie", "Canada", "United States of America"];
+	public ICollection<string> CountryList { get; set; } = ["France", "Belgique", "Algérie", "Canada", "United states of america"];
 
 	public async Task OnGetAsync(string id)
 	{

@@ -6,19 +6,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace admin.Pages;
 
-public class ValidateModel : PageModel
+public class ValidateModel(
+	LocationService locationService,
+	SignUpService signUpService,
+	ILogger<ValidateModel> logger) : PageModel
 {
-	private readonly LocationService _locationService;
-	private readonly SignUpService _signUpService;
-	private readonly ILogger<ValidateModel> _logger;
-
-	public ValidateModel(LocationService locationService, SignUpService signUpService, ILogger<ValidateModel> logger)
-	{
-		_locationService = locationService;
-		_signUpService = signUpService;
-		_logger = logger;
-	}
-
 	public Location Location { get; set; } = new();
 
 	[BindProperty]
@@ -26,16 +18,18 @@ public class ValidateModel : PageModel
 
 	public string? ValidLocationExists { get; set; }
 
-	public SelectList ChannelOptions { get; set; } = new(new[] { "", "api", "smtp", "default", "tipimail" });
+	private static readonly string[] ChannelList = ["", "api", "smtp", "default", "tipimail"];
 
-	public ICollection<string> CountryList { get; set; } = ["France", "Belgique", "Algérie", "Canada", "United States of America"];
+	public SelectList ChannelOptions { get; set; } = new(ChannelList);
+
+	public ICollection<string> CountryList { get; set; } = ["France", "Belgique", "Algérie", "Canada", "United states of america"];
 
 	public async Task OnGetAsync(string id)
 	{
-		Location = await _locationService.GetLocationAsync(id, HttpContext.RequestAborted) ?? new();
-		ValidLocation = await _locationService.GetLocationAsync(id, HttpContext.RequestAborted) ?? new();
+		Location = await locationService.GetLocationAsync(id, HttpContext.RequestAborted) ?? new();
+		ValidLocation = await locationService.GetLocationAsync(id, HttpContext.RequestAborted) ?? new();
 
-		var existingLocation = await _locationService.FindValidLocationAsync(ValidLocation.city, ValidLocation.country, HttpContext.RequestAborted);
+		var existingLocation = await locationService.FindValidLocationAsync(ValidLocation.city, ValidLocation.country, HttpContext.RequestAborted);
 		ValidLocationExists = existingLocation?.Id;
 	}
 
@@ -43,7 +37,7 @@ public class ValidateModel : PageModel
 	{
 		if (ValidLocation?.Id is string id)
 		{
-			Location = await _locationService.GetLocationAsync(id, HttpContext.RequestAborted) ?? new();
+			Location = await locationService.GetLocationAsync(id, HttpContext.RequestAborted) ?? new();
 		}
 
 		if (!ModelState.IsValid)
@@ -51,16 +45,17 @@ public class ValidateModel : PageModel
 			return Page();
 		}
 
-		_logger.LogInformation("Saving location {LocationId}", ValidLocation?.Id);
-		await _locationService.CreateValidLocationAsync(ValidLocation, HttpContext.RequestAborted);
-		await _signUpService.DeleteSignUpAsync(ValidLocation?.Id, HttpContext.RequestAborted);
+		logger.LogInformation("Saving location {LocationId}", ValidLocation?.Id);
+		await locationService.CreateValidLocationAsync(ValidLocation, HttpContext.RequestAborted);
+		await signUpService.DeleteSignUpAsync(ValidLocation?.Id, HttpContext.RequestAborted);
 
 		return RedirectToPage("./Index", new { m = $"Updated {ValidLocation?.city} ({ValidLocation?.RowKey})" });
 	}
 
-	public async Task<IActionResult> OnPostDiscardAsync() {
-		_logger.LogInformation("Discarding sign-up {LocationId}", ValidLocation?.Id);
-		await _signUpService.DeleteSignUpAsync(ValidLocation?.Id, HttpContext.RequestAborted);
+	public async Task<IActionResult> OnPostDiscardAsync()
+	{
+		logger.LogInformation("Discarding sign-up {LocationId}", ValidLocation?.Id);
+		await signUpService.DeleteSignUpAsync(ValidLocation?.Id, HttpContext.RequestAborted);
 		return RedirectToPage("./Index", new { m = $"Sign-Up discarded {ValidLocation?.city} ({ValidLocation?.RowKey})" });
 	}
 }

@@ -14,6 +14,7 @@ public class LocationEntity : ITableEntity
 	public string? channel { get; set; }
 	public string? zipCode { get; set; }
 	public string? lang { get; set; }
+	public string? timezone { get; set; }
 
 	public string? PartitionKey { get; set; }
 	public string? RowKey { get; set; }
