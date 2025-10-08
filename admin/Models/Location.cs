@@ -29,6 +29,7 @@ public class Location
 	[DisplayName("Language")]
 	public string? lang { get; set; } = "";
 	[DisplayName("Timezone")]
+	[RegularExpression(@"^(Africa|America|Antarctica|Arctic|Asia|Atlantic|Australia|Europe|Indian|Pacific|Etc)(/[A-Za-z0-9_\-\+]+){1,2}$")]
 	public string? timezone { get; set; } = "";
 
 	[Required]

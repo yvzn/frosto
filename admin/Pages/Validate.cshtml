@@ -118,7 +118,7 @@
 		<div class="form-group mb-3">
 			<label asp-for="ValidLocation.timezone" class="form-label"></label>
 			<div class="input-group">
-				<input asp-for="ValidLocation.timezone" class="form-control" />
+				<input asp-for="ValidLocation.timezone" class="form-control" id="valid-location-timezone" />
 				<a class="btn btn-outline-secondary"
 					href="https://whattime.is/"
 					target="_blank" rel="noopener noreferrer">Search</a>
@@ -153,6 +153,7 @@
 	var countryInput = document.getElementById('valid-location-country');
 	var verificationResult = document.getElementById('valid-location-verification-result');
 	var cityCoordinates = document.getElementById('valid-location-coordinates');
+	var timezoneInput = document.getElementById('valid-location-timezone');
 
 	cityInput.addEventListener('change', onChangeCity);
 	countryInput.addEventListener('change', onChangeCity);
@@ -197,6 +198,7 @@
 
 	cityInput.addEventListener('click', pasteFromClipboard);
 	cityCoordinates.addEventListener('click', pasteFromClipboard);
+	timezoneInput.addEventListener('click', pasteFromClipboard);
 
 	function pasteFromClipboard(event) {
 		if (!navigator.clipboard.readText) {
@@ -204,6 +206,7 @@
 		}
 
 		navigator.clipboard.readText().then(text => {
+			// valRegexPattern is set by the RegularExpression attribute in the model
 			if (!event.target.dataset.valRegexPattern || new RegExp(event.target.dataset.valRegexPattern).exec(text)) {
 				event.target.value = text
 				event.target.dispatchEvent(new Event("change"));
