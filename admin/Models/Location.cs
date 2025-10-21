@@ -31,6 +31,9 @@ public class Location
 	[DisplayName("Timezone")]
 	[RegularExpression(@"^(Africa|America|Antarctica|Arctic|Asia|Atlantic|Australia|Europe|Indian|Pacific|Etc)(/[A-Za-z0-9_\-\+]+){1,2}$")]
 	public string? timezone { get; set; } = "";
+	[DisplayName("Offset")]
+	[RegularExpression(@"^[\+\-]?([01][0-9]|2[0-3]):?[0-5][0-9]$")]
+	public string? offset { get; set; } = "";
 
 	[Required]
 	internal string PartitionKey { get; set; } = "";

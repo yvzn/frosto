@@ -59,10 +59,17 @@
 				<span asp-validation-for="ValidLocation.lang" class="text-danger"></span>
 			</div>
 		</div>
-		<div class="form-group mb-3">
-			<label asp-for="ValidLocation.timezone" class="form-label"></label>
-			<input asp-for="ValidLocation.timezone" class="form-control" />
-			<span asp-validation-for="ValidLocation.timezone" class="text-danger"></span>
+		<div class="row gx-3">
+			<div class="form-group col-md-6 mb-3">
+				<label asp-for="ValidLocation.timezone" class="form-label"></label>
+				<input asp-for="ValidLocation.timezone" class="form-control" />
+				<span asp-validation-for="ValidLocation.timezone" class="text-danger"></span>
+			</div>
+			<div class="form-group col-md-6 mb-3">
+				<label asp-for="ValidLocation.offset" class="form-label"></label>
+				<input asp-for="ValidLocation.offset" class="form-control" placeholder="+02:00" />
+				<span asp-validation-for="ValidLocation.offset" class="text-danger"></span>
+			</div>
 		</div>
 
 		<input asp-for="ValidLocation.Id" />

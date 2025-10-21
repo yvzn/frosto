@@ -115,15 +115,22 @@
 				<span asp-validation-for="ValidLocation.lang" class="text-danger"></span>
 			</div>
 		</div>
-		<div class="form-group mb-3">
-			<label asp-for="ValidLocation.timezone" class="form-label"></label>
-			<div class="input-group">
-				<input asp-for="ValidLocation.timezone" class="form-control" id="valid-location-timezone" />
-				<a class="btn btn-outline-secondary"
-					href="https://whattime.is/"
-					target="_blank" rel="noopener noreferrer">Search</a>
+		<div class="row gx-3">
+			<div class="form-group col-md-6 mb-3">
+				<label asp-for="ValidLocation.timezone" class="form-label"></label>
+				<div class="input-group">
+					<input asp-for="ValidLocation.timezone" class="form-control" id="valid-location-timezone" />
+					<a class="btn btn-outline-secondary"
+						href="https://whattime.is/"
+						target="_blank" rel="noopener noreferrer">Search</a>
+				</div>
+				<span asp-validation-for="ValidLocation.timezone" class="text-danger"></span>
 			</div>
-			<span asp-validation-for="ValidLocation.timezone" class="text-danger"></span>
+			<div class="form-group col-md-6 mb-3">
+				<label asp-for="ValidLocation.offset" class="form-label"></label>
+				<input asp-for="ValidLocation.offset" class="form-control" id="valid-location-offset" placeholder="+02:00" />
+				<span asp-validation-for="ValidLocation.offset" class="text-danger"></span>
+			</div>
 		</div>
 
 		<input asp-for="ValidLocation.Id" />
@@ -154,6 +161,7 @@
 	var verificationResult = document.getElementById('valid-location-verification-result');
 	var cityCoordinates = document.getElementById('valid-location-coordinates');
 	var timezoneInput = document.getElementById('valid-location-timezone');
+	var offsetInput = document.getElementById('valid-location-offset');
 
 	cityInput.addEventListener('change', onChangeCity);
 	countryInput.addEventListener('change', onChangeCity);
@@ -199,6 +207,7 @@
 	cityInput.addEventListener('click', pasteFromClipboard);
 	cityCoordinates.addEventListener('click', pasteFromClipboard);
 	timezoneInput.addEventListener('click', pasteFromClipboard);
+	offsetInput.addEventListener('click', pasteFromClipboard);
 
 	function pasteFromClipboard(event) {
 		if (!navigator.clipboard.readText) {

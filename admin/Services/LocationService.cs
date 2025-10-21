@@ -39,6 +39,7 @@ public class LocationService(IAzureClientFactory<TableClient> azureClientFactory
 		validLocationEntity.zipCode = validLocation.zipCode?.Trim();
 		validLocationEntity.lang = validLocation.lang?.Trim().ToLower();
 		validLocationEntity.timezone = validLocation.timezone?.Trim();
+		validLocationEntity.offset = validLocation.offset?.Trim();
 		validLocationEntity.PartitionKey = Capitalize(validLocation.country);
 		validLocationEntity.RowKey = validLocation.RowKey;
 
@@ -65,6 +66,7 @@ public class LocationService(IAzureClientFactory<TableClient> azureClientFactory
 		validLocationEntity.zipCode = validLocation.zipCode?.Trim();
 		validLocationEntity.lang = validLocation.lang?.Trim().ToLower();
 		validLocationEntity.timezone = validLocation.timezone?.Trim();
+		validLocationEntity.offset = validLocation.offset?.Trim();
 		validLocationEntity.PartitionKey = Capitalize(validLocation.country);
 		validLocationEntity.RowKey = validLocation.RowKey;
 
@@ -153,6 +155,7 @@ public class LocationService(IAzureClientFactory<TableClient> azureClientFactory
 			zipCode = locationEntity.zipCode ?? "",
 			lang = locationEntity.lang ?? "",
 			timezone = locationEntity.timezone ?? "",
+			offset = locationEntity.offset ?? "",
 			PartitionKey = locationEntity.PartitionKey ?? "",
 			RowKey = locationEntity.RowKey ?? "",
 			Timestamp = locationEntity.Timestamp,
