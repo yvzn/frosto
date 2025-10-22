@@ -110,6 +110,30 @@ public class LocationLoop2(IHttpClientFactory httpClientFactory, IAzureClientFac
 		_ = LoopOverBatchAsync(groupNumber: 9);
 	}
 
+	[Function("LocationLoop2-10")]
+	public void RunGroup10(
+		[TimerTrigger("0 20 6 * 1-5,9-12 *")]
+		TimerInfo timerInfo)
+	{
+		_ = LoopOverBatchAsync(groupNumber: 10);
+	}
+
+	[Function("LocationLoop2-11")]
+	public void RunGroup11(
+		[TimerTrigger("0 40 6 * 1-5,9-12 *")]
+		TimerInfo timerInfo)
+	{
+		_ = LoopOverBatchAsync(groupNumber: 11);
+	}
+
+	[Function("LocationLoop2-12")]
+	public void RunGroup12(
+		[TimerTrigger("0 0 7 * 1-5,9-12 *")]
+		TimerInfo timerInfo)
+	{
+		_ = LoopOverBatchAsync(groupNumber: 12);
+	}
+
 	private async Task LoopOverBatchAsync(int groupNumber)
 	{
 		var dayNumber = (DateTime.UtcNow - DateTime.UnixEpoch).Days % AppSettings.PeriodInDays;

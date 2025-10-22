@@ -11,6 +11,7 @@ public class LocationEntity : ITableEntity
 	public string? country { get; set; }
 	public string? coordinates { get; set; }
 	public string? timezone { get; set; }
+	public string? offset { get; set; }
 	public string? users { get; set; }
 	public bool? uat { get; set; }
 	public string? channel { get; set; }
