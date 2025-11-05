@@ -13,7 +13,7 @@
 	"devDependencies": {
 		"purgecss": "^7.0.2",
 		"rimraf": "^6.0.1",
-		"vite": "^7.1.4"
+		"vite": "^7.1.11"
 	},
 	"dependencies": {
 		"bootstrap": "^5.3.8"
