@@ -1,10 +1,11 @@
+using System.Text.RegularExpressions;
 using admin.Models;
 using Azure.Data.Tables;
 using Microsoft.Extensions.Azure;
 
 namespace admin.Services;
 
-public class LocationService(IAzureClientFactory<TableClient> azureClientFactory)
+public partial class LocationService(IAzureClientFactory<TableClient> azureClientFactory)
 {
 	private readonly TableClient _validLocationTableClient = azureClientFactory.CreateClient("validlocationTableClient");
 	private readonly TableClient _locationTableClient = azureClientFactory.CreateClient("locationTableClient");
@@ -39,7 +40,7 @@ public class LocationService(IAzureClientFactory<TableClient> azureClientFactory
 		validLocationEntity.zipCode = validLocation.zipCode?.Trim();
 		validLocationEntity.lang = validLocation.lang?.Trim().ToLower();
 		validLocationEntity.timezone = validLocation.timezone?.Trim();
-		validLocationEntity.offset = validLocation.offset?.Trim();
+		validLocationEntity.offset = Normalize(validLocation.offset);
 		validLocationEntity.PartitionKey = Capitalize(validLocation.country);
 		validLocationEntity.RowKey = validLocation.RowKey;
 
@@ -66,7 +67,7 @@ public class LocationService(IAzureClientFactory<TableClient> azureClientFactory
 		validLocationEntity.zipCode = validLocation.zipCode?.Trim();
 		validLocationEntity.lang = validLocation.lang?.Trim().ToLower();
 		validLocationEntity.timezone = validLocation.timezone?.Trim();
-		validLocationEntity.offset = validLocation.offset?.Trim();
+		validLocationEntity.offset = Normalize(validLocation.offset);
 		validLocationEntity.PartitionKey = Capitalize(validLocation.country);
 		validLocationEntity.RowKey = validLocation.RowKey;
 
@@ -163,5 +164,32 @@ public class LocationService(IAzureClientFactory<TableClient> azureClientFactory
 	}
 
 	private static string Capitalize(string s) => s.Trim()[0].ToString().ToUpper() + s.Trim()[1..].ToLower();
+
+	[GeneratedRegex(@"^([\+\-])([0-9]|[01][0-9]|2[0-3]):?([0-9]|[0-5][0-9])?$")]
+	private static partial Regex TimezoneOffsetRegex();
+
+	private static string? Normalize(string? s)
+	{
+		if (s is null)
+		{
+			return null;
+		}
+
+		var trimmed = s.Trim();
+
+		var matches = TimezoneOffsetRegex().Matches(trimmed);
+		if (matches.Count == 0)
+		{
+			return trimmed;
+		}
+
+		var sign = matches[0].Groups[1].Value;
+		var hours = matches[0].Groups[2].Value.PadLeft(2, '0');
+		var minutes = matches[0].Groups.Count > 3
+			? matches[0].Groups[3].Value.PadLeft(2, '0')
+			: "00";
+
+		return $"{sign}{hours}:{minutes}";
+	}
 }
 
