@@ -8,6 +8,7 @@ namespace admin.Pages;
 
 public class ValidateModel(
 	LocationService locationService,
+	GeographicalDataService geographicalDataService,
 	SignUpService signUpService,
 	ILogger<ValidateModel> logger) : PageModel
 {
@@ -22,7 +23,7 @@ public class ValidateModel(
 
 	public SelectList ChannelOptions { get; set; } = new(ChannelList);
 
-	public ICollection<string> CountryList { get; set; } = ["France", "Belgique", "Algérie", "Canada", "United states of america"];
+	public ICollection<string> CountryList { get; set; } = Array.Empty<string>();
 
 	public async Task OnGetAsync(string id)
 	{
@@ -31,6 +32,8 @@ public class ValidateModel(
 
 		var existingLocation = await locationService.FindValidLocationAsync(ValidLocation.city, ValidLocation.country, HttpContext.RequestAborted);
 		ValidLocationExists = existingLocation?.Id;
+
+		CountryList = geographicalDataService.GetCountryList();
 	}
 
 	public async Task<IActionResult> OnPostAsync()

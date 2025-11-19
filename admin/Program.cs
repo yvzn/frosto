@@ -26,6 +26,7 @@ builder.Services.AddAzureClients(clientBuilder =>
 builder.Services.AddScoped<LocationService>();
 builder.Services.AddScoped<SignUpService>();
 builder.Services.AddScoped<BatchService>();
+builder.Services.AddScoped<GeographicalDataService>();
 
 var app = builder.Build();
 

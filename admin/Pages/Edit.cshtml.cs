@@ -6,7 +6,10 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace admin.Pages;
 
-public class EditModel(LocationService locationService, ILogger<EditModel> logger) : PageModel
+public class EditModel(
+	LocationService locationService,
+	GeographicalDataService geographicalDataService,
+	ILogger<EditModel> logger) : PageModel
 {
 	private readonly LocationService _locationService = locationService;
 
@@ -17,11 +20,12 @@ public class EditModel(LocationService locationService, ILogger<EditModel> logge
 
 	public SelectList ChannelOptions { get; set; } = new(new[] { "", "api", "smtp", "default", "tipimail" });
 
-	public ICollection<string> CountryList { get; set; } = ["France", "Belgique", "Algérie", "Canada", "United states of america"];
+	public ICollection<string> CountryList { get; set; } = Array.Empty<string>();
 
 	public async Task OnGetAsync(string id)
 	{
 		ValidLocation = await _locationService.GetValidLocationAsync(id, HttpContext.RequestAborted) ?? new();
+		CountryList = geographicalDataService.GetCountryList();
 	}
 
 	public async Task<IActionResult> OnPostAsync()
