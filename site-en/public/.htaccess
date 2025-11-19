@@ -6,7 +6,7 @@ Header set Strict-Transport-Security "max-age=31536000; includeSubDomains"
 Header set Referrer-Policy "origin-when-cross-origin"
 
 <FilesMatch "\.html$">
-	Header set Content-Security-Policy "default-src 'self'; connect-src 'self' https://frosto.azure-api.net https://alertegeleeapi.azurewebsites.net; form-action 'self' frosto.azure-api.net alertegeleeapi.azurewebsites.net; img-src 'self'; style-src 'self' 'unsafe-inline'; object-src 'none'; frame-ancestors 'none'; upgrade-insecure-requests; block-all-mixed-content"
+	Header set Content-Security-Policy "default-src 'self'; connect-src 'self' https://alertegeleeapi.azurewebsites.net; form-action 'self' 'https://alertegeleeapi.azurewebsites.net'; img-src 'self'; style-src 'self' 'unsafe-inline'; object-src 'none'; frame-ancestors 'none'; upgrade-insecure-requests; block-all-mixed-content"
 	Header set Cache-Control "no-cache"
 </FilesMatch>
 
