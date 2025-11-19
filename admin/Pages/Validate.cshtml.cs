@@ -30,10 +30,30 @@ public class ValidateModel(
 		Location = await locationService.GetLocationAsync(id, HttpContext.RequestAborted) ?? new();
 		ValidLocation = await locationService.GetLocationAsync(id, HttpContext.RequestAborted) ?? new();
 
-		var existingLocation = await locationService.FindValidLocationAsync(ValidLocation.city, ValidLocation.country, HttpContext.RequestAborted);
+		var existingLocation = await locationService.FindValidLocationAsync(
+			Capitalize(ValidLocation.city),
+			Capitalize(ValidLocation.country),
+			HttpContext.RequestAborted);
 		ValidLocationExists = existingLocation?.Id;
 
 		CountryList = geographicalDataService.GetCountryList();
+	}
+
+	private static string Capitalize(string s)
+	{
+		var trimmed = s.Trim();
+
+		if (string.IsNullOrWhiteSpace(trimmed))
+		{
+			return trimmed;
+		}
+
+		if (trimmed.Length == 1)
+		{
+			return trimmed.ToUpper();
+		}
+
+		return char.ToUpper(trimmed[0]) + trimmed[1..].ToLower();
 	}
 
 	public async Task<IActionResult> OnPostAsync()
