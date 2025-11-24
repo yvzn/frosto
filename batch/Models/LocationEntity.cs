@@ -17,6 +17,7 @@ public class LocationEntity : ITableEntity
 	public string? channel { get; set; }
 	public string? lang { get; set; }
 	public double? minThreshold { get; set; }
+	public double? minTemperatureAdjustment { get; set; }
 	public string? weatherApiUrl { get; set; }
 	public string? PartitionKey { get; set; }
 	public string? RowKey { get; set; }

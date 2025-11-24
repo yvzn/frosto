@@ -210,6 +210,12 @@ public class NotifyAtLocation2(IHttpClientFactory httpClientFactory, IAzureClien
 				group.Min(f => f.Minimum),
 				group.Max(f => f.Maximum)))];
 
+		if (location.minTemperatureAdjustment.HasValue)
+		{
+			var adjustment = Convert.ToDecimal(location.minTemperatureAdjustment.Value);
+			forecasts = [.. forecasts.Select(f => f with { Minimum = f.Minimum + adjustment })];
+		}
+
 		if (forecasts.Count is > 0)
 		{
 			return forecasts;
