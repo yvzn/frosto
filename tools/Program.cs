@@ -1,39 +1,32 @@
 ﻿
 
-using System.Text.Json;
 using Azure.Data.Tables;
 using tools;
+using Microsoft.Extensions.Configuration;
 
-var timezoneJson = File.ReadAllText("timezones.json");
-var timezones = JsonSerializer.Deserialize<List<Timezone>>(timezoneJson);
-ArgumentNullException.ThrowIfNull(timezones);
-
-var timezoneDict =
-	(
-		from tz in timezones
-		where tz.Offset != null && tz.Offset.Sdt != null && tz.Id != null
-		select new { tz.Id, tz.Offset!.Sdt }
-	).ToDictionary(tz => tz.Id, tz => tz.Sdt);
+var builder = new ConfigurationBuilder()
+	.SetBasePath(Directory.GetCurrentDirectory())
+	.AddJsonFile("appsettings.Development.json", optional: false);
+var config = builder.Build();
+var connectionString = config.GetConnectionString("TableStorage");
 
 var tableClient = new TableClient(
-	connectionString: "<< YOUR_CONNECTION_STRING_HERE >>",
+	connectionString: connectionString,
 	tableName: "validlocation");
 
-var entities = tableClient.QueryAsync<LocationEntity>(f => f.country != "France" && f.timezone != "");
+var entities = tableClient.QueryAsync<LocationEntity>(f => f.channel == "tipimail");
 await foreach (var entity in entities)
 {
-	Console.WriteLine($"{entity.city}, {entity.country}, {entity.timezone}, {entity.offset}");
-	if (!string.IsNullOrEmpty(entity.offset))
+	if (entity is null || entity.users == null)
 	{
 		continue;
 	}
 
-	if (entity.timezone != null && timezoneDict.TryGetValue(entity.timezone, out var offset))
+	if (!entity.users.Contains("yahoo.fr"))
 	{
-		Console.WriteLine("Updating offset to " + offset);
-		entity.offset = offset;
+		continue;
 	}
 
-	await tableClient.UpdateEntityAsync(entity, entity.ETag);
+	Console.WriteLine($"{entity.PartitionKey} - {entity.RowKey} - {entity.users}");
 }
 
