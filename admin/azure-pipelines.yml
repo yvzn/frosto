@@ -24,7 +24,7 @@ jobs:
   - task: UseDotNet@2
     inputs:
       packageType: 'sdk'
-      version: '9.0.x'
+      version: '10.0.x'
       installationPath: '$(Agent.ToolsDirectory)/dotnet'
   - task: DotNetCoreCLI@2
     inputs:
@@ -40,7 +40,7 @@ jobs:
       arguments: '--no-build --configuration $(buildConfiguration) -r $(buildPlatform) --no-self-contained'
   - task: PublishPipelineArtifact@1
     inputs:
-      targetPath: 'admin/bin/$(buildConfiguration)/net9.0/$(buildPlatform)/publish.zip'
+      targetPath: 'admin/bin/$(buildConfiguration)/net10.0/$(buildPlatform)/publish.zip'
       publishLocation: 'pipeline'
       artifact: 'admin'
 
