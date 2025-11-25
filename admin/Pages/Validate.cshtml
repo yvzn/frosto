@@ -225,9 +225,19 @@
 		navigator.clipboard.readText().then(text => {
 			// valRegexPattern is set by the RegularExpression attribute in the model
 			if (!event.target.dataset.valRegexPattern || new RegExp(event.target.dataset.valRegexPattern).exec(text)) {
-				event.target.value = text
-				event.target.dispatchEvent(new Event("change"));
+				setInputValue(event.target, text);
 			}
 		});
+	}
+
+	function setInputValue(element, value) {
+		if ('queryCommandSupported' in document && document.queryCommandSupported('insertText')) {
+			element.focus();
+			element.select();
+			document.execCommand('insertText', false, value);
+		} else {
+			element.value = value;
+		}
+		element.dispatchEvent(new Event("change"));
 	}
 </script>
