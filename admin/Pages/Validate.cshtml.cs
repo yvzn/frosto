@@ -25,6 +25,8 @@ public class ValidateModel(
 
 	public ICollection<string> CountryList { get; set; } = Array.Empty<string>();
 
+	public ICollection<string> TimezoneList { get; set; } = Array.Empty<string>();
+
 	public async Task OnGetAsync(string id)
 	{
 		Location = await locationService.GetLocationAsync(id, HttpContext.RequestAborted) ?? new();
@@ -37,6 +39,7 @@ public class ValidateModel(
 		ValidLocationExists = existingLocation?.Id;
 
 		CountryList = geographicalDataService.GetCountryList();
+		TimezoneList = geographicalDataService.GetCommonTimezones();
 	}
 
 	private static string Capitalize(string s)

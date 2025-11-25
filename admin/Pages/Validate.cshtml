@@ -82,8 +82,8 @@
 			</div>
 			<div class="form-group col-md-6 mb-3">
 				<label asp-for="ValidLocation.country" class="form-label"></label>
-				<input asp-for="ValidLocation.country" class="form-control" list="country-names" id="valid-location-country"
-					required />
+				<input asp-for="ValidLocation.country" class="form-control" list="country-names"
+					id="valid-location-country" required />
 				<span asp-validation-for="ValidLocation.country" class="text-danger"></span>
 
 				<datalist id="country-names">
@@ -119,16 +119,24 @@
 			<div class="form-group col-md-6 mb-3">
 				<label asp-for="ValidLocation.timezone" class="form-label"></label>
 				<div class="input-group">
-					<input asp-for="ValidLocation.timezone" class="form-control" id="valid-location-timezone" />
-					<a class="btn btn-outline-secondary"
-						href="https://whattime.is/"
-						target="_blank" rel="noopener noreferrer">Search</a>
+					<input asp-for="ValidLocation.timezone" class="form-control" list="timezone-names"
+						id="valid-location-timezone" />
+					<a class="btn btn-outline-secondary" href="https://whattime.is/" target="_blank"
+						rel="noopener noreferrer">Search</a>
 				</div>
 				<span asp-validation-for="ValidLocation.timezone" class="text-danger"></span>
+
+				<datalist id="timezone-names">
+					@foreach (var timezone in Model.TimezoneList)
+					{
+						<option value="@timezone"></option>
+					}
+				</datalist>
 			</div>
 			<div class="form-group col-md-6 mb-3">
 				<label asp-for="ValidLocation.offset" class="form-label"></label>
-				<input asp-for="ValidLocation.offset" class="form-control" id="valid-location-offset" placeholder="+02:00" />
+				<input asp-for="ValidLocation.offset" class="form-control" id="valid-location-offset"
+					placeholder="+02:00" />
 				<span asp-validation-for="ValidLocation.offset" class="text-danger"></span>
 			</div>
 		</div>

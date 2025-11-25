@@ -22,10 +22,13 @@ public class EditModel(
 
 	public ICollection<string> CountryList { get; set; } = Array.Empty<string>();
 
+	public ICollection<string> TimezoneList { get; set; } = Array.Empty<string>();
+
 	public async Task OnGetAsync(string id)
 	{
 		ValidLocation = await _locationService.GetValidLocationAsync(id, HttpContext.RequestAborted) ?? new();
 		CountryList = geographicalDataService.GetCountryList();
+		TimezoneList = geographicalDataService.GetCommonTimezones();
 	}
 
 	public async Task<IActionResult> OnPostAsync()
