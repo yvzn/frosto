@@ -4,7 +4,7 @@
 	"description": "",
 	"private": true,
 	"scripts": {
-		"install:browsers": "playwright install",
+		"install:browsers": "playwright install --with-deps",
 		"test": "playwright test"
 	},
 	"devDependencies": {

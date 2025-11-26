@@ -1,0 +1,47 @@
+schedules:
+- cron: "0 2 * * 1"
+  displayName: Weekly Monday 2am
+  branches:
+    include:
+    - main
+  always: true
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- task: Npm@1
+  displayName: 'npm install'
+  inputs:
+    command: 'ci'
+    workingDir: 'e2e'
+- task: Npm@1
+  displayName: 'npm install browser drivers'
+  inputs:
+    command: 'install:browsers'
+    workingDir: 'e2e'
+
+- task: Npm@1
+  displayName: 'run e2e tests'
+  inputs:
+    command: 'test'
+    workingDir: 'e2e'
+  env:
+    CI: 'true'
+
+- task: PublishTestResults@2
+  displayName: 'Publish test results'
+  inputs:
+    searchFolder: 'e2e/test-results'
+    testResultsFormat: 'JUnit'
+    testResultsFiles: 'e2e-junit-results.xml'
+    mergeTestResults: true
+    failTaskOnFailedTests: true
+    testRunTitle: 'My End-To-End Tests'
+  condition: succeededOrFailed()
+- task: PublishPipelineArtifact@1
+  inputs:
+    targetPath: e2e/playwright-report
+    artifact: playwright-report
+    publishLocation: 'pipeline'
+  condition: succeededOrFailed()
