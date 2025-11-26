@@ -15,12 +15,9 @@ steps:
   inputs:
     command: 'ci'
     workingDir: 'e2e'
-- task: Npm@1
+- script: npm install:browsers
   displayName: 'npm install browser drivers'
-  inputs:
-    command: 'install:browsers'
-    workingDir: 'e2e'
-
+  workingDirectory: 'e2e'
 - task: Npm@1
   displayName: 'run e2e tests'
   inputs:
