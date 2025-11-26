@@ -10,19 +10,21 @@ pool:
   vmImage: ubuntu-latest
 
 steps:
+- task: UseNode@1
+  inputs:
+    version: '24'
+  displayName: 'Install Node.js'
 - task: Npm@1
   displayName: 'npm install'
   inputs:
     command: 'ci'
     workingDir: 'e2e'
-- script: npm install:browsers
+- script: npm run install:browsers
   displayName: 'npm install browser drivers'
   workingDirectory: 'e2e'
-- task: Npm@1
+- script: npm run test
   displayName: 'run e2e tests'
-  inputs:
-    command: 'test'
-    workingDir: 'e2e'
+  workingDirectory: 'e2e'
   env:
     CI: 'true'
 
