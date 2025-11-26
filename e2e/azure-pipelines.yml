@@ -19,7 +19,7 @@ steps:
   inputs:
     command: 'ci'
     workingDir: 'e2e'
-- script: npm run install:browsers
+- script: npm run install:ci
   displayName: 'npm install browser drivers'
   workingDirectory: 'e2e'
 - script: npm run test
@@ -40,7 +40,7 @@ steps:
   condition: succeededOrFailed()
 - task: PublishPipelineArtifact@1
   inputs:
-    targetPath: e2e/playwright-report
+    targetPath: playwright-report
     artifact: playwright-report
     publishLocation: 'pipeline'
   condition: succeededOrFailed()

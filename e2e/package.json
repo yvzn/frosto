@@ -5,6 +5,7 @@
 	"private": true,
 	"scripts": {
 		"install:browsers": "playwright install --with-deps",
+		"install:ci": "playwright install chromium",
 		"test": "playwright test"
 	},
 	"devDependencies": {
