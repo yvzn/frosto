@@ -1,0 +1,14 @@
+{
+	"name": "frosto-e2e",
+	"version": "1.0.0",
+	"description": "",
+	"private": true,
+	"scripts": {
+		"install:browsers": "playwright install",
+		"test": "playwright test"
+	},
+	"devDependencies": {
+		"@playwright/test": "^1.57.0",
+		"@types/node": "^24.10.1"
+	}
+}
