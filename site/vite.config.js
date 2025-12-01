@@ -1,7 +1,7 @@
 import { resolve } from 'path';
 import { defineConfig } from 'vite';
 
-const config = defineConfig(({ mode }) => {
+const config = defineConfig(() => {
 	return {
 		build: {
 			emptyOutDir: true,
@@ -12,6 +12,7 @@ const config = defineConfig(({ mode }) => {
 					'sign-up-complete': resolve(__dirname, 'sign-up-complete.html'),
 					legal: resolve(__dirname, 'legal.html'),
 					contact: resolve(__dirname, 'contact.html'),
+					donate: resolve(__dirname, 'donate.html')
 				}
 			}
 		},
