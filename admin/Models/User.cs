@@ -9,6 +9,9 @@ public class User
     [EmailAddress]
     public string email { get; set; } = string.Empty;
 
+    public string? disabled { get; set; }
+    public string? created { get; set; }
+
     [Required]
     internal string PartitionKey { get; set; } = string.Empty;
 

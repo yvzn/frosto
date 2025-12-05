@@ -150,7 +150,7 @@ public partial class LocationService(IAzureClientFactory<TableClient> azureClien
 	{
 		ArgumentException.ThrowIfNullOrWhiteSpace(email);
 
-		var normalizedEmail = email.Trim().ToLowerInvariant();
+		var normalizedEmail = email.Trim();
 		var matches = new List<Location>();
 
 		await foreach (var validLocationEntity in _validLocationTableClient.QueryAsync<LocationEntity>(_ => true, cancellationToken: cancellationToken))
@@ -161,10 +161,10 @@ public partial class LocationService(IAzureClientFactory<TableClient> azureClien
 			}
 
 			var userEntries = validLocationEntity.users
-				.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-				.Select(entry => entry.ToLowerInvariant());
+				.Split(',', StringSplitOptions.RemoveEmptyEntries)
+				.Select(entry => entry.Trim());
 
-			if (userEntries.Contains(normalizedEmail))
+			if (userEntries.Any(entry => string.Equals(entry, normalizedEmail, StringComparison.OrdinalIgnoreCase)))
 			{
 				matches.Add(EntityToModel(validLocationEntity));
 			}
@@ -177,7 +177,7 @@ public partial class LocationService(IAzureClientFactory<TableClient> azureClien
 	{
 		ArgumentException.ThrowIfNullOrWhiteSpace(email);
 
-		var normalizedEmail = email.Trim().ToLowerInvariant();
+		var normalizedEmail = email.Trim();
 		var matches = new List<Location>();
 
 		await foreach (var locationEntity in _locationTableClient.QueryAsync<LocationEntity>(_ => true, cancellationToken: cancellationToken))
@@ -189,6 +189,80 @@ public partial class LocationService(IAzureClientFactory<TableClient> azureClien
 		}
 
 		return matches;
+	}
+
+	internal async Task<bool> RemoveUserFromValidLocationAsync(Location validLocation, string email, CancellationToken cancellationToken)
+	{
+		ArgumentNullException.ThrowIfNull(validLocation);
+		ArgumentException.ThrowIfNullOrWhiteSpace(email);
+
+		var normalizedEmail = email.Trim();
+		var (partitionKey, rowKey) = validLocation.Id.ToKeys();
+		if (string.IsNullOrWhiteSpace(partitionKey) || string.IsNullOrWhiteSpace(rowKey))
+		{
+			return false;
+		}
+		var response = await _validLocationTableClient.GetEntityAsync<LocationEntity>(partitionKey, rowKey, cancellationToken: cancellationToken);
+		var entity = response.Value;
+
+		if (string.IsNullOrWhiteSpace(entity.users))
+		{
+			return false;
+		}
+
+		var entries = entity.users
+			.Split(',', StringSplitOptions.RemoveEmptyEntries)
+			.Select(entry => entry.Trim())
+			.ToList();
+		var originalCount = entries.Count;
+		var removed = entries.RemoveAll(entry => string.Equals(entry, normalizedEmail, StringComparison.OrdinalIgnoreCase));
+		if (removed == 0)
+		{
+			return false;
+		}
+
+		var entityPartitionKey = entity.PartitionKey ?? partitionKey;
+		var entityRowKey = entity.RowKey ?? rowKey;
+
+		if (originalCount == removed)
+		{
+			await _validLocationTableClient.DeleteEntityAsync(entityPartitionKey, entityRowKey, entity.ETag, cancellationToken: cancellationToken);
+			return true;
+		}
+
+		entity.users = entries.Count == 0 ? string.Empty : string.Join(',', entries);
+		entity.PartitionKey = entityPartitionKey;
+		entity.RowKey = entityRowKey;
+		await _validLocationTableClient.UpdateEntityAsync(entity, entity.ETag, cancellationToken: cancellationToken);
+		return true;
+	}
+
+	internal async Task<bool> ClearLocationUsersAsync(Location location, string email, CancellationToken cancellationToken)
+	{
+		ArgumentNullException.ThrowIfNull(location);
+		ArgumentException.ThrowIfNullOrWhiteSpace(email);
+
+		var normalizedEmail = email.Trim();
+		var (partitionKey, rowKey) = location.Id.ToKeys();
+		if (string.IsNullOrWhiteSpace(partitionKey) || string.IsNullOrWhiteSpace(rowKey))
+		{
+			return false;
+		}
+		var response = await _locationTableClient.GetEntityAsync<LocationEntity>(partitionKey, rowKey, cancellationToken: cancellationToken);
+		var entity = response.Value;
+		var entityPartitionKey = entity.PartitionKey ?? partitionKey;
+		var entityRowKey = entity.RowKey ?? rowKey;
+
+		if (!string.Equals(entity.users?.Trim(), normalizedEmail, StringComparison.OrdinalIgnoreCase))
+		{
+			return false;
+		}
+
+		entity.users = string.Empty;
+		entity.PartitionKey = entityPartitionKey;
+		entity.RowKey = entityRowKey;
+		await _locationTableClient.UpdateEntityAsync(entity, entity.ETag, cancellationToken: cancellationToken);
+		return true;
 	}
 
 	private static Location EntityToModel(LocationEntity locationEntity)

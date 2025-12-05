@@ -1,47 +1,59 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using admin.Models;
 
 namespace admin.Services;
 
-public class UnsubscribeService
+public class UnsubscribeService(LocationService locationService, UserService userService)
 {
-    public Task<UnsubscribeResult> UnsubscribeAsync(string email, Location? validLocation, Location? location, User? user, CancellationToken cancellationToken)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(email);
-        if (validLocation is null || location is null || user is null)
-        {
-            return Task.FromResult(UnsubscribeResult.Failed("All unsubscribe entries must be provided."));
-        }
+	private readonly LocationService _locationService = locationService;
+	private readonly UserService _userService = userService;
 
-        var normalizedEmail = email.Trim().ToLowerInvariant();
-        var success = !normalizedEmail.Contains("fail", StringComparison.Ordinal);
+	public async Task<UnsubscribeResult> UnsubscribeAsync(string email, Location? validLocation, Location? location, User? user, CancellationToken cancellationToken)
+	{
+		ArgumentException.ThrowIfNullOrWhiteSpace(email);
 
-        if (!success)
-        {
-            return Task.FromResult(UnsubscribeResult.Failed($"Unable to unsubscribe {email}. Please try again later."));
-        }
+		var normalizedEmail = email.Trim();
+		var updatedTargets = new List<string>();
 
-        var targets = new List<string>();
-        if (validLocation is not null)
-        {
-            targets.Add($"valid location {validLocation.city}, {validLocation.country} ({validLocation.RowKey})");
-        }
-        if (user is not null)
-        {
-            targets.Add($"user record {user.email} ({user.RowKey})");
-        }
+		if (validLocation is not null)
+		{
+			var removed = await _locationService.RemoveUserFromValidLocationAsync(validLocation, normalizedEmail, cancellationToken);
+			if (removed)
+			{
+				updatedTargets.Add($"valid location {validLocation.city}, {validLocation.country} ({validLocation.RowKey})");
+			}
+		}
 
-        var summary = string.Join(" – ", targets);
-        return Task.FromResult(UnsubscribeResult.Succeeded($"{email} unsubscribed from {summary}."));
-    }
+		if (location is not null)
+		{
+			var cleared = await _locationService.ClearLocationUsersAsync(location, normalizedEmail, cancellationToken);
+			if (cleared)
+			{
+				updatedTargets.Add($"location {location.city}, {location.country} ({location.RowKey})");
+			}
+		}
+
+		if (user is not null)
+		{
+			var disabled = await _userService.DisableUserAsync(user, cancellationToken);
+			if (disabled)
+			{
+				updatedTargets.Add($"user record {user.email} ({user.RowKey})");
+			}
+		}
+
+		if (updatedTargets.Count == 0)
+		{
+			return UnsubscribeResult.Failed($"No matching records were updated for {email}.");
+		}
+
+		var summary = string.Join(" – ", updatedTargets);
+		return UnsubscribeResult.Succeeded($"{email} unsubscribed from {summary}.");
+	}
 }
 
 public readonly record struct UnsubscribeResult(bool Success, string Message)
 {
-    public static UnsubscribeResult Succeeded(string message) => new(true, message);
+	public static UnsubscribeResult Succeeded(string message) => new(true, message);
 
-    public static UnsubscribeResult Failed(string message) => new(false, message);
+	public static UnsubscribeResult Failed(string message) => new(false, message);
 }

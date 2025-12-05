@@ -43,6 +43,7 @@ public class UnsubscribeModel(LocationService locationService, UnsubscribeServic
 			return Page();
 		}
 
+		Email = Email.Trim();
 		EmailSubmitted = true;
 		SelectedValidLocationId = null;
 		SelectedLocationId = null;
@@ -63,6 +64,7 @@ public class UnsubscribeModel(LocationService locationService, UnsubscribeServic
 			return Page();
 		}
 
+		Email = Email.Trim();
 		EmailSubmitted = true;
 		ErrorMessage = null;
 		await LoadMatchesAsync(HttpContext.RequestAborted);
