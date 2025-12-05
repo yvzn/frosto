@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace admin.Models;
 
-public class Location
+public class Location : ModelBase
 {
 	[Required]
 	[RegularExpression(@"^[^\d]+$")]
@@ -35,42 +35,10 @@ public class Location
 	[RegularExpression(@"^[\+\-]([0-9]|[01][0-9]|2[0-3]):?([0-9]|[0-5][0-9])?$")]
 	public string? offset { get; set; } = "";
 
-	[Required]
-	internal string PartitionKey { get; set; } = "";
-	[Required]
-	internal string RowKey { get; set; } = "";
-	public DateTimeOffset? Timestamp { get; set; }
-
 	[HiddenInput]
 	public string Id
 	{
-		get
-		{
-			return (PartitionKey, RowKey).ToId();
-		}
-		set
-		{
-			(var partitionKey, var rowKey) = value.ToKeys();
-			PartitionKey = partitionKey ?? "";
-			RowKey = rowKey ?? "";
-		}
-	}
-}
-
-public static class LocationExtensions
-{
-	public static string ToId(this (string? PartitionKey, string? RowKey) tuple)
-	{
-		return $"{tuple.PartitionKey ?? ""}|{tuple.RowKey ?? ""}";
-	}
-
-	public static (string? PartitionKey, string? RowKey) ToKeys(this string? id)
-	{
-		var split = id?.Split('|');
-		if (split is [var partitionKey, var rowKey, ..])
-		{
-			return (partitionKey, rowKey);
-		}
-		return (default, default);
+		get => GetId();
+		set => SetId(value);
 	}
 }

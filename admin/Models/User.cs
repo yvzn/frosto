@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace admin.Models;
 
-public class User
+public class User : ModelBase
 {
     [Required]
     [EmailAddress]
@@ -12,23 +12,10 @@ public class User
     public string? disabled { get; set; }
     public string? created { get; set; }
 
-    [Required]
-    internal string PartitionKey { get; set; } = string.Empty;
-
-    [Required]
-    internal string RowKey { get; set; } = string.Empty;
-
-    public DateTimeOffset? Timestamp { get; set; }
-
     [HiddenInput]
     public string Id
     {
-        get => (PartitionKey, RowKey).ToId();
-        set
-        {
-            (var partitionKey, var rowKey) = value.ToKeys();
-            PartitionKey = partitionKey ?? string.Empty;
-            RowKey = rowKey ?? string.Empty;
-        }
+        get => GetId();
+        set => SetId(value);
     }
 }
