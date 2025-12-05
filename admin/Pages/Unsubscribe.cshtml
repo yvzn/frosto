@@ -1,0 +1,160 @@
+@page
+@model admin.Pages.UnsubscribeModel
+@{
+	ViewData["Title"] = "Unsubscribe";
+}
+
+@if (!Model.EmailSubmitted)
+{
+	<div class="row">
+		<form method="post" class="col-lg-6 p-5 mb-5 border rounded-3 bg-light">
+			<h2 class="text-muted mb-3">Unsubscribe</h2>
+
+			<div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+			<div class="form-group mb-3">
+				<label asp-for="Email" class="form-label"></label>
+				<input asp-for="Email" class="form-control" autocomplete="email" type="email" />
+				<span asp-validation-for="Email" class="text-danger"></span>
+			</div>
+
+			<button type="submit" class="btn btn-primary">Continue</button>
+		</form>
+	</div>
+}
+else
+{
+	var hasAnyMatches = Model.MatchingValidLocations.Any() || Model.MatchingLocations.Any() || Model.MatchingUsers.Any();
+	if (!hasAnyMatches)
+	{
+		<div class="row">
+			<div class="col-lg-6 p-5 mb-5 border rounded-3 bg-light">
+				<h2 class="text-muted mb-3">No entries found</h2>
+				<p>No matching subscriptions or user records reference <strong>@Model.Email</strong>.</p>
+				<a class="btn btn-primary" asp-page="/Unsubscribe">Search again</a>
+			</div>
+		</div>
+	}
+	else
+	{
+		@if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+		{
+			<div class="row">
+				<div class="col-lg-6 p-0">
+					<div class="alert alert-danger" role="alert">
+						@Model.ErrorMessage
+					</div>
+				</div>
+			</div>
+		}
+
+		<div class="row">
+			<form method="post" asp-page-handler="Select" class="col-lg-6 p-5 mb-5 border rounded-3 bg-light">
+				<h2 class="text-muted mb-3">Matching entries</h2>
+				<p class="text-muted">Pick one entry per table before continuing.</p>
+
+				<input asp-for="Email" type="hidden" />
+
+				<div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+				<section class="mb-4">
+					<h3 class="h5 text-muted">Valid locations</h3>
+					@if (Model.MatchingValidLocations.Any())
+					{
+						<div class="list-group mt-2">
+							@for (var index = 0; index < Model.MatchingValidLocations.Count; index++)
+							{
+								var entry = Model.MatchingValidLocations[index];
+								var optionId = $"valid-location-option-{index}";
+								<label class="list-group-item list-group-item-action d-flex gap-3 align-items-start" for="@optionId">
+									<input class="form-check-input mt-1" type="radio" name="@nameof(Model.SelectedValidLocationId)"
+										value="@entry.Id" id="@optionId" @(Model.SelectedValidLocationId == entry.Id ? "checked" :
+																			   null) />
+								<span>
+									<strong>@entry.city</strong>, @entry.country
+									<br /><small class="text-break text-muted">Users: @entry.users</small>
+									<br /><small class="text-muted">Channel: @entry.channel</small>
+									<br /><small class="text-muted">ID: @entry.Id</small>
+								</span>
+							</label>
+						}
+					</div>
+					<span asp-validation-for="SelectedValidLocationId" class="text-danger d-block mt-2"></span>
+				}
+						else
+				{
+					<p class="text-muted mt-2">No valid location entries reference this email.</p>
+				}
+			</section>
+
+			<hr class="my-4" />
+
+			<section class="mb-4">
+				<h3 class="h5 text-muted">Locations</h3>
+				@if (Model.MatchingLocations.Any())
+				{
+					<div class="list-group mt-2">
+						@for (var index = 0; index < Model.MatchingLocations.Count; index++)
+						{
+							var entry = Model.MatchingLocations[index];
+							var optionId = $"location-option-{index}";
+							<label class="list-group-item list-group-item-action d-flex gap-3 align-items-start" for="@optionId">
+								<input class="form-check-input mt-1" type="radio" name="@nameof(Model.SelectedLocationId)"
+									value="@entry.Id" id="@optionId" @(Model.SelectedLocationId == entry.Id ? "checked" : null) />
+								<span>
+									<strong>@entry.city</strong>, @entry.country
+									<br /><small class="text-break text-muted">Users: @entry.users</small>
+									<br /><small class="text-muted">Channel: @entry.channel</small>
+									<br /><small class="text-muted">ID: @entry.Id</small>
+								</span>
+							</label>
+						}
+					</div>
+					<span asp-validation-for="SelectedLocationId" class="text-danger d-block mt-2"></span>
+				}
+				else
+				{
+					<p class="text-muted mt-2">No location entries reference this email.</p>
+				}
+			</section>
+
+			<hr class="my-4" />
+
+			<section class="mb-4">
+				<h3 class="h5 text-muted">Users</h3>
+				@if (Model.MatchingUsers.Any())
+				{
+					<div class="list-group mt-2">
+						@for (var index = 0; index < Model.MatchingUsers.Count; index++)
+						{
+							var entry = Model.MatchingUsers[index];
+							var optionId = $"user-option-{index}";
+							<label class="list-group-item list-group-item-action d-flex gap-3 align-items-start" for="@optionId">
+								<input class="form-check-input mt-1" type="radio" name="@nameof(Model.SelectedUserId)"
+									value="@entry.Id" id="@optionId" @(Model.SelectedUserId == entry.Id ? "checked" : null) />
+								<span>
+									<strong>@entry.email</strong>
+									<br /><small class="text-muted">ID: @entry.Id</small>
+								</span>
+							</label>
+						}
+					</div>
+					<span asp-validation-for="SelectedUserId" class="text-danger d-block mt-2"></span>
+				}
+				else
+				{
+					<p class="text-muted mt-2">No user entries reference this email.</p>
+				}
+			</section>
+
+			<div class="btn-toolbar justify-content-between">
+				<button type="submit" class="btn btn-primary">Continue</button>
+				<a class="btn btn-outline-secondary" asp-page="/Unsubscribe">Search again</a>
+			</div>
+		</form>
+	</div>
+}
+}
+
+@section Scripts {
+	<partial name="_ValidationScriptsPartial" />
+}

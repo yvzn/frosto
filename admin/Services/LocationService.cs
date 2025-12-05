@@ -1,4 +1,7 @@
 using System.Text.RegularExpressions;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using admin.Models;
 using Azure.Data.Tables;
 using Microsoft.Extensions.Azure;
@@ -141,6 +144,51 @@ public partial class LocationService(IAzureClientFactory<TableClient> azureClien
 			return EntityToModel(validLocationEntity);
 		}
 		return default;
+	}
+
+	internal async Task<IList<Location>> FindValidLocationsByUserAsync(string email, CancellationToken cancellationToken)
+	{
+		ArgumentException.ThrowIfNullOrWhiteSpace(email);
+
+		var normalizedEmail = email.Trim().ToLowerInvariant();
+		var matches = new List<Location>();
+
+		await foreach (var validLocationEntity in _validLocationTableClient.QueryAsync<LocationEntity>(_ => true, cancellationToken: cancellationToken))
+		{
+			if (string.IsNullOrWhiteSpace(validLocationEntity.users))
+			{
+				continue;
+			}
+
+			var userEntries = validLocationEntity.users
+				.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+				.Select(entry => entry.ToLowerInvariant());
+
+			if (userEntries.Contains(normalizedEmail))
+			{
+				matches.Add(EntityToModel(validLocationEntity));
+			}
+		}
+
+		return matches;
+	}
+
+	internal async Task<IList<Location>> FindLocationsByUserAsync(string email, CancellationToken cancellationToken)
+	{
+		ArgumentException.ThrowIfNullOrWhiteSpace(email);
+
+		var normalizedEmail = email.Trim().ToLowerInvariant();
+		var matches = new List<Location>();
+
+		await foreach (var locationEntity in _locationTableClient.QueryAsync<LocationEntity>(_ => true, cancellationToken: cancellationToken))
+		{
+			if (string.Equals(locationEntity.users?.Trim(), normalizedEmail, StringComparison.OrdinalIgnoreCase))
+			{
+				matches.Add(EntityToModel(locationEntity));
+			}
+		}
+
+		return matches;
 	}
 
 	private static Location EntityToModel(LocationEntity locationEntity)
