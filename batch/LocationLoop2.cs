@@ -16,7 +16,7 @@ public class LocationLoop2(IHttpClientFactory httpClientFactory, IAzureClientFac
 {
 	private static readonly Random random = new();
 
-	private readonly HttpClient httpClient = httpClientFactory.CreateClient();
+	private readonly HttpClient httpClient = httpClientFactory.CreateClient("default");
 
 	private readonly TableClient batchTableClient = azureClientFactory.CreateClient("batchTableClient");
 

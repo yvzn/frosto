@@ -1,3 +1,4 @@
+using System.Reflection;
 using Azure.Data.Tables;
 using batch.Services;
 using Microsoft.Azure.Functions.Worker;
@@ -9,7 +10,11 @@ using Microsoft.Extensions.Logging;
 var host = new HostBuilder()
 	.ConfigureFunctionsWebApplication()
 	.ConfigureServices(services => {
-		services.AddHttpClient();
+		services.AddHttpClient("default", client =>
+		{
+			client.DefaultRequestHeaders.UserAgent.ParseAdd(
+				$"Frosto/{Assembly.GetExecutingAssembly().GetName().Version} (https://github.com/yvzn/frosto)");
+		});
 
 		services.AddApplicationInsightsTelemetryWorkerService();
 		services.ConfigureFunctionsApplicationInsights();

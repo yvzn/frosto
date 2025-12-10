@@ -24,7 +24,7 @@ public class SendNotification2(IHttpClientFactory httpClientFactory, ILogger<Sen
 {
 	internal static ISet<string> channels = new HashSet<string>() { "default", "api", "tipimail", "smtp" };
 
-	private readonly HttpClient httpClient = httpClientFactory.CreateClient();
+	private readonly HttpClient httpClient = httpClientFactory.CreateClient("default");
 
 	[Function("SendNotification2")]
 	public async Task<IActionResult> RunAsync(

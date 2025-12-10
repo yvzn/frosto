@@ -28,7 +28,7 @@ public class NotifyAtLocation2(IHttpClientFactory httpClientFactory, IAzureClien
 	private static readonly decimal defaultThreshold = 1.0m;
 #endif
 
-	private readonly HttpClient httpClient = httpClientFactory.CreateClient();
+	private readonly HttpClient httpClient = httpClientFactory.CreateClient("default");
 
 	private readonly TableClient validLocationTableClient = azureClientFactory.CreateClient("validlocationTableClient");
 
