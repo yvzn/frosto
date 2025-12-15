@@ -9,6 +9,7 @@
   <ItemGroup>
     <PackageReference Include="Azure.Data.Tables" Version="12.11.0" />
     <PackageReference Include="Azure.Maps.Search" Version="2.0.0-beta.5" />
+    <PackageReference Include="Azure.Maps.TimeZones" Version="1.0.0-beta.1" />
     <PackageReference Include="Microsoft.Extensions.Azure" Version="1.13.1" />
   </ItemGroup>
 
