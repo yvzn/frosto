@@ -1,0 +1,414 @@
+@page "{id}"
+@model admin.Pages.SignUpModel
+@using System.Globalization
+@{
+	ViewData["Title"] = $"Edit {Model.ValidLocation.city} Location";
+}
+
+@section Head
+{
+	<link rel="stylesheet" href="https://atlas.microsoft.com/sdk/javascript/mapcontrol/2/atlas.min.css" type="text/css" />
+	<script src="https://atlas.microsoft.com/sdk/javascript/mapcontrol/2/atlas.min.js"></script>
+}
+
+<div class="row">
+	<form method="post" class="col-lg-6 p-5 mb-5 border rounded-3 bg-light">
+		<h2 class="text-muted mb-3">Valid location</h2>
+
+		<div class="form-group mb-3">
+			<label asp-for="ValidLocation.city" class="form-label"></label>
+			<div class="input-group">
+				<input asp-for="ValidLocation.city" class="form-control" id="valid-location-city" required />
+				@if (Model.ValidLocationExists == null)
+				{
+					<a class="btn btn-outline-success d-flex align-items-center fs-6"
+						id="valid-location-verification-result" href="#" disabled>new</a>
+				}
+				else
+				{
+					<a class="btn btn-outline-danger d-flex align-items-center fs-6" id="valid-location-verification-result"
+						asp-page="./Edit" asp-route-id="@Model.ValidLocationExists">exists</a>
+				}
+			</div>
+			<span asp-validation-for="ValidLocation.city" class="text-danger"></span>
+		</div>
+		<div class="row gx-3">
+			<div class="form-group col-md-6 mb-3">
+				<label asp-for="ValidLocation.zipCode" class="form-label"></label>
+				<input asp-for="ValidLocation.zipCode" class="form-control" />
+				<span asp-validation-for="ValidLocation.zipCode" class="text-danger"></span>
+			</div>
+			<div class="form-group col-md-6 mb-3">
+				<label asp-for="ValidLocation.country" class="form-label"></label>
+				<input asp-for="ValidLocation.country" class="form-control" list="country-names"
+					id="valid-location-country" required />
+				<span asp-validation-for="ValidLocation.country" class="text-danger"></span>
+
+				<datalist id="country-names">
+					@foreach (var country in Model.CountryList)
+					{
+						<option value="@country"></option>
+					}
+				</datalist>
+			</div>
+		</div>
+		<div class="form-group mb-3">
+			<label asp-for="ValidLocation.coordinates" class="form-label"></label>
+			<div class="input-group">
+				<input asp-for="ValidLocation.coordinates" class="form-control" id="valid-location-coordinates" required />
+				<a class="btn btn-outline-secondary"
+					href="https://www.google.com/maps/place/@Model.ValidLocation.zipCode?.Trim()+@Model.ValidLocation.city.Trim(),+@Model.ValidLocation.country.Trim()/"
+					target="_blank" rel="noopener noreferrer">Manual search</a>
+			</div>
+			<span asp-validation-for="ValidLocation.coordinates" class="text-danger"></span>
+		</div>
+		<div class="form-group mb-3">
+			<label asp-for="ValidLocation.users" class="form-label"></label>
+			<input asp-for="ValidLocation.users" class="form-control" required />
+			<span asp-validation-for="ValidLocation.users" class="text-danger"></span>
+		</div>
+		<div class="row gx-3">
+			<div class="form-group col-md-6 mb-3">
+				<label asp-for="ValidLocation.channel" class="form-label"></label>
+				<select asp-for="ValidLocation.channel" asp-items="Model.ChannelOptions" class="form-select"></select>
+			</div>
+			<div class="form-group col-md-6 mb-3">
+				<label asp-for="ValidLocation.lang" class="form-label"></label>
+				<input asp-for="ValidLocation.lang" class="form-control" />
+				<span asp-validation-for="ValidLocation.lang" class="text-danger"></span>
+			</div>
+		</div>
+		<div class="row gx-3">
+			<div class="form-group col-md-6 mb-3">
+				<label asp-for="ValidLocation.timezone" class="form-label"></label>
+				<div class="input-group">
+					<input asp-for="ValidLocation.timezone" class="form-control" list="timezone-names"
+						id="valid-location-timezone" />
+					<a class="btn btn-outline-secondary" href="https://whattime.is/" target="_blank"
+						rel="noopener noreferrer">Search</a>
+				</div>
+				<span asp-validation-for="ValidLocation.timezone" class="text-danger"></span>
+
+				<datalist id="timezone-names">
+					@foreach (var timezone in Model.TimezoneList)
+					{
+						<option value="@timezone"></option>
+					}
+				</datalist>
+			</div>
+			<div class="form-group col-md-6 mb-3">
+				<label asp-for="ValidLocation.offset" class="form-label"></label>
+				<input asp-for="ValidLocation.offset" class="form-control" id="valid-location-offset"
+					placeholder="+02:00" />
+				<span asp-validation-for="ValidLocation.offset" class="text-danger"></span>
+			</div>
+		</div>
+
+		<input asp-for="ValidLocation.Id" />
+		<span asp-validation-for="ValidLocation.Id" class="text-danger"></span>
+		<button type="submit" class="btn btn-primary">Submit</button>
+	</form>
+
+	<section class="col-lg-6 p-5 mb-5">
+		<h2 class="text-muted mb-3">Coordinates suggestions</h2>
+		@if (Model.GeocodingResults.Count > 0)
+		{
+			<div class="d-flex gap-2 align-items-center mb-3">
+				<button type="button" class="btn btn-outline-secondary" id="geocoding-apply-selection-placeholder" disabled>Please select a coordinate</button>
+				<button type="button" class="btn btn-outline-primary" id="geocoding-apply-selection" hidden>Use selected coordinates</button>
+			</div>
+			<div class="list-group" id="geocoding-suggestion-list">
+				@{ var suggestionIndex = 0; }
+				@foreach (var suggestion in Model.GeocodingResults)
+				{
+					var optionId = $"geocoding-option-{suggestionIndex}";
+					var fullLatitude = suggestion.Latitude.ToString("G", CultureInfo.InvariantCulture);
+					var fullLongitude = suggestion.Longitude.ToString("G", CultureInfo.InvariantCulture);
+					var shortLatitude = suggestion.Latitude.ToString("0.000000", CultureInfo.InvariantCulture);
+					var shortLongitude = suggestion.Longitude.ToString("0.000000", CultureInfo.InvariantCulture);
+					suggestionIndex++;
+					<label class="list-group-item list-group-item-action d-flex gap-3 align-items-start geocoding-option" for="@optionId">
+						<input class="form-check-input mt-1 geocoding-option-input" type="radio" name="SelectedGeocodingOption"
+							id="@optionId"
+							value="@optionId"
+							data-latitude="@fullLatitude"
+							data-longitude="@fullLongitude"
+							data-locality="@suggestion.Locality"
+							data-country="@suggestion.Country" />
+						<span>
+							<strong>@suggestion.Locality</strong>
+							@if (!string.IsNullOrWhiteSpace(suggestion.Country))
+							{
+								<span class="text-muted ms-2">@suggestion.Country</span>
+							}
+							<br /><small class="text-monospace">@shortLatitude, @shortLongitude</small>
+						</span>
+					</label>
+				}
+			</div>
+			<div id="geocoding-map-placeholder" class="mt-4 border rounded-3 shadow-sm d-flex justify-content-center align-items-center" style="height: 320px;">
+				<span class="text-muted">Select a suggestion to preview a map.</span>
+			</div>
+			<div id="geocoding-map-wrapper" class="mt-4" hidden>
+				<div id="geocoding-map" class="w-100 border rounded-3 shadow-sm" style="height: 320px;"></div>
+			</div>
+		}
+		else
+		{
+			<p class="text-muted">No geocoding matches found for the current location.</p>
+		}
+	</section>
+
+	<div hidden>
+		@Html.ValidationSummary()
+	</div>
+</div>
+
+<div class="row">
+	<form method="post" class="p-5 my-5 border rounded-3 border-danger bg-danger-subtle">
+		<h2 class="text-danger mb-3">Danger zone</h2>
+
+		<details>
+			<summary>Sensitive actions:</summary>
+			<input asp-for="ValidLocation.Id" />
+			<button type="submit" class="btn btn-danger mt-3" asp-page-handler="Discard">Discard</button>
+		</details>
+	</form>
+</div>
+
+<script>
+	var cityInput = document.getElementById('valid-location-city');
+	var countryInput = document.getElementById('valid-location-country');
+	var verificationResult = document.getElementById('valid-location-verification-result');
+	var cityCoordinates = document.getElementById('valid-location-coordinates');
+	var timezoneInput = document.getElementById('valid-location-timezone');
+	var offsetInput = document.getElementById('valid-location-offset');
+
+	cityInput.addEventListener('change', onChangeCity);
+	countryInput.addEventListener('change', onChangeCity);
+
+	function onChangeCity() {
+		verificationResult.classList.remove('btn-outline-danger');
+		verificationResult.classList.remove('btn-outline-success');
+		verificationResult.innerHTML = '<span class="spinner-border spinner-border-sm">&nbsp;</span>';
+		verificationResult.href = 'javascript:void(0)';
+		getLocation(cityInput.value, countryInput.value)
+			.then(
+				notifyDuplicatedEntity,
+				notifyUniqueEntity
+			);
+	}
+
+	function notifyDuplicatedEntity(id) {
+		verificationResult.classList.remove('btn-outline-success');
+		verificationResult.classList.add('btn-outline-danger');
+		verificationResult.innerHTML = '<span>exists</span>';
+		verificationResult.href = '../Edit/' + id;
+	}
+
+	function notifyUniqueEntity() {
+		verificationResult.classList.remove('btn-outline-danger');
+		verificationResult.classList.add('btn-outline-success');
+		verificationResult.innerHTML = '<span>new</span>';
+	}
+
+	async function getLocation(city, country) {
+		var apiUrl = `/api/location?city=${city}&country=${country}`;
+		var response = await fetch(apiUrl);
+		var json = await response.json();
+		if (!response.ok) {
+			throw new Error(response.status);
+		}
+		if (!json.id) {
+			throw new Error(JSON.stringify(json));
+		}
+		return json.id;
+	}
+
+	cityInput.addEventListener('click', pasteFromClipboard);
+	cityCoordinates.addEventListener('click', pasteFromClipboard);
+	timezoneInput.addEventListener('click', pasteFromClipboard);
+	offsetInput.addEventListener('click', pasteFromClipboard);
+
+	function pasteFromClipboard(event) {
+		if (!navigator.clipboard.readText) {
+			return;
+		}
+
+		navigator.clipboard.readText().then(text => {
+			// valRegexPattern is set by the RegularExpression attribute in the model
+			if (!event.target.dataset.valRegexPattern || new RegExp(event.target.dataset.valRegexPattern).exec(text)) {
+				setInputValue(event.target, text);
+			}
+		});
+	}
+
+	function setInputValue(element, value) {
+		if ('queryCommandSupported' in document && document.queryCommandSupported('insertText')) {
+			element.focus();
+			element.select();
+			document.execCommand('insertText', false, value);
+		} else {
+			element.value = value;
+		}
+		element.dispatchEvent(new Event("change"));
+	}
+
+	var azureMapsSubscriptionKey = '@Model.AzureMapsSubscriptionKey';
+	var geocodingMapWrapper = document.getElementById('geocoding-map-wrapper');
+	var geocodingMapElement = document.getElementById('geocoding-map');
+	var geocodingMapPlaceholder = document.getElementById('geocoding-map-placeholder');
+	var geocodingMap;
+	var geocodingMapReady = false;
+	var geocodingMarker;
+	var pendingCameraOptions;
+	var geocodingOptionLabels = document.querySelectorAll('.geocoding-option');
+	var geocodingOptionInputs = document.querySelectorAll('.geocoding-option-input');
+	var geocodingApplyButton = document.getElementById('geocoding-apply-selection');
+	var geocodingApplyPlaceholder = document.getElementById('geocoding-apply-selection-placeholder');
+	var selectedGeocodingCoordinates = null;
+
+	function ensureGeocodingMap() {
+		if (!geocodingMapElement) {
+			return null;
+		}
+
+		if (typeof atlas === 'undefined') {
+			console.warn('Azure Maps SDK not available.');
+			return null;
+		}
+
+		if (!azureMapsSubscriptionKey) {
+			console.warn('Azure Maps subscription key not configured; skipping map preview.');
+			return null;
+		}
+
+		if (!geocodingMap) {
+			geocodingMap = new atlas.Map('geocoding-map', {
+				center: [0, 0],
+				zoom: 2,
+				language: 'en-US',
+				view: 'Auto',
+				authOptions: {
+					authType: 'subscriptionKey',
+					subscriptionKey: azureMapsSubscriptionKey
+				}
+			});
+
+			geocodingMap.events.add('ready', function () {
+				geocodingMapReady = true;
+				if (pendingCameraOptions) {
+					setMapCamera(pendingCameraOptions);
+					pendingCameraOptions = null;
+				}
+			});
+		}
+
+		return geocodingMap;
+	}
+
+	function revealMapUI() {
+		if (geocodingMapPlaceholder && !geocodingMapPlaceholder.classList.contains('d-none')) {
+			geocodingMapPlaceholder.classList.add('d-none');
+		}
+		if (geocodingMapElement && geocodingMapElement.hidden) {
+			geocodingMapElement.hidden = false;
+		}
+		if (geocodingMapWrapper && geocodingMapWrapper.hidden) {
+			geocodingMapWrapper.hidden = false;
+		}
+
+		if (geocodingMap) {
+			setTimeout(function () {
+				geocodingMap.resize();
+			}, 0);
+		}
+	}
+
+	function setMapCamera(cameraOptions) {
+		if (!geocodingMap) {
+			return;
+		}
+
+		if (!geocodingMapReady) {
+			pendingCameraOptions = cameraOptions;
+			return;
+		}
+
+		geocodingMap.setCamera(cameraOptions);
+		revealMapUI();
+
+		if (!geocodingMarker) {
+			geocodingMarker = new atlas.HtmlMarker({
+				color: '#2563eb',
+				position: cameraOptions.center
+			});
+			geocodingMap.markers.add(geocodingMarker);
+		} else {
+			geocodingMarker.setOptions({ position: cameraOptions.center });
+		}
+	}
+
+	function applyGeocodingSelection(latitude, longitude) {
+		var mapInstance = ensureGeocodingMap();
+		if (!mapInstance) {
+			return;
+		}
+
+		var cameraOptions = {
+			center: [longitude, latitude],
+			zoom: 12
+		};
+
+		setMapCamera(cameraOptions);
+	}
+
+	geocodingOptionInputs.forEach(function (input) {
+		input.addEventListener('change', function () {
+			if (!input.checked) {
+				return;
+			}
+
+			var latitude = parseFloat(input.dataset.latitude);
+			var longitude = parseFloat(input.dataset.longitude);
+			if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+				console.warn('Invalid geocoding option coordinates.', input.dataset);
+				return;
+			}
+
+			selectedGeocodingCoordinates = {
+				latitude: input.dataset.latitude,
+				longitude: input.dataset.longitude,
+				locality: input.dataset.locality,
+				country: input.dataset.country
+			};
+			if (geocodingApplyPlaceholder && !geocodingApplyPlaceholder.hidden) {
+				geocodingApplyPlaceholder.hidden = true;
+			}
+			if (geocodingApplyButton && geocodingApplyButton.hidden) {
+				geocodingApplyButton.hidden = false;
+			}
+
+			applyGeocodingSelection(latitude, longitude);
+		});
+	});
+
+	if (geocodingApplyButton) {
+		geocodingApplyButton.addEventListener('click', function () {
+			if (!selectedGeocodingCoordinates) {
+				return;
+			}
+
+				var coordinateValue = selectedGeocodingCoordinates.latitude + ', ' + selectedGeocodingCoordinates.longitude;
+				setInputValue(cityCoordinates, coordinateValue);
+
+				if (selectedGeocodingCoordinates.locality && cityInput) {
+					setInputValue(cityInput, selectedGeocodingCoordinates.locality);
+				}
+
+				if (selectedGeocodingCoordinates.country && countryInput) {
+					setInputValue(countryInput, selectedGeocodingCoordinates.country);
+				}
+		});
+	}
+</script>

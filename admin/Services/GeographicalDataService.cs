@@ -21,6 +21,4 @@ public class GeographicalDataService()
 			"America/Los_Angeles"
 		];
 	}
-
-
 }
