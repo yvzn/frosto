@@ -107,7 +107,12 @@
 
 		<input asp-for="ValidLocation.Id" />
 		<span asp-validation-for="ValidLocation.Id" class="text-danger"></span>
-		<button type="submit" class="btn btn-primary">Submit</button>
+
+		<div class="btn-toolbar justify-content-between">
+			<button type="submit" class="btn btn-primary">Submit</button>
+			<a asp-page="./SignUp" asp-route-id="@Model.ValidLocation.Id" target="_top"
+				class="btn btn-outline-secondary">Reset</a>
+		</div>
 	</form>
 
 	<section class="col-lg-6 p-5 mb-5">
