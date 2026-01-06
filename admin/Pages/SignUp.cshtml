@@ -305,7 +305,10 @@
 	}
 
 	function setInputValue(element, value) {
-		if ('queryCommandSupported' in document && document.queryCommandSupported('insertText')) {
+		const hasSomeValueAlready = Boolean(element.value);
+		const isQueryCommandSupported = 'queryCommandSupported' in document && document.queryCommandSupported('insertText');
+		if (hasSomeValueAlready && isQueryCommandSupported) {
+			// Use execCommand to allow proper undo/redo behavior in browsers that support it
 			element.focus();
 			element.select();
 			document.execCommand('insertText', false, value);
