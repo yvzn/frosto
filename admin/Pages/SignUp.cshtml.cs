@@ -11,7 +11,6 @@ namespace admin.Pages;
 
 public class SignUpModel(
 	LocationService locationService,
-	GeographicalDataService geographicalDataService,
 	GeocodingService geocodingService,
 	SignUpService signUpService,
 	IConfiguration configuration,
@@ -22,9 +21,7 @@ public class SignUpModel(
 
 	public string? ValidLocationExists { get; set; }
 
-	private static readonly string[] ChannelList = ["", "api", "smtp", "default", "tipimail"];
-
-	public SelectList ChannelOptions { get; set; } = new(ChannelList);
+	public SelectList ChannelOptions { get; set; } = new(ChannelService.GetChannelList());
 
 	public ICollection<string> CountryList { get; set; } = [];
 
@@ -95,8 +92,8 @@ public class SignUpModel(
 			ValidLocationExists = existingLocation?.Id;
 		}
 
-		CountryList = geographicalDataService.GetCountryList();
-		TimezoneList = geographicalDataService.GetCommonTimezones();
+		CountryList = GeographicalDataService.GetCountryList();
+		TimezoneList = GeographicalDataService.GetCommonTimezones();
 		GeocodingResults = GetGeocodingResults(ValidLocation);
 	}
 

@@ -2,12 +2,12 @@ namespace admin.Services;
 
 public class GeographicalDataService()
 {
-	public ICollection<string> GetCountryList()
+	public static ICollection<string> GetCountryList()
 	{
-		return ["France", "Belgique", "Algérie", "Canada", "United kingdom", "United states of america"];
+		return ["France", "Algérie", "Belgique", "Canada", "Deutschland", "United kingdom", "United states of america"];
 	}
 
-	public ICollection<string> GetCommonTimezones()
+	public static ICollection<string> GetCommonTimezones()
 	{
 		return [
 			"Europe/Brussels",

@@ -8,7 +8,6 @@ namespace admin.Pages;
 
 public class EditModel(
 	LocationService locationService,
-	GeographicalDataService geographicalDataService,
 	ILogger<EditModel> logger) : PageModel
 {
 	private readonly LocationService _locationService = locationService;
@@ -18,7 +17,7 @@ public class EditModel(
 	[BindProperty]
 	public Location ValidLocation { get; set; } = new();
 
-	public SelectList ChannelOptions { get; set; } = new(new[] { "", "api", "smtp", "default", "tipimail" });
+	public SelectList ChannelOptions { get; set; } = new(ChannelService.GetChannelList());
 
 	public ICollection<string> CountryList { get; set; } = Array.Empty<string>();
 
@@ -27,8 +26,8 @@ public class EditModel(
 	public async Task OnGetAsync(string id)
 	{
 		ValidLocation = await _locationService.GetValidLocationAsync(id, HttpContext.RequestAborted) ?? new();
-		CountryList = geographicalDataService.GetCountryList();
-		TimezoneList = geographicalDataService.GetCommonTimezones();
+		CountryList = GeographicalDataService.GetCountryList();
+		TimezoneList = GeographicalDataService.GetCommonTimezones();
 	}
 
 	public async Task<IActionResult> OnPostAsync()

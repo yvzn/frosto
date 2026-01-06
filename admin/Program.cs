@@ -26,7 +26,6 @@ builder.Services.AddAzureClients(clientBuilder =>
 builder.Services.AddScoped<LocationService>();
 builder.Services.AddScoped<SignUpService>();
 builder.Services.AddScoped<BatchService>();
-builder.Services.AddScoped<GeographicalDataService>();
 builder.Services.AddScoped<GeocodingService>();
 builder.Services.AddScoped<UnsubscribeService>();
 builder.Services.AddScoped<UserService>();
