@@ -111,7 +111,7 @@ public class SignUpModel(
 
 		try
 		{
-			return [.. geocodingService.GetGeocoding(location)];
+			return [.. geocodingService.GetGeocoding(location).DistinctBy(g => (g.Latitude, g.Longitude)) ];
 		}
 		catch (RequestFailedException ex)
 		{
