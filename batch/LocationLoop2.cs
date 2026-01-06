@@ -253,10 +253,10 @@ public class LocationLoop2(IHttpClientFactory httpClientFactory, IAzureClientFac
 		async ValueTask<Azure.NullableResponse<LocationEntity>> query(CancellationToken cancellationToken) => await validLocationTableClient.GetEntityIfExistsAsync<LocationEntity>(partitionKey, rowKey, cancellationToken: cancellationToken);
 		var locationEntity = await RetryStrategy.For.DataAccess.Execute(query);
 
-		Func<Azure.NullableResponse<LocationEntity>, bool> locationFilter = location => location.HasValue;
+		Func<Azure.NullableResponse<LocationEntity>, bool> locationFilter = location => location.HasValue && location.Value?.disabled != true;
 
 #if DEBUG
-		locationFilter = location => location.HasValue && location.Value?.uat == true;
+		locationFilter = location => location.HasValue && location.Value?.uat == true && location.Value?.disabled != true;
 #endif
 
 		if (locationFilter.Invoke(locationEntity))
