@@ -33,6 +33,8 @@ public class LocationLoop2(IHttpClientFactory httpClientFactory, IAzureClientFac
 	{
 #if DEBUG
 		await Task.Delay(10_000);
+#else
+		await Task.CompletedTask;
 #endif
 
 		_ = LoopOverBatchAsync(groupNumber: 0);
