@@ -22,7 +22,9 @@ namespace batch;
 
 public class SendNotification2(IHttpClientFactory httpClientFactory, ILogger<SendNotification2> logger)
 {
-	internal static ISet<string> channels = new HashSet<string>() { "default", "api", "tipimail", "smtp" };
+	internal static ISet<string> channels = new HashSet<string>() { "default", "api", "tipimail", "smtp", "scaleway" };
+
+	private static readonly string ReplyTo = "eXZhbkBhbGVydGVnZWxlZS5mcg==";
 
 	private readonly HttpClient httpClient = httpClientFactory.CreateClient("default");
 
@@ -79,7 +81,10 @@ public class SendNotification2(IHttpClientFactory httpClientFactory, ILogger<Sen
 		=> !string.IsNullOrWhiteSpace(notification.body)
 			&& !string.IsNullOrWhiteSpace(notification.raw)
 			&& !string.IsNullOrWhiteSpace(notification.subject)
-			&& notification.to.Where(user => !string.IsNullOrWhiteSpace(user)).Any();
+			&& notification.from is not null
+			&& !string.IsNullOrWhiteSpace(notification.from.address)
+			&& !string.IsNullOrWhiteSpace(notification.from.displayName)
+			&& notification.to.Any(user => !string.IsNullOrWhiteSpace(user));
 
 	private async Task<bool> SendNotificationAsync(Notification notification, string channel)
 	{
@@ -115,6 +120,7 @@ public class SendNotification2(IHttpClientFactory httpClientFactory, ILogger<Sen
 			"tipimail" => SendTipiMailAsync,
 			"smtp" => SendMailSmtpAsync,
 			"api" => SendMailApiAsync,
+			"scaleway" => SendMailScalewayAsync,
 			_ => SendMailApiAsync
 		};
 
@@ -156,8 +162,8 @@ public class SendNotification2(IHttpClientFactory httpClientFactory, ILogger<Sen
 			{
 				from = new
 				{
-					address = "yvan@alertegelee.fr",
-					personalName = "Yvan de Alertegelee.fr"
+					address = notification.from?.address,
+					personalName = notification.from?.displayName
 				},
 				notification.subject,
 				text = notification.raw,
@@ -191,25 +197,27 @@ public class SendNotification2(IHttpClientFactory httpClientFactory, ILogger<Sen
 	private static async Task<(bool success, string? error)> SendMailSmtpAsync(Notification notification)
 	{
 		var privateKey = File.OpenRead(Path.Combine(FunctionAppDirectory, "dkim_private.pem"));
+		var replyTo = new System.Net.Mail.MailAddress(Encoding.UTF8.GetString(Convert.FromBase64String(ReplyTo)));
 
 		var signer = new DkimSigner(
 			privateKey,
-			domain: "alertegelee.fr",
+			domain: replyTo.Host,
 			selector: "frosto")
 		{
 			HeaderCanonicalizationAlgorithm = DkimCanonicalizationAlgorithm.Simple,
 			BodyCanonicalizationAlgorithm = DkimCanonicalizationAlgorithm.Simple,
-			AgentOrUserIdentifier = "@alertegelee.fr",
+			AgentOrUserIdentifier = $"@{replyTo.Host}",
 			QueryMethod = "dns/txt",
 		};
 
 		// Composing the whole email
 		var message = new MimeMessage();
-		message.From.Add(new MailboxAddress("Yvan de Alertegelee.fr", "yvan@alertegelee.fr"));
+		message.From.Add(new MailboxAddress("Yvan de Alertegelee.fr", replyTo.Address));
 		message.To.AddRange(notification.to.Select(user => new MailboxAddress(user, user)));
 		message.Subject = notification.subject;
+		message.Headers.Add("List-Unsubscribe", $"<mailto:{replyTo.Address}?subject=STOP&body=STOP>");
 
-		var headers = new HeaderId[] { HeaderId.From, HeaderId.Subject, HeaderId.To };
+		var headers = new HeaderId[] { HeaderId.Date, HeaderId.From, HeaderId.ListUnsubscribe, HeaderId.Subject, HeaderId.To, HeaderId.MessageId };
 
 		var builder = new BodyBuilder
 		{
@@ -253,4 +261,58 @@ public class SendNotification2(IHttpClientFactory httpClientFactory, ILogger<Sen
 			return local_root ?? azure_root;
 		}
 	}
+
+	private async Task<(bool success, string? error)> SendMailScalewayAsync(Notification notification)
+	{
+		var replyTo = Encoding.UTF8.GetString(Convert.FromBase64String(ReplyTo));
+
+		var message = new ScalewayApiEmailRequest
+		{
+			from = new()
+			{
+				name = notification.from?.displayName,
+				email = notification.from?.address
+			},
+			to = [.. notification.to.Select(user => new ScalewayApiIdentity { name = user, email = user })],
+			subject = notification.subject,
+			project_id = AppSettings.ScalewayProjectId,
+			text = notification.raw,
+			html = notification.body,
+			attachments = [],
+			additional_headers = [
+				new ScalewayApiHeader
+				{
+					key = "Reply-To",
+					value = replyTo
+				},
+				new ScalewayApiHeader
+				{
+					key = "List-Unsubscribe",
+					value = $"<mailto:{replyTo}?subject=STOP&body=STOP>"
+				}
+			]
+		};
+
+		var requestContent = new StringContent(JsonSerializer.Serialize(message), Encoding.UTF8, "application/json");
+		requestContent.Headers.Add("X-Auth-Token", AppSettings.ScalewayApiKey);
+
+		async ValueTask<HttpResponseMessage> request(CancellationToken cancellationToken)
+		{
+			HttpResponseMessage httpResponse;
+			httpResponse = await httpClient.PostAsync(AppSettings.ScalewayApiUrl, requestContent, cancellationToken);
+			return httpResponse;
+		}
+
+		var response = await RetryStrategy.For.ExternalHttp.ExecuteAsync(request);
+
+		if (!response.IsSuccessStatusCode)
+		{
+			var responseContent = await response.Content.ReadAsStringAsync();
+			return (false, string.Format("{0} {1}", response.StatusCode, responseContent));
+		}
+
+		return (true, default);
+	}
 }
+
+

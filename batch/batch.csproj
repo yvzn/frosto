@@ -5,6 +5,7 @@
 		<AzureFunctionsVersion>v4</AzureFunctionsVersion>
 		<Nullable>enable</Nullable>
 		<OutputType>Exe</OutputType>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="MailKit" Version="4.14.1" />

@@ -22,14 +22,12 @@ namespace batch;
 
 public class NotifyAtLocation2(IHttpClientFactory httpClientFactory, IAzureClientFactory<TableClient> azureClientFactory, ILogger<NotifyAtLocation2> logger)
 {
-#if DEBUG
-	private static readonly decimal defaultThreshold = 20.0m;
-#else
 	private static readonly decimal defaultThreshold = 1.0m;
-#endif
+
+	private static readonly (string, string) FromFrench = ("Yvan de AlerteGelee.fr", "eXZhbkBhbGVydGVnZWxlZXMuZnI=");
+	private static readonly (string, string) FromEnglish = ("Yvan from FrostAlert.net", "eXZhbkBmcm9zdGFsZXJ0Lm5ldA==");
 
 	private readonly HttpClient httpClient = httpClientFactory.CreateClient("default");
-
 	private readonly TableClient validLocationTableClient = azureClientFactory.CreateClient("validlocationTableClient");
 
 	[Function("NotifyAtLocation2")]
@@ -267,11 +265,21 @@ public class NotifyAtLocation2(IHttpClientFactory httpClientFactory, IAzureClien
 			_ => TextFormatter.FormatBody(forecasts, location)
 		};
 
+		var (displayName, address) = language switch
+		{
+			"en" => FromEnglish,
+			_ => FromFrench
+		};
+
 		var notification = new Notification
 		{
 			subject = subject,
 			body = body,
 			raw = text,
+			from = new() {
+				address = Encoding.UTF8.GetString(Convert.FromBase64String(address)),
+				displayName = displayName
+			}
 		};
 
 		return notification;

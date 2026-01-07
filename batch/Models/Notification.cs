@@ -1,13 +1,18 @@
-using System;
 using System.Collections.Generic;
 
 namespace batch.Models;
 
 internal class Notification
 {
-	public string? subject { get; set; }
-	public string? body { get; set; }
-	public string? raw { get; set; }
-	public ICollection<string> to { get; set; } = Array.Empty<string>();
+	public required string? subject { get; init; }
+	public required string? body { get; init; }
+	public required string? raw { get; init; }
+	public required NotificationFrom? from { get; init; }
+	public ICollection<string> to { get; set; } = [];
 }
 
+internal class NotificationFrom
+{
+	public required string? address { get; init; }
+	public required string? displayName { get; init; }
+}

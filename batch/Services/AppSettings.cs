@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace batch.Services;
 
@@ -25,6 +26,13 @@ internal static class AppSettings
 	public static string SmtpLogin => smtpLogin;
 	private static readonly string smtpPassword = TryGetEnvironmentVariable("SMTP_PASSWORD");
 	public static string SmtpPassword => smtpPassword;
+
+	private static readonly string scalewayApiUrl = TryGetEnvironmentVariable("SCALEWAY_API_URL");
+	public static string ScalewayApiUrl => scalewayApiUrl;
+	private static readonly string scalewayApiKey = TryGetEnvironmentVariable("SCALEWAY_API_KEY");
+	public static string ScalewayApiKey => scalewayApiKey;
+	private static readonly string scalewayProjectId = TryGetEnvironmentVariable("SCALEWAY_PROJECT_ID");
+	public static string ScalewayProjectId => scalewayProjectId;
 
 	private static readonly string internalApiKey = TryGetEnvironmentVariable("INTERNAL_API_KEY");
 	public static string InternalApiKey => internalApiKey;
