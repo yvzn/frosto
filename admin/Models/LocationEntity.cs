@@ -8,6 +8,7 @@ public class LocationEntity : EntityBase
 	public string? coordinates { get; set; }
 	public string? users { get; set; }
 	public bool? uat { get; set; }
+	public bool? disabled { get; set; }
 	public string? channel { get; set; }
 	public string? zipCode { get; set; }
 	public string? lang { get; set; }

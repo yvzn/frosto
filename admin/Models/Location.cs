@@ -22,6 +22,8 @@ public class Location : ModelBase
 	public string users { get; set; } = "";
 	[DisplayName("UAT")]
 	public bool uat { get; set; } = false;
+	[DisplayName("Disabled")]
+	public bool disabled { get; set; } = false;
 	[DisplayName("Channel")]
 	public string? channel { get; set; } = "";
 	[DisplayName("Zip Code")]
