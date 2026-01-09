@@ -39,7 +39,7 @@ public partial class LocationService(IAzureClientFactory<TableClient> azureClien
 		validLocationEntity.coordinates = validLocation.coordinates.Replace(" ", "");
 		validLocationEntity.users = validLocation.users.Trim();
 		validLocationEntity.uat = null;
-		validLocationEntity.disabled = validLocation.disabled ? true : null;
+		validLocationEntity.disabled = null;
 		validLocationEntity.channel = string.IsNullOrWhiteSpace(validLocation.channel) ? default : validLocation.channel.Trim().ToLower();
 		validLocationEntity.zipCode = validLocation.zipCode?.Trim();
 		validLocationEntity.lang = validLocation.lang?.Trim().ToLower();
