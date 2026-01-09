@@ -39,6 +39,7 @@ public partial class LocationService(IAzureClientFactory<TableClient> azureClien
 		validLocationEntity.coordinates = validLocation.coordinates.Replace(" ", "");
 		validLocationEntity.users = validLocation.users.Trim();
 		validLocationEntity.uat = null;
+		validLocationEntity.disabled = null;
 		validLocationEntity.channel = string.IsNullOrWhiteSpace(validLocation.channel) ? default : validLocation.channel.Trim().ToLower();
 		validLocationEntity.zipCode = validLocation.zipCode?.Trim();
 		validLocationEntity.lang = validLocation.lang?.Trim().ToLower();
@@ -66,6 +67,7 @@ public partial class LocationService(IAzureClientFactory<TableClient> azureClien
 		validLocationEntity.coordinates = validLocation.coordinates.Replace(" ", "");
 		validLocationEntity.users = validLocation.users.Trim();
 		validLocationEntity.uat = validLocation.uat ? true : validLocationEntity.uat.HasValue ? false : null;
+		validLocationEntity.disabled = validLocation.disabled ? true : validLocationEntity.disabled.HasValue ? false : null;
 		validLocationEntity.channel = string.IsNullOrWhiteSpace(validLocation.channel) ? default : validLocation.channel.Trim().ToLower();
 		validLocationEntity.zipCode = validLocation.zipCode?.Trim();
 		validLocationEntity.lang = validLocation.lang?.Trim().ToLower();
@@ -274,6 +276,7 @@ public partial class LocationService(IAzureClientFactory<TableClient> azureClien
 			coordinates = locationEntity.coordinates ?? "",
 			users = locationEntity.users ?? "",
 			uat = locationEntity.uat ?? default,
+			disabled = locationEntity.disabled ?? default,
 			channel = locationEntity.channel ?? "",
 			zipCode = locationEntity.zipCode ?? "",
 			lang = locationEntity.lang ?? "",
