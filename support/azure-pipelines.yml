@@ -34,7 +34,7 @@ jobs:
       arguments: '--configuration Release --arch x64 --os linux --no-self-contained'
   - task: PublishPipelineArtifact@1
     inputs:
-      targetPath: 'support/bin/Release/net9.0/linux-x64/publish.zip'
+      targetPath: 'support/bin/Release/net10.0/linux-x64/publish.zip'
       publishLocation: 'pipeline'
       artifact: 'support'
 
