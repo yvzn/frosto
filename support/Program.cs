@@ -17,7 +17,7 @@ builder.Services
 			clientBuilder
 				.AddTableServiceClient(Environment.GetEnvironmentVariable("ALERTS_CONNECTION_STRING"));
 
-			string[] tableNames = ["checksubscription"];
+			string[] tableNames = ["checksubscription", "unsubscribe"];
 			foreach (var tableName in tableNames)
 			{
 				clientBuilder
