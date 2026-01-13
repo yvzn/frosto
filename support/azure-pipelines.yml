@@ -1,0 +1,55 @@
+variables:
+- group: "production"
+
+trigger:
+  branches:
+    include:
+    - main
+  paths:
+    include:
+    - support
+
+pool:
+  vmImage: ubuntu-latest
+
+jobs:
+- job: CI
+  steps:
+  - task: UseDotNet@2
+    inputs:
+      packageType: 'sdk'
+      version: '9.0.x'
+      installationPath: '$(Agent.ToolsDirectory)/dotnet'
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'build'
+      projects: 'support/*.csproj'
+      arguments: '--configuration Release --arch x64 --os linux --no-self-contained'
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'publish'
+      publishWebProjects: false
+      projects: 'support/*.csproj'
+      nobuild: true
+      arguments: '--configuration Release --arch x64 --os linux --no-self-contained'
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: 'support/bin/Release/net9.0/linux-x64/publish.zip'
+      publishLocation: 'pipeline'
+      artifact: 'support'
+
+- deployment: CD
+  dependsOn: CI
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+  environment: 'Azure'
+  strategy:
+    runOnce:
+      deploy:
+        steps:
+        - task: AzureFunctionApp@2
+          inputs:
+            connectedServiceNameARM: '$(azureSubscription)'
+            appType: 'functionAppLinux'
+            isFlexConsumption: true
+            appName: '$(functionAppName)'
+            package: '$(Pipeline.Workspace)/support/*.zip'
