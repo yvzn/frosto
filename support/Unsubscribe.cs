@@ -53,5 +53,6 @@ public class Unsubscribe
 			PartitionKey = nameof(UnsubscribeEntity),
 			RowKey = Guid.NewGuid().ToString(),
 			token = requestParams["token"],
+			lang = requestParams["lang"],
 		};
 }

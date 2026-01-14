@@ -44,7 +44,8 @@ public class CheckSubscription
 	}
 
 	private static bool IsValid(NameValueCollection requestParams)
-		=> requestParams["email"]?.Contains('@') is true
+		=> string.Equals("true", requestParams["userConsent"], StringComparison.InvariantCultureIgnoreCase)
+			&& requestParams["email"]?.Contains('@') is true
 			&& requestParams["lang"]?.Length is > 0;
 
 	private static CheckSubscriptionEntity ParseCheckSubscriptionEntity(NameValueCollection requestParams)
@@ -53,5 +54,7 @@ public class CheckSubscription
 			PartitionKey = nameof(CheckSubscriptionEntity),
 			RowKey = Guid.NewGuid().ToString(),
 			email = requestParams["email"],
+			userConsent = requestParams["userConsent"],
+			lang = requestParams["lang"],
 		};
 }

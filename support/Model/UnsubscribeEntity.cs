@@ -5,6 +5,7 @@ namespace support.Model;
 public class UnsubscribeEntity: Azure.Data.Tables.ITableEntity
 {
 	public string? token { get; set; } = null;
+	public string? lang { get; internal set; }
 
 	public required string PartitionKey {get; set; }
 	public required string RowKey {get; set; }
