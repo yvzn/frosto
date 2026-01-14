@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<meta name="description"
+		content="Check if you are subscribed to frost alerts. Verify your subscription status for personalized frost alerts." />
+	<link rel="icon" type="image/svg+xml" href="./asset/favicon.svg" />
+	<link rel="canonical" href="https://www.frostalert.net/check-subscription.html" />
+	<title>Check My Subscription — Free Frost Alert App</title>
+	<link rel="alternate" hreflang="en" href="https://www.frostalert.net/check-subscription.html" />
+	<link rel="alternate" hreflang="fr" href="https://www.alertegelee.fr/check-subscription.html" />
+</head>
+
+<body>
+	<header class="p-3 text-bg-dark shadow-sm">
+		<div class="container">
+			<nav class="navbar navbar-dark d-flex flex-wrap align-items-center justify-content-start">
+				<a href="/" aria-label="Home page"
+					class="navbar-brand d-flex align-items-center text-white text-decoration-none">Frost
+					Alerts</a>
+				<ul class="nav ms-auto justify-content-center">
+					<li><a href="https://www.alertegelee.fr/check-subscription.html" class="nav-link px-2 text-white"
+							lang="fr">Version française</a></li>
+				</ul>
+			</nav>
+		</div>
+	</header>
+
+	<main>
+		<section class="py-5 container">
+			<div class="row py-lg-5">
+				<article class="col-lg-6 p-4 p-md-5">
+					<h1 class="fw-light mb-3">Check My Subscription</h1>
+					<p class="lead text-muted col-lg-10">Enter your email address to verify if you are subscribed to
+						our frost alert service.</p>
+					<p class="text-muted col-lg-10">We'll check our records and confirm your subscription status.</p>
+				</article>
+				<article class="col-md-10 mx-auto col-lg-6">
+					<form class="p-4 p-md-5 border rounded-3 bg-light" action="%VITE_CHECKSUBSCRIPTION_URL%"
+						aria-label="Check subscription form" method="post" enctype="application/x-www-form-urlencoded">
+						<div class="form-floating mb-3">
+							<input type="email" class="form-control" id="email" name="email"
+								placeholder="example: first.last@example.com" required="required"
+								autocomplete="email" />
+							<label for="email">Email address</label>
+						</div>
+						<div class="checkbox mb-3">
+							<label for="userConsent">
+								<input type="checkbox" id="userConsent" name="userConsent" value="true"
+									required="required" />
+								<small>I agree that my personal contact details are used
+									as part of this service.</small></label>
+						</div>
+						<input type="hidden" id="lang" name="lang" value="en" />
+						<button class="w-100 btn btn-lg btn-primary" type="submit" aria-live="polite">Check Subscription</button>
+					</form>
+				</article>
+			</div>
+		</section>
+		<section class="py-5 bg-light">
+			<div class="container pb-lg-5">
+				<p>FrostAlert.net processes the collected data to analyze weather forecasts and send alerts.</p>
+				<p>To learn more about the management of your personal data and to exercise your rights, consult
+					the <a class="link-dark" href="./legal.html">service terms of use</a>.
+				</p>
+			</div>
+		</section>
+	</main>
+
+	<script type="module" src="./check-subscription.js"></script>
+</body>
+
+</html>

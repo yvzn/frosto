@@ -1,19 +1,19 @@
 import { resolve } from 'path';
 import { defineConfig } from 'vite';
 
+var pages = [
+	'index', 'sign-up', 'sign-up-complete', 'legal', 'contact', 'donate', 'check-subscription', 'check-subscription-complete'
+]
+
 const config = defineConfig(() => {
 	return {
 		build: {
 			emptyOutDir: true,
 			rollupOptions: {
-				input: {
-					main: resolve(__dirname, 'index.html'),
-					'sign-up': resolve(__dirname, 'sign-up.html'),
-					'sign-up-complete': resolve(__dirname, 'sign-up-complete.html'),
-					legal: resolve(__dirname, 'legal.html'),
-					contact: resolve(__dirname, 'contact.html'),
-					donate: resolve(__dirname, 'donate.html')
-				}
+				input: pages.reduce((inputs, page) => {
+					inputs[page] = resolve(__dirname, `${page}.html`);
+					return inputs;
+				}, {})
 			}
 		},
 		base: '',

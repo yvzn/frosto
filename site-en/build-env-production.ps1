@@ -9,19 +9,29 @@
 	URL of SignUp page
 .PARAMETER HealthCheckUrl
 	URL of HealthCheck page
+.PARAMETER SupportUrl
+	URL of Support page
+.PARAMETER CheckSubscriptionUrl
+	URL of Check Subscription page
 #>
 
 param (
 	[string] $SignUpUrl,
-	[string] $HealthCheckUrl
+	[string] $HealthCheckUrl,
+	[string] $SupportUrl,
+	[string] $CheckSubscriptionUrl
 )
 
 Write-Output "SignUpUrl: $SignUpUrl"
 Write-Output "HealthCheckUrl: $HealthCheckUrl"
+Write-Output "SupportUrl: $SupportUrl"
+Write-Output "CheckSubscriptionUrl: $CheckSubscriptionUrl"
 
 $dotEnv = Get-Content -Path .env
 $dotEnvForProd = $dotEnv
 $dotEnvForProd = $dotEnvForProd.Replace("VITE_SIGNUP_URL=", "VITE_SIGNUP_URL=$SignUpUrl")
 $dotEnvForProd = $dotEnvForProd.Replace("VITE_HEALTHCHECK_URL=", "VITE_HEALTHCHECK_URL=$HealthCheckUrl")
+$dotEnvForProd = $dotEnvForProd.Replace("VITE_SUPPORT_URL=", "VITE_SUPPORT_URL=$SupportUrl")
+$dotEnvForProd = $dotEnvForProd.Replace("VITE_CHECKSUBSCRIPTION_URL=", "VITE_CHECKSUBSCRIPTION_URL=$CheckSubscriptionUrl")
 
 Set-Content -Path .env.production -Value $dotEnvForProd
