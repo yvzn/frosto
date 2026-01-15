@@ -262,9 +262,7 @@
 
 		var requestId = ++timezoneRequestToken;
 
-		if (timezoneSearchButton) {
 			timezoneSearchButton.innerHTML = '<span class="spinner-border spinner-border-sm">&nbsp;</span>';
-		}
 
 		try {
 			var response = await fetch('/api/location/timezone?latitude=' + encodeURIComponent(latitude) + '&longitude=' + encodeURIComponent(longitude));
@@ -277,15 +275,15 @@
 				return;
 			}
 
-			if (data && typeof data.timezoneId === 'string' && timezoneInput) {
+			if (data && typeof data.timezoneId === 'string') {
 				setInputValue(timezoneInput, data.timezoneId);
 			}
 
-			if (data && typeof data.offset === 'string' && offsetInput) {
+			if (data && typeof data.offset === 'string') {
 				setInputValue(offsetInput, data.offset);
 			}
 		} finally {
-			if (timezoneSearchButton && requestId === timezoneRequestToken) {
+			if (requestId === timezoneRequestToken) {
 				timezoneSearchButton.innerHTML = timezoneSearchButtonDefaultContent;
 			}
 		}
@@ -326,17 +324,14 @@
 	var geocodingMapReady = false;
 	var geocodingMarker;
 	var pendingCameraOptions;
-	var geocodingOptionLabels = document.querySelectorAll('.geocoding-option');
-	var geocodingOptionInputs = document.querySelectorAll('.geocoding-option-input');
+	var geocodingSuggestionList = document.getElementById('geocoding-suggestion-list');
+	var geocodingOptionInputs = Array.from(document.querySelectorAll('.geocoding-option-input'));
 	var geocodingApplyButton = document.getElementById('geocoding-apply-selection');
 	var geocodingApplyPlaceholder = document.getElementById('geocoding-apply-selection-placeholder');
 	var selectedGeocodingCoordinates = null;
+	var customCoordinatePopup;
 
 	function ensureGeocodingMap() {
-		if (!geocodingMapElement) {
-			return null;
-		}
-
 		if (typeof atlas === 'undefined') {
 			console.warn('Azure Maps SDK not available.');
 			return null;
@@ -366,19 +361,21 @@
 					pendingCameraOptions = null;
 				}
 			});
+
+			geocodingMap.events.add('contextmenu', onGeocodingMapContextMenu);
 		}
 
 		return geocodingMap;
 	}
 
 	function revealMapUI() {
-		if (geocodingMapPlaceholder && !geocodingMapPlaceholder.classList.contains('d-none')) {
+		if (!geocodingMapPlaceholder.classList.contains('d-none')) {
 			geocodingMapPlaceholder.classList.add('d-none');
 		}
-		if (geocodingMapElement && geocodingMapElement.hidden) {
+		if (geocodingMapElement.hidden) {
 			geocodingMapElement.hidden = false;
 		}
-		if (geocodingMapWrapper && geocodingMapWrapper.hidden) {
+		if (geocodingMapWrapper.hidden) {
 			geocodingMapWrapper.hidden = false;
 		}
 
@@ -427,7 +424,116 @@
 		setMapCamera(cameraOptions);
 	}
 
-	geocodingOptionInputs.forEach(function (input) {
+	function onGeocodingMapContextMenu(event) {
+		if (!event || !event.position) {
+			return;
+		}
+
+		if (event.originalEvent && typeof event.originalEvent.preventDefault === 'function') {
+			event.originalEvent.preventDefault();
+		}
+
+		var longitude = event.position[0];
+		var latitude = event.position[1];
+		showCustomCoordinatePopup(latitude, longitude);
+	}
+
+	function showCustomCoordinatePopup(latitude, longitude) {
+		if (!selectedGeocodingCoordinates) {
+			return;
+		}
+
+		var mapInstance = ensureGeocodingMap();
+		if (!mapInstance) {
+			return;
+		}
+
+		var popupContent = document.createElement('div');
+		popupContent.className = 'p-2';
+		var title = document.createElement('div');
+		var shortLatitude = Number(latitude).toFixed(6);
+		var shortLongitude = Number(longitude).toFixed(6);
+		title.textContent = shortLatitude + ', ' + shortLongitude;
+		popupContent.appendChild(title);
+		var applyButton = document.createElement('button');
+		applyButton.type = 'button';
+		applyButton.className = 'btn btn-sm btn-primary w-100 mt-2';
+		applyButton.textContent = 'Add custom coordinates';
+		popupContent.appendChild(applyButton);
+
+		if (!customCoordinatePopup) {
+			customCoordinatePopup = new atlas.Popup();
+		}
+
+		customCoordinatePopup.setOptions({
+			position: [longitude, latitude],
+			content: popupContent
+		});
+		customCoordinatePopup.open(mapInstance);
+
+		applyButton.addEventListener('click', function () {
+			addCustomGeocodingOption(latitude, longitude);
+			customCoordinatePopup.close();
+		});
+	}
+
+	function addCustomGeocodingOption(latitude, longitude) {
+		if (!geocodingSuggestionList || !selectedGeocodingCoordinates) {
+			return;
+		}
+
+		var optionId = 'geocoding-option-custom-' + Date.now();
+		var label = document.createElement('label');
+		label.className = 'list-group-item list-group-item-action d-flex gap-3 align-items-start geocoding-option';
+		label.setAttribute('for', optionId);
+
+		var input = document.createElement('input');
+		input.className = 'form-check-input mt-1 geocoding-option-input';
+		input.type = 'radio';
+		input.name = 'SelectedGeocodingOption';
+		input.id = optionId;
+		input.value = optionId;
+		input.dataset.latitude = latitude;
+		input.dataset.longitude = longitude;
+		input.dataset.locality = selectedGeocodingCoordinates.locality || '';
+		input.dataset.country = selectedGeocodingCoordinates.country || '';
+
+		var textWrapper = document.createElement('span');
+		var localityStrong = document.createElement('strong');
+		localityStrong.textContent = selectedGeocodingCoordinates.locality || 'Custom location';
+		textWrapper.appendChild(localityStrong);
+
+		if (selectedGeocodingCoordinates.country) {
+			var countrySpan = document.createElement('span');
+			countrySpan.className = 'text-muted ms-2';
+			countrySpan.textContent = selectedGeocodingCoordinates.country;
+			textWrapper.appendChild(countrySpan);
+		}
+		var lineBreak = document.createElement('br');
+		textWrapper.appendChild(lineBreak);
+		var coordinateSmall = document.createElement('small');
+		coordinateSmall.className = 'text-monospace';
+		coordinateSmall.textContent = Number(latitude).toFixed(6) + ', ' + Number(longitude).toFixed(6);
+		textWrapper.appendChild(coordinateSmall);
+		var customBadge = document.createElement('span');
+		customBadge.className = 'badge text-bg-secondary ms-2';
+		customBadge.textContent = 'Custom';
+		textWrapper.appendChild(customBadge);
+
+		label.appendChild(input);
+		label.appendChild(textWrapper);
+		geocodingSuggestionList.prepend(label);
+
+		registerGeocodingOptionInput(input);
+		input.checked = true;
+		input.dispatchEvent(new Event('change'));
+	}
+
+	function registerGeocodingOptionInput(input) {
+		if (!input) {
+			return;
+		}
+
 		input.addEventListener('change', function () {
 			if (!input.checked) {
 				return;
@@ -446,16 +552,18 @@
 				locality: input.dataset.locality,
 				country: input.dataset.country
 			};
-			if (geocodingApplyPlaceholder && !geocodingApplyPlaceholder.hidden) {
+			if (!geocodingApplyPlaceholder.hidden) {
 				geocodingApplyPlaceholder.hidden = true;
 			}
-			if (geocodingApplyButton && geocodingApplyButton.hidden) {
+			if (geocodingApplyButton.hidden) {
 				geocodingApplyButton.hidden = false;
 			}
 
 			applyGeocodingSelection(latitude, longitude);
 		});
-	});
+	}
+
+	geocodingOptionInputs.forEach(registerGeocodingOptionInput);
 
 	if (geocodingApplyButton) {
 		geocodingApplyButton.addEventListener('click', function () {
