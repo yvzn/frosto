@@ -26,33 +26,34 @@ public class Unsubscribe
 		[HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "unsubscribe")]
 		HttpRequest request)
 	{
-		var requestBody = await new StreamReader(request.Body).ReadToEndAsync();
-		var requestParams = HttpUtility.ParseQueryString(requestBody);
-		if (!IsValid(requestParams))
+		var queryParameters = request.Query;
+		if (!IsValid(queryParameters))
 		{
 			return new BadRequestResult();
 		}
 
-		var unsubscribeEntity = ParseUnsubscribeEntity(requestParams);
+		var unsubscribeEntity = ParseUnsubscribeEntity(queryParameters);
 
 		await unsubscribeEntities.AddEntityAsync(unsubscribeEntity);
 
-		var siteUrl = requestParams["lang"] == "en" ? AppSettings.SiteEnUrl : AppSettings.SiteFrUrl;
+		var siteUrl = queryParameters["lang"] == "en" ? AppSettings.SiteEnUrl : AppSettings.SiteFrUrl;
 		var unsubscribeCompleteUrl = siteUrl + "unsubscribe-complete.html";
 		request.HttpContext.Response.Headers.Append("Location", unsubscribeCompleteUrl);
 		return new StatusCodeResult(StatusCodes.Status303SeeOther);
 	}
 
-	private static bool IsValid(NameValueCollection requestParams)
-		=> requestParams["token"]?.Length is > 0
-			&& requestParams["lang"]?.Length is > 0;
+	private static bool IsValid(IQueryCollection queryParameters)
+		=> queryParameters["token"].Count == 1
+		&& !string.IsNullOrWhiteSpace(queryParameters["token"])
+		&& queryParameters["lang"].Count == 1
+		&& queryParameters["lang"].All(v => v == "en" || v == "fr");
 
-	private static UnsubscribeEntity ParseUnsubscribeEntity(NameValueCollection requestParams)
+	private static UnsubscribeEntity ParseUnsubscribeEntity(IQueryCollection queryParameters)
 		=> new()
 		{
 			PartitionKey = nameof(UnsubscribeEntity),
 			RowKey = Guid.NewGuid().ToString(),
-			token = requestParams["token"],
-			lang = requestParams["lang"],
+			token = queryParameters["token"],
+			lang = queryParameters["lang"],
 		};
 }
