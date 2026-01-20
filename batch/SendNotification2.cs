@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
@@ -7,26 +6,31 @@ using Microsoft.Extensions.Logging;
 using batch.Models;
 using System.Text.Json;
 using System.Linq;
-using MimeKit.Cryptography;
-using MimeKit;
-using MailKit.Net.Smtp;
-using batch.Services;
-using MailKit.Security;
-using System.Net.Http;
-using System.Text;
 using System.Collections.Generic;
-using System.Threading;
 using Microsoft.Azure.Functions.Worker;
+using batch.Services.SendMail;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace batch;
 
-public class SendNotification2(IHttpClientFactory httpClientFactory, ILogger<SendNotification2> logger)
+public class SendNotification2(
+	[FromKeyedServices("tipimail")] IMailSender tipiMailSender,
+	[FromKeyedServices("smtp")] IMailSender smtpMailSender,
+	[FromKeyedServices("api")] IMailSender apiMailSender,
+	[FromKeyedServices("scaleway")] IMailSender scalewayMailSender,
+	[FromKeyedServices("default")] IMailSender defaultMailSender,
+	ILogger<SendNotification2> logger)
 {
 	internal static ISet<string> channels = new HashSet<string>() { "default", "api", "tipimail", "smtp", "scaleway" };
 
-	private static readonly string ReplyTo = "eXZhbkBhbGVydGVnZWxlZS5mcg==";
-
-	private readonly HttpClient httpClient = httpClientFactory.CreateClient("default");
+	private readonly Dictionary<string, IMailSender> mailSenders = new()
+	{
+		{ "tipimail", tipiMailSender },
+		{ "smtp", smtpMailSender },
+		{ "api", apiMailSender },
+		{ "scaleway", scalewayMailSender },
+		{ "default", defaultMailSender }
+	};
 
 	[Function("SendNotification2")]
 	public async Task<IActionResult> RunAsync(
@@ -97,8 +101,8 @@ public class SendNotification2(IHttpClientFactory httpClientFactory, ILogger<Sen
 
 		try
 		{
-			var sendMailFunction = SelectSendMailCallback(channel);
-			(success, error) = await sendMailFunction.Invoke(notification);
+			var mailSender = BuildMailSender(channel);
+			(success, error) = await mailSender.SendMailAsync(notification);
 		}
 		catch (Exception ex)
 		{
@@ -114,205 +118,8 @@ public class SendNotification2(IHttpClientFactory httpClientFactory, ILogger<Sen
 		return success;
 	}
 
-	private Func<Notification, Task<(bool success, string? error)>> SelectSendMailCallback(string channel)
-		=> channel switch
-		{
-			"tipimail" => SendTipiMailAsync,
-			"smtp" => SendMailSmtpAsync,
-			"api" => SendMailApiAsync,
-			"scaleway" => SendMailScalewayAsync,
-			_ => SendMailApiAsync
-		};
-
-	private async Task<(bool success, string? error)> SendMailApiAsync(Notification notification)
-	{
-		var message = new
-		{
-			notification.subject,
-			notification.body,
-			notification.to,
-		};
-
-		var requestContent = new StringContent(JsonSerializer.Serialize(message), Encoding.UTF8, "application/json");
-
-		async ValueTask<HttpResponseMessage> request(CancellationToken cancellationToken)
-		{
-			HttpResponseMessage httpResponse;
-			httpResponse = await httpClient.PostAsync(AppSettings.SendMailApiUrl, requestContent, cancellationToken);
-			return httpResponse;
-		}
-
-		var response = await RetryStrategy.For.MailApi.ExecuteAsync(request);
-
-		if (!response.IsSuccessStatusCode)
-		{
-			var responseContent = await response.Content.ReadAsStringAsync();
-			return (false, string.Format("{0} {1}", response.StatusCode, responseContent));
-		}
-
-		return (true, default);
-	}
-
-	private async Task<(bool success, string? error)> SendTipiMailAsync(Notification notification)
-	{
-		var message = new
-		{
-			to = notification.to.Select(user => new { address = user }).ToArray(),
-			msg = new
-			{
-				from = new
-				{
-					address = notification.from?.address,
-					personalName = notification.from?.displayName
-				},
-				notification.subject,
-				text = notification.raw,
-				html = notification.body,
-			},
-			apiKey = AppSettings.TipiMailApiKey
-		};
-
-		var requestContent = new StringContent(JsonSerializer.Serialize(message), Encoding.UTF8, "application/json");
-		requestContent.Headers.Add("X-Tipimail-ApiUser", AppSettings.TipiMailApiUser);
-		requestContent.Headers.Add("X-Tipimail-ApiKey", AppSettings.TipiMailApiKey);
-
-		async ValueTask<HttpResponseMessage> request(CancellationToken cancellationToken)
-		{
-			HttpResponseMessage httpResponse;
-			httpResponse = await httpClient.PostAsync(AppSettings.TipiMailApiUrl, requestContent, cancellationToken);
-			return httpResponse;
-		}
-
-		var response = await RetryStrategy.For.ExternalHttp.ExecuteAsync(request);
-
-		if (!response.IsSuccessStatusCode)
-		{
-			var responseContent = await response.Content.ReadAsStringAsync();
-			return (false, string.Format("{0} {1}", response.StatusCode, responseContent));
-		}
-
-		return (true, default);
-	}
-
-	private static async Task<(bool success, string? error)> SendMailSmtpAsync(Notification notification)
-	{
-		var privateKey = File.OpenRead(Path.Combine(FunctionAppDirectory, "dkim_private.pem"));
-		var replyTo = new System.Net.Mail.MailAddress(Encoding.UTF8.GetString(Convert.FromBase64String(ReplyTo)));
-
-		var signer = new DkimSigner(
-			privateKey,
-			domain: replyTo.Host,
-			selector: "frosto")
-		{
-			HeaderCanonicalizationAlgorithm = DkimCanonicalizationAlgorithm.Simple,
-			BodyCanonicalizationAlgorithm = DkimCanonicalizationAlgorithm.Simple,
-			AgentOrUserIdentifier = $"@{replyTo.Host}",
-			QueryMethod = "dns/txt",
-		};
-
-		// Composing the whole email
-		var message = new MimeMessage();
-		message.From.Add(new MailboxAddress("Yvan de Alertegelee.fr", replyTo.Address));
-		message.To.AddRange(notification.to.Select(user => new MailboxAddress(user, user)));
-		message.Subject = notification.subject;
-		message.Headers.Add("List-Unsubscribe", $"<mailto:{replyTo.Address}?subject=STOP&body=STOP>");
-
-		var headers = new HeaderId[] { HeaderId.Date, HeaderId.From, HeaderId.ListUnsubscribe, HeaderId.Subject, HeaderId.To, HeaderId.MessageId };
-
-		var builder = new BodyBuilder
-		{
-			TextBody = notification.raw,
-			HtmlBody = notification.body
-		};
-
-		message.Body = builder.ToMessageBody();
-		message.Prepare(EncodingConstraint.SevenBit);
-
-		signer.Sign(message, headers);
-
-		// Sending the email
-		async ValueTask<string?> sendmail(CancellationToken cancellationToken)
-		{
-			using var client = new SmtpClient();
-
-			await client.ConnectAsync(AppSettings.SmtpUrl, port: 465, SecureSocketOptions.SslOnConnect, cancellationToken);
-			await client.AuthenticateAsync(AppSettings.SmtpLogin, AppSettings.SmtpPassword, cancellationToken);
-
-			var response = default(string);
-			response = await client.SendAsync(message, cancellationToken);
-
-			await client.DisconnectAsync(true, cancellationToken);
-
-			return response;
-		}
-
-		var response = await RetryStrategy.For.Smtp.ExecuteAsync(sendmail);
-
-		return (success: response is not null && response.StartsWith("2."), error: response);
-	}
-
-	private static string FunctionAppDirectory
-	{
-		get
-		{
-			// https://stackoverflow.com/questions/68082798/access-functionappdirectory-in-net-5-azure-function
-			var local_root = Environment.GetEnvironmentVariable("AzureWebJobsScriptRoot");
-			var azure_root = $"{Environment.GetEnvironmentVariable("HOME")}/site/wwwroot";
-			return local_root ?? azure_root;
-		}
-	}
-
-	private async Task<(bool success, string? error)> SendMailScalewayAsync(Notification notification)
-	{
-		var replyTo = Encoding.UTF8.GetString(Convert.FromBase64String(ReplyTo));
-
-		var message = new ScalewayApiEmailRequest
-		{
-			from = new()
-			{
-				name = notification.from?.displayName,
-				email = notification.from?.address
-			},
-			to = [.. notification.to.Select(user => new ScalewayApiIdentity { name = user, email = user })],
-			subject = notification.subject,
-			project_id = AppSettings.ScalewayProjectId,
-			text = notification.raw,
-			html = notification.body,
-			attachments = [],
-			additional_headers = [
-				new ScalewayApiHeader
-				{
-					key = "Reply-To",
-					value = replyTo
-				},
-				new ScalewayApiHeader
-				{
-					key = "List-Unsubscribe",
-					value = $"<mailto:{replyTo}?subject=STOP&body=STOP>"
-				}
-			]
-		};
-
-		var requestContent = new StringContent(JsonSerializer.Serialize(message), Encoding.UTF8, "application/json");
-		requestContent.Headers.Add("X-Auth-Token", AppSettings.ScalewayApiKey);
-
-		async ValueTask<HttpResponseMessage> request(CancellationToken cancellationToken)
-		{
-			HttpResponseMessage httpResponse;
-			httpResponse = await httpClient.PostAsync(AppSettings.ScalewayApiUrl, requestContent, cancellationToken);
-			return httpResponse;
-		}
-
-		var response = await RetryStrategy.For.ExternalHttp.ExecuteAsync(request);
-
-		if (!response.IsSuccessStatusCode)
-		{
-			var responseContent = await response.Content.ReadAsStringAsync();
-			return (false, string.Format("{0} {1}", response.StatusCode, responseContent));
-		}
-
-		return (true, default);
-	}
+	private IMailSender BuildMailSender(string channel)
+		=> mailSenders.TryGetValue(channel, out var mailSender) ? mailSender : mailSenders["default"];
 }
 
 

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 
 namespace batch.Services;
 
@@ -33,6 +32,9 @@ internal static class AppSettings
 	public static string ScalewayApiKey => scalewayApiKey;
 	private static readonly string scalewayProjectId = TryGetEnvironmentVariable("SCALEWAY_PROJECT_ID");
 	public static string ScalewayProjectId => scalewayProjectId;
+
+	public static readonly string unsubscribeUrl = TryGetEnvironmentVariable("UNSUBSCRIBE_URL");
+	public static string UnsubscribeUrl => unsubscribeUrl;
 
 	private static readonly string internalApiKey = TryGetEnvironmentVariable("INTERNAL_API_KEY");
 	public static string InternalApiKey => internalApiKey;

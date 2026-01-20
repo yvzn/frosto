@@ -276,10 +276,12 @@ public class NotifyAtLocation2(IHttpClientFactory httpClientFactory, IAzureClien
 			subject = subject,
 			body = body,
 			raw = text,
+			lang = language,
+			rowKey = location.RowKey,
 			from = new() {
 				address = Encoding.UTF8.GetString(Convert.FromBase64String(address)),
 				displayName = displayName
-			}
+			},
 		};
 
 		return notification;

@@ -1,6 +1,7 @@
 using System.Reflection;
 using Azure.Data.Tables;
 using batch.Services;
+using batch.Services.SendMail;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,6 +33,12 @@ var host = new HostBuilder()
 				.WithName($"{tableName}TableClient");
 			}
 		});
+
+		services.AddKeyedScoped<IMailSender, TipiMailSender>("tipimail");
+		services.AddKeyedScoped<IMailSender, SmtpMailSender>("smtp");
+		services.AddKeyedScoped<IMailSender, ApiMailSender>("api");
+		services.AddKeyedScoped<IMailSender, ScalewayMailSender>("scaleway");
+		services.AddKeyedScoped<IMailSender, ApiMailSender>("default");
 	})
 	.ConfigureLogging(logging =>
 	{
