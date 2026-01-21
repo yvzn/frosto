@@ -1,5 +1,5 @@
 @page
-@model admin.Pages.UnsubscribeModel
+@model admin.Pages.UnsubscribeEmailModel
 @{
 	ViewData["Title"] = "Unsubscribe";
 }
@@ -30,7 +30,7 @@ else
 			<div class="col-lg-6 p-5 mb-5 border rounded-3 bg-light">
 				<h2 class="text-muted mb-3">No entries found</h2>
 				<p>No matching subscriptions or user records reference <strong>@Model.Email</strong>.</p>
-				<a class="btn btn-primary" asp-page="/Unsubscribe">Search again</a>
+				<a class="btn btn-primary" asp-page="/UnsubscribeEmail">Search again</a>
 			</div>
 		</div>
 	}
@@ -148,7 +148,7 @@ else
 
 			<div class="btn-toolbar justify-content-between">
 				<button type="submit" class="btn btn-primary">Continue</button>
-				<a class="btn btn-outline-secondary" asp-page="/Unsubscribe">Search again</a>
+				<a class="btn btn-outline-secondary" asp-page="/UnsubscribeEmail">Search again</a>
 			</div>
 		</form>
 	</div>
