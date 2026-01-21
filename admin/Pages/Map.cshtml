@@ -32,7 +32,19 @@ function InitMap()
 	})
 
 	var source = new atlas.source.DataSource()
-	var layer = new atlas.layer.BubbleLayer(source, null, {})
+	var layer = new atlas.layer.BubbleLayer(source, null, {
+		color: [
+			'case',
+			['==', ['get', 'lang'], 'fr'],
+			'#061E29',
+			['==', ['get', 'lang'], 'en'],
+			'#1D546D',
+			'#F3F4F4'
+		],
+		radius: 8,
+		strokeColor: 'white',
+		strokeWidth: 2
+	})
 
 	map.events.add('ready', () => {
 		map.sources.add(source)

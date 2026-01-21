@@ -98,6 +98,7 @@ public partial class LocationService(IAzureClientFactory<TableClient> azureClien
 		await foreach (var validLocationEntity in _validLocationTableClient.QueryAsync<LocationEntity>(_ => true, cancellationToken: cancellationToken))
 		{
 			var city = validLocationEntity.city;
+			var lang = validLocationEntity.lang;
 			var coordinates = validLocationEntity.coordinates?.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
 			if (coordinates is [var latitude, var longitude, ..])
 			{
@@ -112,6 +113,7 @@ public partial class LocationService(IAzureClientFactory<TableClient> azureClien
 					properties = new
 					{
 						city,
+						lang,
 					}
 				});
 			}
