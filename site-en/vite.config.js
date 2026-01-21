@@ -2,7 +2,7 @@ import { resolve } from 'path';
 import { defineConfig } from 'vite';
 
 var pages = [
-	'index', 'sign-up', 'sign-up-complete', 'legal', 'contact', 'donate', 'check-subscription', 'check-subscription-complete', 'unsubscribe', 'unsubscribe-complete'
+	'index', 'sign-up', 'sign-up-complete', 'legal', 'contact', 'donate', 'check-subscription', 'check-subscription-complete', 'unsubscribe-complete'
 ]
 
 const config = defineConfig(() => {
