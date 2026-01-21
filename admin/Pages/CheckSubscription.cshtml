@@ -20,7 +20,7 @@
 				<caption>@Model.CheckSubscriptionRequests.Count items</caption>
 				<thead>
 					<tr>
-						<th>Email request</th>
+						<th>Requestor e-mail</th>
 						<th>Language</th>
 						<th>Last Modified</th>
 						<td></td>
@@ -36,7 +36,7 @@
 							<td>
 								<form method="post" style="display: inline;">
 									<input type="hidden" name="SelectedRequest.Id" value="@request.Id" />
-									<button type="submit" class="btn btn-link p-0" asp-page-handler="Search">Search</button>
+									<button type="submit" class="btn btn-link p-0" asp-page-handler="Search">Search subscription</button>
 								</form>
 							</td>
 						</tr>
@@ -56,7 +56,7 @@
 			@if (!string.IsNullOrEmpty(Model.SearchError))
 			{
 				<div class="alert alert-danger" role="alert">
-					<p class="mb-0"><strong>User Not Subscribed</strong></p>
+					<p class="mb-0"><strong>User @Model.SelectedRequest?.email Not Subscribed</strong></p>
 					<p class="mb-0">@Model.SearchError</p>
 				</div>
 			}
@@ -66,7 +66,7 @@
 				StringComparison.OrdinalIgnoreCase);
 
 				<div class="alert alert-success" role="alert">
-					<p class="mb-0"><strong>User is subscribed!</strong></p>
+					<p class="mb-0"><strong>User @Model.SelectedRequest?.email is subscribed!</strong></p>
 					<p class="mb-0">Found @Model.FoundLocations.Count location(s)</p>
 				</div>
 

@@ -1,0 +1,49 @@
+@page
+@model admin.Pages.UnsubscribeRequestModel
+@{
+	ViewData["Title"] = "Unsubscribe Requests";
+}
+
+<div class="text-center">
+	<h1 class="display-4">Unsubscribe Requests</h1>
+</div>
+
+<div class="row mb-5">
+	@if (Model.UnsubscribeRequests.Count == 0)
+	{
+		<p class="text-muted">No unsubscribe requests pending.</p>
+	}
+	else
+	{
+		<div class="table-responsive">
+			<table class="table">
+				<caption>@Model.UnsubscribeRequests.Count items</caption>
+				<thead>
+					<tr>
+						<th>Token</th>
+						<th>Language</th>
+						<th>Last Modified</th>
+					</tr>
+				</thead>
+				<tbody>
+					@foreach (var request in Model.UnsubscribeRequests)
+					{
+						<tr>
+							<td>
+								<span class="text-truncate d-inline-block" style="max-width: 300px;" title="@request.token">
+									@request.token
+								</span>
+							</td>
+							<td>@Html.DisplayFor(modelItem => request.lang)</td>
+							<td>@Html.DisplayFor(modelItem => request.Timestamp)</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	}
+</div>
+
+<div hidden>
+	@Html.ValidationSummary()
+</div>

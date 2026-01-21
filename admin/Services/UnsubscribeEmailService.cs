@@ -2,7 +2,7 @@ using admin.Models;
 
 namespace admin.Services;
 
-public class UnsubscribeService(LocationService locationService, UserService userService)
+public class UnsubscribeEmailService(LocationService locationService, UserService userService)
 {
 	private readonly LocationService _locationService = locationService;
 	private readonly UserService _userService = userService;

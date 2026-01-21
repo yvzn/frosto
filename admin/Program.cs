@@ -7,20 +7,20 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
 
-string[] azureStorageTableNames = ["location", "validlocation", "batch", "signup", "user", "checksubscription"];
+string[] azureStorageTableNames = ["location", "validlocation", "batch", "signup", "user", "checksubscription", "unsubscribe"];
 
 builder.Services.AddAzureClients(clientBuilder =>
 {
-    clientBuilder
-        .AddTableServiceClient(builder.Configuration.GetConnectionString("Alerts"));
+	clientBuilder
+		.AddTableServiceClient(builder.Configuration.GetConnectionString("Alerts"));
 
-    foreach (var tableName in azureStorageTableNames)
-    {
-        clientBuilder
-            .AddClient<TableClient, TableClientOptions>(
-                (_, _, provider) => provider.GetService<TableServiceClient>()!.GetTableClient(tableName))
-        .WithName($"{tableName}TableClient");
-    }
+	foreach (var tableName in azureStorageTableNames)
+	{
+		clientBuilder
+			.AddClient<TableClient, TableClientOptions>(
+				(_, _, provider) => provider.GetService<TableServiceClient>()!.GetTableClient(tableName))
+		.WithName($"{tableName}TableClient");
+	}
 });
 
 builder.Services.AddScoped<LocationService>();
@@ -28,7 +28,8 @@ builder.Services.AddScoped<SignUpService>();
 builder.Services.AddScoped<CheckSubscriptionService>();
 builder.Services.AddScoped<BatchService>();
 builder.Services.AddScoped<GeocodingService>();
-builder.Services.AddScoped<UnsubscribeService>();
+builder.Services.AddScoped<UnsubscribeEmailService>();
+builder.Services.AddScoped<UnsubscribeRequestService>();
 builder.Services.AddScoped<UserService>();
 
 var app = builder.Build();
@@ -48,11 +49,11 @@ app.MapControllers();
 #if DEBUG
 using (var scope = app.Services.CreateScope())
 {
-    var services = scope.ServiceProvider;
-    var tableServiceClient = services.GetService<TableServiceClient>();
-    await Task.WhenAll(
-        azureStorageTableNames.Select(
-            tableName => tableServiceClient?.CreateTableIfNotExistsAsync(tableName) ?? Task.CompletedTask));
+	var services = scope.ServiceProvider;
+	var tableServiceClient = services.GetService<TableServiceClient>();
+	await Task.WhenAll(
+		azureStorageTableNames.Select(
+			tableName => tableServiceClient?.CreateTableIfNotExistsAsync(tableName) ?? Task.CompletedTask));
 }
 #endif
 

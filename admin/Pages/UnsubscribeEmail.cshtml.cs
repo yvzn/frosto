@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace admin.Pages;
 
-public class UnsubscribeEmailModel(LocationService locationService, UnsubscribeService unsubscribeService, UserService userService) : PageModel
+public class UnsubscribeEmailModel(LocationService locationService, UnsubscribeEmailService unsubscribeService, UserService userService) : PageModel
 {
 	[BindProperty]
 	[EmailAddress]
