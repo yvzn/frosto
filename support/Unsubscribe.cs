@@ -23,7 +23,7 @@ public class Unsubscribe
 
 	[Function("Unsubscribe")]
 	public async Task<IActionResult> RunAsync(
-		[HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "unsubscribe")]
+		[HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "unsubscribe")]
 		HttpRequest request)
 	{
 		var queryParameters = request.Query;
