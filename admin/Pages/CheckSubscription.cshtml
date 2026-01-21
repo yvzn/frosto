@@ -22,6 +22,7 @@
 					<tr>
 						<th>Email request</th>
 						<th>Language</th>
+						<th>Last Modified</th>
 						<td></td>
 					</tr>
 				</thead>
@@ -29,8 +30,9 @@
 					@foreach (var request in Model.CheckSubscriptionRequests)
 					{
 						<tr>
-							<td>@request.email</td>
-							<td>@request.lang</td>
+							<td>@Html.DisplayFor(modelItem => request.email)</td>
+							<td>@Html.DisplayFor(modelItem => request.lang)</td>
+							<td>@Html.DisplayFor(modelItem => request.Timestamp)</td>
 							<td>
 								<form method="post" style="display: inline;">
 									<input type="hidden" name="SelectedRequest.Id" value="@request.Id" />
