@@ -7,7 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
 
-string[] azureStorageTableNames = ["location", "validlocation", "batch", "signup", "user"];
+string[] azureStorageTableNames = ["location", "validlocation", "batch", "signup", "user", "checksubscription"];
 
 builder.Services.AddAzureClients(clientBuilder =>
 {
@@ -25,6 +25,7 @@ builder.Services.AddAzureClients(clientBuilder =>
 
 builder.Services.AddScoped<LocationService>();
 builder.Services.AddScoped<SignUpService>();
+builder.Services.AddScoped<CheckSubscriptionService>();
 builder.Services.AddScoped<BatchService>();
 builder.Services.AddScoped<GeocodingService>();
 builder.Services.AddScoped<UnsubscribeService>();

@@ -1,0 +1,176 @@
+@page
+@model admin.Pages.CheckSubscriptionModel
+@{
+	ViewData["Title"] = "Check Subscription";
+}
+
+<div class="text-center">
+	<h1 class="display-4">Check Subscriptions</h1>
+</div>
+
+<div class="row mb-5">
+	@if (Model.CheckSubscriptionRequests.Count == 0)
+	{
+		<p class="text-muted">No check subscription requests pending.</p>
+	}
+	else
+	{
+		<div class="table-responsive">
+			<table class="table">
+				<caption>@Model.CheckSubscriptionRequests.Count items</caption>
+				<thead>
+					<tr>
+						<th>Email request</th>
+						<th>Language</th>
+						<td></td>
+					</tr>
+				</thead>
+				<tbody>
+					@foreach (var request in Model.CheckSubscriptionRequests)
+					{
+						<tr>
+							<td>@request.email</td>
+							<td>@request.lang</td>
+							<td>
+								<form method="post" style="display: inline;">
+									<input type="hidden" name="SelectedRequest.Id" value="@request.Id" />
+									<button type="submit" class="btn btn-link p-0" asp-page-handler="Search">Search</button>
+								</form>
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	}
+</div>
+
+@if (Model.ShowResults)
+{
+	<div class="row mt-5">
+		<section class="col-lg-8 p-5 border rounded-3">
+			<h2 class="text-muted mb-3">Search Results</h2>
+
+			@if (!string.IsNullOrEmpty(Model.SearchError))
+			{
+				<div class="alert alert-danger" role="alert">
+					<p class="mb-0"><strong>User Not Subscribed</strong></p>
+					<p class="mb-0">@Model.SearchError</p>
+				</div>
+			}
+			else if (Model.FoundLocations.Count > 0)
+			{
+				var isEnglish = !string.IsNullOrEmpty(Model.SelectedRequest?.lang) && Model.SelectedRequest.lang.Equals("en",
+				StringComparison.OrdinalIgnoreCase);
+
+				<div class="alert alert-success" role="alert">
+					<p class="mb-0"><strong>User is subscribed!</strong></p>
+					<p class="mb-0">Found @Model.FoundLocations.Count location(s)</p>
+				</div>
+
+				<div class="card mt-3">
+					<div class="card-header bg-success text-white">
+						<strong>Subscription Details</strong>
+					</div>
+					<div class="card-body">
+						<ul class="list-group">
+							@foreach (var location in Model.FoundLocations)
+							{
+								<li class="list-group-item">
+									<strong>@location.city</strong> <span class="text-muted ms-2">@location.country</span>
+									<br />
+									<small class="text-muted">
+										Channel: @(string.IsNullOrEmpty(location.channel) ? "N/A" : location.channel)
+									</small>
+								</li>
+							}
+						</ul>
+					</div>
+				</div>
+
+				<div class="card mt-3 text-bg-light">
+					<div class="card-header">
+						Email Template to send to user
+					</div>
+					<div class="p-3 rounded mt-2 email-template">
+						<p><strong>To:</strong> <span class="email-selectable">@Model.SelectedRequest?.email</span></p>
+						<hr />
+						@if (isEnglish)
+						{
+							<p><strong>Subject:</strong> <span class="email-selectable">Your Subscription Status to
+									FrostAlert.net</span></p>
+							<hr />
+							<div class="email-selectable">
+								<p>Hello,</p>
+								<p>We are pleased to confirm that you are currently subscribed to frost alerts on FrostAlert.net for
+									the following location(s):</p>
+								<ul>
+									@foreach (var location in Model.FoundLocations)
+									{
+										<li>@location.city, @location.country</li>
+									}
+								</ul>
+								<p>To unsubscribe, reply "STOP" to this message.</p>
+								<p>Best regards,<br />Yvan from FrostAlert.net</p>
+							</div>
+						}
+						else
+						{
+							<p><strong>Objet:</strong> <span class="email-selectable">Votre abonnement à AlerteGelee.fr</span></p>
+							<hr />
+							<div class="email-selectable">
+								<p>Bonjour,</p>
+								<p>Nous sommes heureux de confirmer que vous êtes actuellement abonné aux alertes gelées sur
+									AlerteGelee.fr pour le(s) villes(s) suivante(s):</p>
+								<ul>
+									@foreach (var location in Model.FoundLocations)
+									{
+										<li>@location.city, @location.country</li>
+									}
+								</ul>
+								<p>Pour vous désinscrire, répondez "STOP" à ce message.</p>
+								<p>Cordialement,<br />Yvan de AlerteGelee.fr</p>
+							</div>
+						}
+					</div>
+				</div>
+			}
+		</section>
+	</div>
+}
+@if (Model.SelectedRequest != null && !string.IsNullOrEmpty(Model.SelectedRequest.Id))
+{
+	<div class="row">
+		<form method="post" class="col-lg-8 p-5 my-5 border rounded-3 border-danger bg-danger-subtle">
+			<h2 class="text-danger mb-3">Danger Zone</h2>
+
+			<details>
+				<summary>Mark request as completed</summary>
+				<input type="hidden" name="SelectedRequest.Id" value="@Model.SelectedRequest.Id" />
+				<button type="submit" class="btn btn-danger mt-3" asp-page-handler="Complete">Complete &amp; discard</button>
+			</details>
+		</form>
+	</div>
+}
+
+<div hidden>
+	@Html.ValidationSummary()
+</div>
+<style>
+	.email-selectable {
+		cursor: text;
+		user-select: text;
+	}
+</style>
+
+<script>
+	document.querySelectorAll('.email-selectable').forEach(element => {
+		element.addEventListener('click', function (e) {
+			const range = document.createRange();
+			range.selectNodeContents(this);
+			const sel = window.getSelection();
+			sel.removeAllRanges();
+			sel.addRange(range);
+		});
+	});
+</script>
