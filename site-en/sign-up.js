@@ -1,4 +1,5 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
+import './main.css';
 
 var signupForm = document.querySelector('form');
 var formStatus = 'IDLE';
