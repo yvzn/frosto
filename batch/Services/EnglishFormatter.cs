@@ -64,12 +64,16 @@ internal static class EnglishHtmlFormatter
 <p>Best regards,
 <br>Yvan from FrostAlert.net
 
-<p>To unsubscribe, reply ""STOP"" to this message.
+<p>To stop receiving these messages,
+<|unsubscribe_link|>
+reply ""STOP"" to this message.
 
 <hr>
 
 <p>Weather data is provided by <em>Open-Meteo.com</em> &mdash;
 <a href=""https://open-meteo.com/"" target=""_blank"" rel=""noopener noreferrer"">Weather data by Open-Meteo.com</a>";
+
+	private static readonly string unsubscribeLinkTemplate = @"use this <a href=""{0}"" target=""_blank"">unsubscribe link</a> or";
 
 	public static string FormatBody(List<Forecast> forecasts, LocationEntity location)
 	{
@@ -103,6 +107,14 @@ internal static class EnglishHtmlFormatter
 				location.country,
 				table.ToString()
 			);
+	}
+
+	public static string FormatUnsubscribeLink(string unsubscribeUrl)
+	{
+		return string.Format(
+			unsubscribeLinkTemplate,
+			unsubscribeUrl
+		);
 	}
 }
 

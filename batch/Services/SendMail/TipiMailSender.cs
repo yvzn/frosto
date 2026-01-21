@@ -26,7 +26,7 @@ internal class TipiMailSender(IHttpClientFactory httpClientFactory) : IBatchMail
 				},
 				notification.subject,
 				text = notification.raw,
-				html = notification.body,
+				html = notification.body?.Replace(HtmlFormatter.unsubscribeLinkPlaceholder, string.Empty)
 			},
 			apiKey = AppSettings.TipiMailApiKey
 		};

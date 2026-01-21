@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using batch.Models;
-using System.Linq;
 using MimeKit.Cryptography;
 using MimeKit;
 using MailKit.Net.Smtp;
@@ -38,20 +37,25 @@ internal class SmtpMailSender : SingleRecipientMailSender
 		message.To.Add(new MailboxAddress(recipient, recipient));
 		message.Subject = notification.subject;
 
-		var listUnsubscribeHeaders = Unsubscribe.GetListUnsubscribeHeaders(replyTo.Address, recipient, notification.rowKey, notification.lang ?? "fr");
+		var unsubscribeToken = Unsubscribe.BuildUnsubscribeToken(recipient, notification.rowKey);
+
+		var listUnsubscribeHeaders = Unsubscribe.GetListUnsubscribeHeaders(replyTo.Address, unsubscribeToken, notification.lang ?? "fr");
 		foreach (var header in listUnsubscribeHeaders)
 			message.Headers.Add(header.Key, header.Value);
 
-		var headers = new HeaderId[] { HeaderId.Date, HeaderId.From, HeaderId.ListUnsubscribe, HeaderId.Subject, HeaderId.To, HeaderId.MessageId };
+		var unsubscribeUrl = Unsubscribe.BuildUnsubscribeUrl(unsubscribeToken, notification.lang ?? "fr");
+		var unsubscribeLink = HtmlFormatter.FormatUnsubscribeLink(unsubscribeUrl);
 
 		var builder = new BodyBuilder
 		{
 			TextBody = notification.raw,
-			HtmlBody = notification.body
+			HtmlBody = notification.body?.Replace(HtmlFormatter.unsubscribeLinkPlaceholder, unsubscribeUrl)
 		};
 
 		message.Body = builder.ToMessageBody();
 		message.Prepare(EncodingConstraint.SevenBit);
+
+		var headers = new HeaderId[] { HeaderId.Date, HeaderId.From, HeaderId.ListUnsubscribe, HeaderId.Subject, HeaderId.To, HeaderId.MessageId };
 
 		signer.Sign(message, headers);
 

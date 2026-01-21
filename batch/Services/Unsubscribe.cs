@@ -9,10 +9,10 @@ namespace batch.Services;
 
 public static class Unsubscribe
 {
-	public static IDictionary<string, string> GetListUnsubscribeHeaders(string senderEmail, string recipientEmail, string? subscriptionId, string language)
+	public static IDictionary<string, string> GetListUnsubscribeHeaders(string senderEmail, string unsubscribeToken, string language)
 	{
 		var mailto = BuildMailtoHeader(senderEmail);
-		var http = BuildHttpHeader(recipientEmail, subscriptionId, language);
+		var http = BuildHttpHeader(unsubscribeToken, language);
 		return new Dictionary<string, string>
 		{
 			{ "List-Unsubscribe", $"{mailto}, {http}" },
@@ -20,9 +20,18 @@ public static class Unsubscribe
 		};
 	}
 
-	private static string BuildMailtoHeader(string senderEmail) => $"<mailto:{senderEmail}?subject=STOP&body=STOP>";
+	private static string BuildMailtoHeader(string senderEmail)
+		=> $"<mailto:{senderEmail}?subject=STOP&body=STOP>";
 
-	private static string BuildHttpHeader(string recipientEmail, string? subscriptionId, string language)
+	private static string BuildHttpHeader(string unsubscribeToken, string language)
+		=> $"<{BuildUnsubscribeUrl(unsubscribeToken, language)}>";
+
+	internal static string BuildUnsubscribeUrl(string unsubscribeToken, string language)
+	{
+		return $"{AppSettings.UnsubscribeUrl}?token={unsubscribeToken}&lang={language}";
+	}
+
+	internal static string BuildUnsubscribeToken(string recipientEmail, string? subscriptionId)
 	{
 		var sub = recipientEmail;
 		var sub_id = subscriptionId ?? "none";
@@ -46,7 +55,6 @@ public static class Unsubscribe
 		var tokenHandler = new JwtSecurityTokenHandler();
 		var tokenString = tokenHandler.WriteToken(token);
 
-		return $"<{AppSettings.UnsubscribeUrl}?token={tokenString}&lang={language}>";
+		return tokenString;
 	}
-
 }

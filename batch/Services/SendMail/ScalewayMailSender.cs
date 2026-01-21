@@ -1,22 +1,11 @@
 using System;
-using System.IO;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 using batch.Models;
 using System.Text.Json;
-using System.Linq;
-using MimeKit.Cryptography;
-using MimeKit;
-using MailKit.Net.Smtp;
-using batch.Services;
-using MailKit.Security;
 using System.Net.Http;
 using System.Text;
 using System.Collections.Generic;
 using System.Threading;
-using Microsoft.Azure.Functions.Worker;
 
 namespace batch.Services.SendMail;
 
@@ -28,6 +17,11 @@ internal class ScalewayMailSender(IHttpClientFactory httpClientFactory) : Single
 
 	public override async Task<(bool success, string? error)> SendMailAsync(string recipient, Notification notification)
 	{
+		var unsubscribeToken = Unsubscribe.BuildUnsubscribeToken(recipient, notification.rowKey);
+
+		var unsubscribeUrl = Unsubscribe.BuildUnsubscribeUrl(unsubscribeToken, notification.lang ?? "fr");
+		var unsubscribeLink = HtmlFormatter.FormatUnsubscribeLink(unsubscribeUrl);
+
 		var message = new ScalewayApiEmailRequest
 		{
 			from = new()
@@ -39,9 +33,9 @@ internal class ScalewayMailSender(IHttpClientFactory httpClientFactory) : Single
 			subject = notification.subject,
 			project_id = AppSettings.ScalewayProjectId,
 			text = notification.raw,
-			html = notification.body,
+			html = notification.body?.Replace(HtmlFormatter.unsubscribeLinkPlaceholder, unsubscribeLink),
 			attachments = [],
-			additional_headers = [.. BuildScalewayHeaders(recipient, notification.rowKey, notification.lang ?? "fr")]
+			additional_headers = [.. BuildScalewayHeaders(unsubscribeToken, notification.lang ?? "fr")]
 		};
 
 		var requestContent = new StringContent(JsonSerializer.Serialize(message), Encoding.UTF8, "application/json");
@@ -65,7 +59,7 @@ internal class ScalewayMailSender(IHttpClientFactory httpClientFactory) : Single
 		return (true, default);
 	}
 
-	private static IEnumerable<ScalewayApiHeader> BuildScalewayHeaders(string recipient, string? subscriptionId, string language)
+	private static IEnumerable<ScalewayApiHeader> BuildScalewayHeaders(string unsubscribeToken, string language)
 	{
 		var replyTo = Encoding.UTF8.GetString(Convert.FromBase64String(ReplyTo));
 
@@ -75,7 +69,7 @@ internal class ScalewayMailSender(IHttpClientFactory httpClientFactory) : Single
 			value = replyTo
 		};
 
-		var listUnsubscribeHeaders = Unsubscribe.GetListUnsubscribeHeaders(replyTo, recipient, subscriptionId,language);
+		var listUnsubscribeHeaders = Unsubscribe.GetListUnsubscribeHeaders(replyTo, unsubscribeToken, language);
 		foreach (var header in listUnsubscribeHeaders)
 		{
 			yield return new()

@@ -64,12 +64,18 @@ internal static class HtmlFormatter
 <p>Cordialement,
 <br>Yvan de Alertegelee.fr
 
-<p>Pour vous désinscrire, répondez ""STOP"" à ce message.
+<p>Pour ne plus recevoir ces messages,
+<|unsubscribe_link|>
+répondez ""STOP"" à ce message.
 
 <hr>
 
 <p>Les données météo sont fournies par <em>Open-Meteo.com</em> &mdash;
 <a href=""https://open-meteo.com/"" target=""_blank"" rel=""noopener noreferrer"">Weather data by Open-Meteo.com</a>";
+
+	internal static readonly string unsubscribeLinkPlaceholder = "<|unsubscribe_link|>";
+
+	private static readonly string unsubscribeLinkTemplate = @"utilisez ce <a href=""{0}"" target=""_blank"">lien de désinscription</a> ou";
 
 	public static string FormatBody(List<Forecast> forecasts, LocationEntity location)
 	{
@@ -103,6 +109,14 @@ internal static class HtmlFormatter
 				location.country,
 				table.ToString()
 			);
+	}
+
+	public static string FormatUnsubscribeLink(string unsubscribeUrl)
+	{
+		return string.Format(
+			unsubscribeLinkTemplate,
+			unsubscribeUrl
+		);
 	}
 }
 
