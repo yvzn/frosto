@@ -36,13 +36,13 @@ function InitMap()
 		color: [
 			'case',
 			['==', ['get', 'lang'], 'fr'],
-			'#061E29',
+			'#30364F',
 			['==', ['get', 'lang'], 'en'],
-			'#1D546D',
-			'#F3F4F4'
+			'#ACBAC4',
+			'#E1D9BC'
 		],
 		radius: 8,
-		strokeColor: 'white',
+		strokeColor: '#F0F0DB',
 		strokeWidth: 2
 	})
 
@@ -66,7 +66,7 @@ function InitMap()
 		if (e.shapes && e.shapes.length > 0) {
 			var content, coordinate
 			var properties = e.shapes[0].getProperties()
-			content = `<div style="padding:10px;color:white">${properties.city}</div>`
+			content = `<div style="padding:10px;color:white">${properties.city} (${properties.lang || 'N/A'})</div>`
 			coordinate = e.shapes[0].getCoordinates()
 
 			popup.setOptions({
