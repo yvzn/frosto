@@ -7,8 +7,33 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace batch.Services;
 
-public static class Unsubscribe
+public class Unsubscribe: IDisposable
 {
+	private readonly RSA signingAlgorithm;
+	private readonly SigningCredentials signingCredentials;
+	private bool disposedValue;
+
+	public Unsubscribe()
+	{
+		signingAlgorithm = BuildRsa();
+		signingCredentials = BuildSigningCredentials(signingAlgorithm);
+	}
+
+	private static RSA BuildRsa()
+	{
+		var privateKey = File.OpenRead(Path.Combine(ThisFunctionApp.WorkingDirectory, "dkim_private.pem"));
+		var rsa = RSA.Create();
+		rsa.ImportFromPem(new StreamReader(privateKey).ReadToEnd().AsSpan());
+		return rsa;
+	}
+
+	private static SigningCredentials BuildSigningCredentials(RSA algorithm)
+	{
+		var signingKey = new RsaSecurityKey(algorithm);
+		var credentials = new SigningCredentials(signingKey, SecurityAlgorithms.RsaSha256);
+		return credentials;
+	}
+
 	public static IDictionary<string, string> GetListUnsubscribeHeaders(string senderEmail, string unsubscribeToken, string language)
 	{
 		var mailto = BuildMailtoHeader(senderEmail);
@@ -31,17 +56,10 @@ public static class Unsubscribe
 		return $"{AppSettings.UnsubscribeUrl}?token={unsubscribeToken}&lang={language}";
 	}
 
-	internal static string BuildUnsubscribeToken(string recipientEmail, string? subscriptionId)
+	internal string BuildUnsubscribeToken(string recipientEmail, string? subscriptionId)
 	{
 		var sub = recipientEmail;
 		var sub_id = subscriptionId ?? "none";
-
-		var privateKey = File.OpenRead(Path.Combine(ThisFunctionApp.WorkingDirectory, "dkim_private.pem"));
-		using var rsa = RSA.Create();
-		rsa.ImportFromPem(new StreamReader(privateKey).ReadToEnd().AsSpan());
-
-		var signingKey = new RsaSecurityKey(rsa);
-		var credentials = new SigningCredentials(signingKey, SecurityAlgorithms.RsaSha256);
 
 		var token = new JwtSecurityToken(
 			claims:
@@ -49,12 +67,31 @@ public static class Unsubscribe
 				new System.Security.Claims.Claim("sub", sub),
 				new System.Security.Claims.Claim("sub_id", sub_id)
 			],
-			signingCredentials: credentials
+			signingCredentials: signingCredentials
 		);
 
 		var tokenHandler = new JwtSecurityTokenHandler();
 		var tokenString = tokenHandler.WriteToken(token);
 
 		return tokenString;
+	}
+
+	protected virtual void Dispose(bool disposing)
+	{
+		if (!disposedValue)
+		{
+			if (disposing)
+			{
+				signingAlgorithm.Dispose();
+			}
+
+			disposedValue = true;
+		}
+	}
+
+	public void Dispose()
+	{
+		Dispose(disposing: true);
+		GC.SuppressFinalize(this);
 	}
 }

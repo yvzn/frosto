@@ -9,7 +9,7 @@ using System.Threading;
 
 namespace batch.Services.SendMail;
 
-internal class ScalewayMailSender(IHttpClientFactory httpClientFactory) : SingleRecipientMailSender
+internal class ScalewayMailSender(Unsubscribe unsubscribe, IHttpClientFactory httpClientFactory) : SingleRecipientMailSender
 {
 	private static readonly string ReplyTo = "eXZhbkBhbGVydGVnZWxlZS5mcg==";
 
@@ -17,7 +17,7 @@ internal class ScalewayMailSender(IHttpClientFactory httpClientFactory) : Single
 
 	public override async Task<(bool success, string? error)> SendMailAsync(string recipient, Notification notification)
 	{
-		var unsubscribeToken = Unsubscribe.BuildUnsubscribeToken(recipient, notification.rowKey);
+		var unsubscribeToken = unsubscribe.BuildUnsubscribeToken(recipient, notification.rowKey);
 
 		var unsubscribeUrl = Unsubscribe.BuildUnsubscribeUrl(unsubscribeToken, notification.lang ?? "fr");
 		var unsubscribeLink = HtmlFormatter.FormatUnsubscribeLink(unsubscribeUrl);

@@ -11,7 +11,7 @@ using System.Threading;
 
 namespace batch.Services.SendMail;
 
-internal class SmtpMailSender : SingleRecipientMailSender
+internal class SmtpMailSender(Unsubscribe unsubscribe) : SingleRecipientMailSender
 {
 	private static readonly string ReplyTo = "eXZhbkBhbGVydGVnZWxlZS5mcg==";
 
@@ -37,7 +37,7 @@ internal class SmtpMailSender : SingleRecipientMailSender
 		message.To.Add(new MailboxAddress(recipient, recipient));
 		message.Subject = notification.subject;
 
-		var unsubscribeToken = Unsubscribe.BuildUnsubscribeToken(recipient, notification.rowKey);
+		var unsubscribeToken = unsubscribe.BuildUnsubscribeToken(recipient, notification.rowKey);
 
 		var listUnsubscribeHeaders = Unsubscribe.GetListUnsubscribeHeaders(replyTo.Address, unsubscribeToken, notification.lang ?? "fr");
 		foreach (var header in listUnsubscribeHeaders)
