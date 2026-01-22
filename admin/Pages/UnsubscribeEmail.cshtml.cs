@@ -27,9 +27,21 @@ public class UnsubscribeEmailModel(LocationService locationService, UnsubscribeE
 	public IList<Location> MatchingLocations { get; private set; } = [];
 	public IList<User> MatchingUsers { get; private set; } = [];
 	public string? ErrorMessage { get; private set; }
+	public string? HighlightId { get; private set; }
 
-	public void OnGet()
+	public async Task OnGetAsync([FromQuery] string? q, [FromQuery] string? id)
 	{
+		if (!string.IsNullOrWhiteSpace(q))
+		{
+			Email = q.Trim();
+			EmailSubmitted = true;
+			await LoadMatchesAsync(HttpContext.RequestAborted);
+		}
+
+		if (!string.IsNullOrWhiteSpace(id))
+		{
+			HighlightId = id.Trim();
+		}
 	}
 
 	public async Task<IActionResult> OnPostAsync()
