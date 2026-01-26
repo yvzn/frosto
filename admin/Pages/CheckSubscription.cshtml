@@ -34,7 +34,7 @@
 							<td>@Html.DisplayFor(modelItem => request.lang)</td>
 							<td>@Html.DisplayFor(modelItem => request.Timestamp)</td>
 							<td>
-								<form method="post" style="display: inline;">
+								<form method="post" class="d-inline">
 									<input type="hidden" name="SelectedRequest.Id" value="@request.Id" />
 									<button type="submit" class="btn btn-link p-0" asp-page-handler="Search">Search subscription</button>
 								</form>

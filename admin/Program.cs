@@ -31,6 +31,7 @@ builder.Services.AddScoped<GeocodingService>();
 builder.Services.AddScoped<UnsubscribeEmailService>();
 builder.Services.AddScoped<UnsubscribeRequestService>();
 builder.Services.AddScoped<UserService>();
+builder.Services.AddSingleton<JwtValidationService>();
 
 var app = builder.Build();
 

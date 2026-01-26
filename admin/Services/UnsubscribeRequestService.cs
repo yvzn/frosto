@@ -20,6 +20,25 @@ public class UnsubscribeRequestService(IAzureClientFactory<TableClient> azureCli
 		return result;
 	}
 
+	public async Task<Unsubscribe?> GetUnsubscribeRequestByIdAsync(string id, CancellationToken cancellationToken)
+	{
+		var (partitionKey, rowKey) = id.ToKeys();
+
+		var response = await _unsubscribeTableClient.GetEntityAsync<UnsubscribeEntity>(partitionKey, rowKey, cancellationToken: cancellationToken);
+		if (response.HasValue) {
+			return EntityToModel(response.Value);
+		}
+
+		return default;
+	}
+
+	public async Task DeleteUnsubscribeRequestAsync(string id, CancellationToken cancellationToken)
+	{
+		var (partitionKey, rowKey) = id.ToKeys();
+
+		await _unsubscribeTableClient.DeleteEntityAsync(partitionKey, rowKey, cancellationToken: cancellationToken);
+	}
+
 	private static Unsubscribe EntityToModel(UnsubscribeEntity entity)
 	{
 		return new()
