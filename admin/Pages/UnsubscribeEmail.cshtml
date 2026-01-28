@@ -58,6 +58,42 @@
 				</div>
 			</div>
 
+			<div class="card mt-3 text-bg-light">
+				<div class="card-header">
+					Email Template to send to user
+				</div>
+				<div class="p-3 rounded mt-2 email-template">
+					<p><strong>To:</strong> <span class="email-selectable">@Model.Email</span></p>
+					<hr />
+					@{
+						var isEnglish = !string.IsNullOrEmpty(Model.Lang) && Model.Lang.Equals("en", StringComparison.OrdinalIgnoreCase);
+					}
+					@if (isEnglish)
+					{
+						<p><strong>Subject:</strong> <span class="email-selectable">Your Unsubscription from FrostAlert.net</span></p>
+						<hr />
+						<div class="email-selectable">
+							<p>Hello,</p>
+							<p>Your unsubscription has been processed.<br />
+							You may still receive a few alerts but these will be the last ones.</p>
+							<p>Best regards,<br />Yvan from FrostAlert.net</p>
+						</div>
+					}
+					else
+					{
+						<p><strong>Objet:</strong> <span class="email-selectable">Votre désinscription de AlerteGelee.fr</span></p>
+						<hr />
+						<div class="email-selectable">
+							<p>Bonjour,</p>
+							<p>Votre désinscription a bien été prise en compte.<br />
+							Vous avez pu recevoir encore quelques alertes mais ce seront les dernières.</p>
+							<p>Bonne continuation,</p>
+							<p>Cordialement,<br />Yvan de Alertegelee.fr</p>
+						</div>
+					}
+				</div>
+			</div>
+
 			<div class="mt-3 btn-toolbar justify-content-between">
 				<a class="btn btn-primary" asp-page="/UnsubscribeEmail">Unsubscribe another email</a>
 			</div>
@@ -215,6 +251,24 @@ else
 }
 }
 
+<style>
+	.email-selectable {
+		cursor: text;
+		user-select: text;
+	}
+</style>
+
 @section Scripts {
 	<partial name="_ValidationScriptsPartial" />
+	<script>
+		document.querySelectorAll('.email-selectable').forEach(element => {
+			element.addEventListener('click', function (e) {
+				const range = document.createRange();
+				range.selectNodeContents(this);
+				const sel = window.getSelection();
+				sel.removeAllRanges();
+				sel.addRange(range);
+			});
+		});
+	</script>
 }

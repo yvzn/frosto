@@ -16,6 +16,7 @@ public class UnsubscribeEmailModel(LocationService locationService, UnsubscribeE
 	public bool ShowDeletionSummary { get; private set; }
 	public string? SuccessMessage { get; private set; }
 	public IList<UnsubscribeChange> DeletionSummary { get; private set; } = [];
+	public string? Lang { get; private set; }
 
 	[BindProperty]
 	public string? SelectedValidLocationId { get; set; }
@@ -93,6 +94,9 @@ public class UnsubscribeEmailModel(LocationService locationService, UnsubscribeE
 		{
 			return Page();
 		}
+
+		// Store language from valid location if available
+		Lang = confirmedValidLocation?.lang;
 
 		var result = await unsubscribeService.UnsubscribeAsync(Email, confirmedValidLocation, confirmedLocation, confirmedUser, HttpContext.RequestAborted);
 		if (result.Success)

@@ -165,14 +165,16 @@
 	}
 </style>
 
-<script>
-	document.querySelectorAll('.email-selectable').forEach(element => {
-		element.addEventListener('click', function (e) {
-			const range = document.createRange();
-			range.selectNodeContents(this);
-			const sel = window.getSelection();
-			sel.removeAllRanges();
-			sel.addRange(range);
+@section Scripts {
+	<script>
+		document.querySelectorAll('.email-selectable').forEach(element => {
+			element.addEventListener('click', function (e) {
+				const range = document.createRange();
+				range.selectNodeContents(this);
+				const sel = window.getSelection();
+				sel.removeAllRanges();
+				sel.addRange(range);
+			});
 		});
-	});
-</script>
+	</script>
+}
