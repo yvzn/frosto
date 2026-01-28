@@ -8,10 +8,13 @@ using MailKit.Net.Smtp;
 using MailKit.Security;
 using System.Text;
 using System.Threading;
+using Microsoft.Extensions.Logging;
 
 namespace batch.Services.SendMail;
 
-internal class SmtpMailSender(Unsubscribe unsubscribe) : SingleRecipientMailSender
+internal class SmtpMailSender(
+	Unsubscribe unsubscribe,
+	ILogger<SmtpMailSender> logger) : SingleRecipientMailSender
 {
 	private static readonly string ReplyTo = "eXZhbkBhbGVydGVnZWxlZS5mcg==";
 
@@ -38,6 +41,10 @@ internal class SmtpMailSender(Unsubscribe unsubscribe) : SingleRecipientMailSend
 		message.Subject = notification.subject;
 
 		var unsubscribeToken = unsubscribe.BuildUnsubscribeToken(recipient, notification.rowKey);
+		if (!unsubscribeToken.StartsWith("ey"))
+		{
+			logger.LogWarning("Invalid unsubscribe token generated for recipient {recipient}", recipient);
+		}
 
 		var listUnsubscribeHeaders = Unsubscribe.GetListUnsubscribeHeaders(replyTo.Address, unsubscribeToken, notification.lang ?? "fr");
 		foreach (var header in listUnsubscribeHeaders)

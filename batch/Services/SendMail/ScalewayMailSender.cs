@@ -6,10 +6,14 @@ using System.Net.Http;
 using System.Text;
 using System.Collections.Generic;
 using System.Threading;
+using Microsoft.Extensions.Logging;
 
 namespace batch.Services.SendMail;
 
-internal class ScalewayMailSender(Unsubscribe unsubscribe, IHttpClientFactory httpClientFactory) : SingleRecipientMailSender
+internal class ScalewayMailSender(
+	Unsubscribe unsubscribe,
+	IHttpClientFactory httpClientFactory,
+	ILogger<ScalewayMailSender> logger) : SingleRecipientMailSender
 {
 	private static readonly string ReplyTo = "eXZhbkBhbGVydGVnZWxlZS5mcg==";
 
@@ -18,6 +22,10 @@ internal class ScalewayMailSender(Unsubscribe unsubscribe, IHttpClientFactory ht
 	public override async Task<(bool success, string? error)> SendMailAsync(string recipient, Notification notification)
 	{
 		var unsubscribeToken = unsubscribe.BuildUnsubscribeToken(recipient, notification.rowKey);
+		if (!unsubscribeToken.StartsWith("ey"))
+		{
+			logger.LogWarning("Invalid unsubscribe token generated for recipient {recipient}", recipient);
+		}
 
 		var unsubscribeUrl = Unsubscribe.BuildUnsubscribeUrl(unsubscribeToken, notification.lang ?? "fr");
 		var unsubscribeLink = HtmlFormatter.FormatUnsubscribeLink(unsubscribeUrl);
