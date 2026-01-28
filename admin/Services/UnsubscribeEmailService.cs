@@ -12,14 +12,20 @@ public class UnsubscribeEmailService(LocationService locationService, UserServic
 		ArgumentException.ThrowIfNullOrWhiteSpace(email);
 
 		var normalizedEmail = email.Trim();
-		var updatedTargets = new List<string>();
+		var changes = new List<UnsubscribeChange>();
 
 		if (validLocation is not null)
 		{
 			var removed = await _locationService.RemoveUserFromValidLocationAsync(validLocation, normalizedEmail, cancellationToken);
 			if (removed)
 			{
-				updatedTargets.Add($"valid location {validLocation.city}, {validLocation.country} ({validLocation.RowKey})");
+				changes.Add(new UnsubscribeChange(
+					EntityType: "Valid location",
+					Action: "Removed from valid location",
+					Id: validLocation.Id,
+					City: validLocation.city,
+					Country: validLocation.country,
+					Email: normalizedEmail));
 			}
 		}
 
@@ -28,7 +34,13 @@ public class UnsubscribeEmailService(LocationService locationService, UserServic
 			var cleared = await _locationService.ClearLocationUsersAsync(location, normalizedEmail, cancellationToken);
 			if (cleared)
 			{
-				updatedTargets.Add($"location {location.city}, {location.country} ({location.RowKey})");
+				changes.Add(new UnsubscribeChange(
+					EntityType: "Location",
+					Action: "Anonymized user from location",
+					Id: location.Id,
+					City: location.city,
+					Country: location.country,
+					Email: normalizedEmail));
 			}
 		}
 
@@ -37,23 +49,36 @@ public class UnsubscribeEmailService(LocationService locationService, UserServic
 			var disabled = await _userService.DisableUserAsync(user, cancellationToken);
 			if (disabled)
 			{
-				updatedTargets.Add($"user record {user.email} ({user.RowKey})");
+				changes.Add(new UnsubscribeChange(
+					EntityType: "User",
+					Action: "Anonymized user record",
+					Id: user.Id,
+					City: null,
+					Country: null,
+					Email: user.email));
 			}
 		}
 
-		if (updatedTargets.Count == 0)
+		if (changes.Count == 0)
 		{
 			return UnsubscribeResult.Failed($"No matching records were updated for {email}.");
 		}
 
-		var summary = string.Join(" – ", updatedTargets);
-		return UnsubscribeResult.Succeeded($"{email} unsubscribed from {summary}.");
+		return UnsubscribeResult.Succeeded(changes, $"{email} unsubscribed successfully.");
 	}
 }
 
-public readonly record struct UnsubscribeResult(bool Success, string Message)
+public readonly record struct UnsubscribeResult(bool Success, string Message, IReadOnlyList<UnsubscribeChange> Changes)
 {
-	public static UnsubscribeResult Succeeded(string message) => new(true, message);
+	public static UnsubscribeResult Succeeded(IReadOnlyList<UnsubscribeChange> changes, string message) => new(true, message, changes);
 
-	public static UnsubscribeResult Failed(string message) => new(false, message);
+	public static UnsubscribeResult Failed(string message) => new(false, message, Array.Empty<UnsubscribeChange>());
 }
+
+public record UnsubscribeChange(
+	string EntityType,
+	string Action,
+	string? Id,
+	string? City,
+	string? Country,
+	string? Email);

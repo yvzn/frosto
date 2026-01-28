@@ -13,6 +13,10 @@ public class UnsubscribeEmailModel(LocationService locationService, UnsubscribeE
 	[Required]
 	public string Email { get; set; } = string.Empty;
 
+	public bool ShowDeletionSummary { get; private set; }
+	public string? SuccessMessage { get; private set; }
+	public IList<UnsubscribeChange> DeletionSummary { get; private set; } = [];
+
 	[BindProperty]
 	public string? SelectedValidLocationId { get; set; }
 
@@ -31,6 +35,8 @@ public class UnsubscribeEmailModel(LocationService locationService, UnsubscribeE
 
 	public async Task OnGetAsync([FromQuery] string? q, [FromQuery] string? id)
 	{
+		ResetSummary();
+
 		if (!string.IsNullOrWhiteSpace(q))
 		{
 			Email = q.Trim();
@@ -57,6 +63,7 @@ public class UnsubscribeEmailModel(LocationService locationService, UnsubscribeE
 		SelectedLocationId = null;
 		SelectedUserId = null;
 		ErrorMessage = null;
+		ResetSummary();
 
 		await LoadMatchesAsync(HttpContext.RequestAborted);
 
@@ -75,6 +82,7 @@ public class UnsubscribeEmailModel(LocationService locationService, UnsubscribeE
 		Email = Email.Trim();
 		EmailSubmitted = true;
 		ErrorMessage = null;
+		ResetSummary();
 		await LoadMatchesAsync(HttpContext.RequestAborted);
 
 		var confirmedValidLocation = GetSelectedLocation(MatchingValidLocations, SelectedValidLocationId, nameof(SelectedValidLocationId), "Select a valid location entry to continue.");
@@ -89,7 +97,10 @@ public class UnsubscribeEmailModel(LocationService locationService, UnsubscribeE
 		var result = await unsubscribeService.UnsubscribeAsync(Email, confirmedValidLocation, confirmedLocation, confirmedUser, HttpContext.RequestAborted);
 		if (result.Success)
 		{
-			return RedirectToPage("/Index", new { m = result.Message });
+			ShowDeletionSummary = true;
+			SuccessMessage = result.Message;
+			DeletionSummary = [.. result.Changes];
+			return Page();
 		}
 
 		ErrorMessage = result.Message;
@@ -148,5 +159,12 @@ public class UnsubscribeEmailModel(LocationService locationService, UnsubscribeE
 		}
 
 		return match;
+	}
+
+	private void ResetSummary()
+	{
+		ShowDeletionSummary = false;
+		SuccessMessage = null;
+		DeletionSummary.Clear();
 	}
 }

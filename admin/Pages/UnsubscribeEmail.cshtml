@@ -4,7 +4,67 @@
 	ViewData["Title"] = "Unsubscribe";
 }
 
-@if (!Model.EmailSubmitted)
+@if (Model.ShowDeletionSummary)
+{
+	<div class="row mb-5">
+		<div class="col-lg-8">
+			<div class="alert alert-success" role="alert">
+				<h4 class="alert-heading">Unsubscribe completed</h4>
+				<p>@Model.SuccessMessage</p>
+			</div>
+
+			<div class="card">
+				<div class="card-header">
+					<strong>Updated / deleted entities</strong>
+				</div>
+				<div class="card-body">
+					<table class="table table-bordered">
+						<thead>
+							<tr>
+								<th>Entity</th>
+								<th>Action</th>
+								<th>City / Country</th>
+								<th>Email</th>
+								<th>Identifiers</th>
+							</tr>
+						</thead>
+						<tbody>
+							@foreach (var change in Model.DeletionSummary)
+							{
+								<tr>
+									<td>@change.EntityType</td>
+									<td>@change.Action</td>
+									<td>
+										@if (!string.IsNullOrWhiteSpace(change.City) ||
+																		!string.IsNullOrWhiteSpace(change.Country))
+										{
+											<span>@string.Join(", ", new[] { change.City, change.Country }.Where(part =>
+																					!string.IsNullOrWhiteSpace(part)))</span>
+																}
+										else
+										{
+											<span class="text-muted">–</span>
+										}
+									</td>
+									<td>@(string.IsNullOrWhiteSpace(change.Email) ? "–" : change.Email)</td>
+									<td>
+										<div class="text-break"><strong>Id</strong>: @(string.IsNullOrWhiteSpace(change.Id) ?
+																				"–" : change.Id)</div>
+									</td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</div>
+			</div>
+
+			<div class="mt-3 btn-toolbar justify-content-between">
+				<a class="btn btn-primary" asp-page="/UnsubscribeEmail">Unsubscribe another email</a>
+			</div>
+		</div>
+	</div>
+}
+else if (!Model.EmailSubmitted)
 {
 	<div class="row">
 		<form method="post" class="col-lg-6 p-5 mb-5 border rounded-3 bg-light">
