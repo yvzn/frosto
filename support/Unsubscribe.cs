@@ -4,7 +4,6 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Azure;
 using Azure.Data.Tables;
 using support.Model;
-using System.Collections.Specialized;
 using System.Web;
 
 namespace support;
@@ -21,15 +20,15 @@ public class Unsubscribe
 #endif
 	}
 
-	[Function("Unsubscribe")]
-	public async Task<IActionResult> RunAsync(
-		[HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "unsubscribe")]
+	[Function("UnsubscribePost")]
+	public async Task<IActionResult> UnsubscribePostAsync(
+		[HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "unsubscribe")]
 		HttpRequest request)
 	{
 		var queryParameters = request.Query;
 
 		var siteUrl = queryParameters["lang"] == "en" ? AppSettings.SiteEnUrl : AppSettings.SiteFrUrl;
-		var redirectionUrl = new UriBuilder(siteUrl + "unsubscribe-complete.html");
+		var redirectionUrl = new Uri(siteUrl + "unsubscribe-complete.html");
 
 		if (IsValid(queryParameters))
 		{
@@ -38,13 +37,21 @@ public class Unsubscribe
 		}
 		else
 		{
-			redirectionUrl = new UriBuilder(siteUrl + "unsubscribe.html");
-			var redirectionParameters = HttpUtility.ParseQueryString(string.Empty);
-			redirectionParameters.Add("email", queryParameters["email"]);
-			redirectionParameters.Add("id", queryParameters["id"]);
-			redirectionParameters.Add("reason", queryParameters["reason"]);
-			redirectionUrl.Query = redirectionParameters.ToString() ?? string.Empty;
+			redirectionUrl = BuildConfirmationUrl(queryParameters);
 		}
+
+		request.HttpContext.Response.Headers.Append("Location", redirectionUrl.ToString());
+		return new StatusCodeResult(StatusCodes.Status303SeeOther);
+	}
+
+	[Function("UnsubscribeGet")]
+	public async Task<IActionResult> UnsubscribeGetAsync(
+		[HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "unsubscribe")]
+		HttpRequest request)
+	{
+		var queryParameters = request.Query;
+
+		var redirectionUrl = BuildConfirmationUrl(queryParameters);
 
 		request.HttpContext.Response.Headers.Append("Location", redirectionUrl.ToString());
 		return new StatusCodeResult(StatusCodes.Status303SeeOther);
@@ -77,6 +84,23 @@ public class Unsubscribe
 			email = queryParameters["email"],
 			id = Guid.TryParse(queryParameters["id"], out var guid) ? guid : default,
 			reason = queryParameters["reason"],
+			origin = string.IsNullOrEmpty(queryParameters["origin"]) ? "post" : queryParameters["origin"],
 			lang = queryParameters["lang"],
 		};
+
+	private static Uri BuildConfirmationUrl(IQueryCollection queryParameters)
+	{
+		var baseUrl = queryParameters["lang"] == "en" ? AppSettings.SiteEnUrl : AppSettings.SiteFrUrl;
+
+		var confirmationUrl = new UriBuilder(baseUrl + "unsubscribe.html");
+		var confirmationParameters = HttpUtility.ParseQueryString(string.Empty);
+		confirmationParameters.Add("user", queryParameters["user"]);
+		confirmationParameters.Add("email", queryParameters["email"]);
+		confirmationParameters.Add("id", queryParameters["id"]);
+		confirmationParameters.Add("reason", queryParameters["reason"]);
+		confirmationParameters.Add("origin", queryParameters["origin"]);
+		confirmationUrl.Query = confirmationParameters.ToString() ?? string.Empty;
+
+		return confirmationUrl.Uri;
+	}
 }

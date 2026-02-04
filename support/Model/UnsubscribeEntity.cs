@@ -9,6 +9,7 @@ public class UnsubscribeEntity: Azure.Data.Tables.ITableEntity
 	public string? email { get; set; }
 	public Guid? id { get; set; }
 	public string? reason { get; set; }
+	public string? origin { get; set; }
 	public string? lang { get; set; }
 
 	public required string PartitionKey {get; set; }
