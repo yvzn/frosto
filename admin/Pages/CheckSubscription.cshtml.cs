@@ -13,6 +13,13 @@ public class CheckSubscriptionModel(
 	[BindProperty]
 	public CheckSubscription? SelectedRequest { get; set; }
 
+	public string SelectedRequestLang => string.IsNullOrEmpty(SelectedRequest?.lang) ? "fr" : SelectedRequest.lang;
+
+	public string ContactEmail =>
+		"en".Equals(SelectedRequestLang, StringComparison.OrdinalIgnoreCase)
+			? System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(ContactDataService.FromEnglish))
+			: System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(ContactDataService.FromFrench));
+
 	public IList<CheckSubscription> CheckSubscriptionRequests { get; private set; } = [];
 
 	public IList<Location> FoundLocations { get; private set; } = [];

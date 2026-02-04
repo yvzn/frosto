@@ -36,7 +36,8 @@
 							<td>
 								<form method="post" class="d-inline">
 									<input type="hidden" name="SelectedRequest.Id" value="@request.Id" />
-									<button type="submit" class="btn btn-link p-0" asp-page-handler="Search">Search subscription</button>
+									<button type="submit" class="btn btn-link p-0" asp-page-handler="Search">Search
+										subscription</button>
 								</form>
 							</td>
 						</tr>
@@ -62,8 +63,7 @@
 			}
 			else if (Model.FoundLocations.Count > 0)
 			{
-				var isEnglish = !string.IsNullOrEmpty(Model.SelectedRequest?.lang) && Model.SelectedRequest.lang.Equals("en",
-				StringComparison.OrdinalIgnoreCase);
+				var isEnglish = "en".Equals(Model.SelectedRequestLang, StringComparison.OrdinalIgnoreCase);
 
 				<div class="alert alert-success" role="alert">
 					<p class="mb-0"><strong>User @Model.SelectedRequest?.email is subscribed!</strong></p>
@@ -112,6 +112,7 @@
 										<li>@location.city, @location.country</li>
 									}
 								</ul>
+								<p>>To ensure you receive your alerts, please add @Model.ContactEmail to your contact list.</p>
 								<p>To unsubscribe, reply "STOP" to this message.</p>
 								<p>Best regards,<br />Yvan from FrostAlert.net</p>
 							</div>
@@ -130,6 +131,7 @@
 										<li>@location.city, @location.country</li>
 									}
 								</ul>
+								<p>Pour bien recevoir vos alertes, pensez à ajouter @Model.ContactEmail à votre liste de contacts.</p>
 								<p>Pour vous désinscrire, répondez "STOP" à ce message.</p>
 								<p>Cordialement,<br />Yvan de AlerteGelee.fr</p>
 							</div>
@@ -149,7 +151,8 @@
 			<details>
 				<summary>Mark request as completed</summary>
 				<input type="hidden" name="SelectedRequest.Id" value="@Model.SelectedRequest.Id" />
-				<button type="submit" class="btn btn-danger mt-3" asp-page-handler="Complete">Complete &amp; discard</button>
+				<button type="submit" class="btn btn-danger mt-3" asp-page-handler="Complete">Complete &amp;
+					discard</button>
 			</details>
 		</form>
 	</div>
