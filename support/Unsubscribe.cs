@@ -25,15 +25,17 @@ public class Unsubscribe
 		[HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "unsubscribe")]
 		HttpRequest request)
 	{
-		var queryParameters = request.Query;
+		var queryParameters = await GetQueryParameters(request);
 
-		var siteUrl = queryParameters["lang"] == "en" ? AppSettings.SiteEnUrl : AppSettings.SiteFrUrl;
-		var redirectionUrl = new Uri(siteUrl + "unsubscribe-complete.html");
+		Uri redirectionUrl;
 
 		if (IsValid(queryParameters))
 		{
 			var unsubscribeEntity = ParseUnsubscribeEntity(queryParameters);
 			await unsubscribeEntities.AddEntityAsync(unsubscribeEntity);
+
+			var siteUrl = GetSiteUrl(queryParameters);
+			redirectionUrl = new Uri(siteUrl + "unsubscribe-complete.html");
 		}
 		else
 		{
@@ -49,7 +51,7 @@ public class Unsubscribe
 		[HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "unsubscribe")]
 		HttpRequest request)
 	{
-		var queryParameters = request.Query;
+		var queryParameters = await GetQueryParameters(request);
 
 		var redirectionUrl = BuildConfirmationUrl(queryParameters);
 
@@ -57,50 +59,108 @@ public class Unsubscribe
 		return new StatusCodeResult(StatusCodes.Status303SeeOther);
 	}
 
-	private static bool IsValid(IQueryCollection queryParameters)
+	private async static Task<UnsubscribeQueryParameters> GetQueryParameters(HttpRequest request)
+	{
+		var result = new UnsubscribeQueryParameters();
+
+		// parameters can be sent either via query string or form data, we need to read both and combine them
+
+		var queryStringParameters = request.Query;
+		foreach (var key in queryStringParameters.Keys)
+		{
+			result[key] = [.. queryStringParameters[key]];
+		}
+
+		var requestBody = await new StreamReader(request.Body).ReadToEndAsync();
+		var formDataParameters = HttpUtility.ParseQueryString(requestBody);
+
+		foreach (var key in formDataParameters.AllKeys)
+		{
+			if (key is null) continue;
+
+			var formValues = formDataParameters.GetValues(key);
+			if (formValues is null) continue;
+
+			if (result.TryGetValue(key, out string?[]? queryStringValues))
+			{
+				result[key] = [.. queryStringValues, .. formValues];
+			}
+			else
+			{
+				result[key] = [.. formValues];
+			}
+		}
+
+		return result;
+	}
+
+	private static bool IsValid(UnsubscribeQueryParameters queryParameters)
 		=> (IsTokenValid(queryParameters) || IsEmailValid(queryParameters))
-		&& queryParameters["lang"].Count == 1
-		&& queryParameters["lang"].All(v => v == "en" || v == "fr");
+		&& IsLangValid(queryParameters);
 
-	private static bool IsTokenValid(IQueryCollection queryParameters)
+	private static bool IsTokenValid(UnsubscribeQueryParameters queryParameters)
 		=> new[] { "token", "user" }
-		.Any(key => queryParameters[key].Count == 1
-			&& queryParameters[key].All(v => !string.IsNullOrWhiteSpace(v))
-			&& queryParameters[key].All(v => v?.StartsWith("ey") is true));
+		.Any(key => queryParameters.TryGetValue(key, out var values)
+			&& values.Length == 1
+			&& values.All(v => v?.StartsWith("ey") is true));
 
-	private static bool IsEmailValid(IQueryCollection queryParameters)
-		=> queryParameters["email"].Count == 1
-		&& !string.IsNullOrWhiteSpace(queryParameters["email"])
-		&& queryParameters["id"].Count == 1
-		&& Guid.TryParse(queryParameters["id"], out _);
+	private static bool IsEmailValid(UnsubscribeQueryParameters queryParameters)
+		=> queryParameters.TryGetValue("email", out var emailValues)
+			&& emailValues.Length == 1
+			&& emailValues.All(v => !string.IsNullOrWhiteSpace(v))
+		&& queryParameters.TryGetValue("id", out var idValues)
+			&& idValues.Length == 1
+			&& idValues.All(v => Guid.TryParse(v, out _));
 
-	private static UnsubscribeEntity ParseUnsubscribeEntity(IQueryCollection queryParameters)
+	private static bool IsLangValid(UnsubscribeQueryParameters queryParameters)
+		=> queryParameters.TryGetValue("lang", out var langValues)
+			&& langValues.Length == 1
+			&& langValues.All(v => v == "en" || v == "fr");
+
+	private static UnsubscribeEntity ParseUnsubscribeEntity(UnsubscribeQueryParameters queryParameters)
 		=> new()
 		{
 			PartitionKey = nameof(UnsubscribeEntity),
 			RowKey = Guid.NewGuid().ToString(),
-			token = queryParameters["token"],
-			user = queryParameters["user"],
-			email = queryParameters["email"],
-			id = Guid.TryParse(queryParameters["id"], out var guid) ? guid : default,
-			reason = queryParameters["reason"],
-			origin = string.IsNullOrEmpty(queryParameters["origin"]) ? "post" : queryParameters["origin"],
-			lang = queryParameters["lang"],
+			token = queryParameters.FirstOrDefault("token"),
+			user = queryParameters.FirstOrDefault("user"),
+			email = queryParameters.FirstOrDefault("email"),
+			id = Guid.TryParse(queryParameters.FirstOrDefault("id"), out var guid) ? guid : default,
+			reason = queryParameters.FirstOrDefault("reason"),
+			origin = queryParameters.FirstOrDefault("origin", defaultValue: "post"),
+			lang = queryParameters.FirstOrDefault("lang"),
 		};
 
-	private static Uri BuildConfirmationUrl(IQueryCollection queryParameters)
+	private static Uri BuildConfirmationUrl(UnsubscribeQueryParameters queryParameters)
 	{
-		var baseUrl = queryParameters["lang"] == "en" ? AppSettings.SiteEnUrl : AppSettings.SiteFrUrl;
+		var baseUrl = GetSiteUrl(queryParameters);
 
 		var confirmationUrl = new UriBuilder(baseUrl + "unsubscribe.html");
 		var confirmationParameters = HttpUtility.ParseQueryString(string.Empty);
-		confirmationParameters.Add("user", queryParameters["user"]);
-		confirmationParameters.Add("email", queryParameters["email"]);
-		confirmationParameters.Add("id", queryParameters["id"]);
-		confirmationParameters.Add("reason", queryParameters["reason"]);
-		confirmationParameters.Add("origin", queryParameters["origin"]);
+		confirmationParameters.Add("user", queryParameters.FirstOrDefault("user"));
+		confirmationParameters.Add("email", queryParameters.FirstOrDefault("email"));
+		confirmationParameters.Add("id", queryParameters.FirstOrDefault("id"));
+		confirmationParameters.Add("reason", queryParameters.FirstOrDefault("reason"));
+		confirmationParameters.Add("origin", queryParameters.FirstOrDefault("origin", defaultValue: "site"));
 		confirmationUrl.Query = confirmationParameters.ToString() ?? string.Empty;
 
 		return confirmationUrl.Uri;
+	}
+
+	private static string GetSiteUrl(UnsubscribeQueryParameters queryParameters)
+		=> queryParameters.TryGetValue("lang", out var langValues) && langValues.Contains("en")
+			? AppSettings.SiteEnUrl
+			: AppSettings.SiteFrUrl;
+}
+
+internal class UnsubscribeQueryParameters : Dictionary<string, string?[]>
+{
+	public string? FirstOrDefault(string key, string? defaultValue = default)
+	{
+		if (TryGetValue(key, out var values) && values.Length > 0)
+		{
+			return values.FirstOrDefault(v => !string.IsNullOrWhiteSpace(v));
+		}
+		return defaultValue;
 	}
 }
