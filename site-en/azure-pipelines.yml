@@ -20,7 +20,7 @@ jobs:
     inputs:
       targetType: 'inline'
       # npm will not pick environment variables, use .env files instead
-      script: './build-env-production.ps1 -SignUpUrl $(signUpUrl) -HealthCheckUrl $(healthCheckUrl) -SupportUrl $(supportUrl) -CheckSubscriptionUrl $(checkSubscriptionUrl)'
+      script: './build-env-production.ps1 -SignUpUrl $(signUpUrl) -HealthCheckUrl $(healthCheckUrl) -SupportUrl $(supportUrl) -CheckSubscriptionUrl $(checkSubscriptionUrl) -UnsubscribeUrl $(unsubscribeUrl)'
       workingDirectory: 'site-en'
   - task: Npm@1
     displayName: 'npm install'
