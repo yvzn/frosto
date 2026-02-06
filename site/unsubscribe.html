@@ -4,13 +4,11 @@
 <head>
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<meta name="description"
-		content="Vérifiez si vous êtes abonné aux alertes gel. Vérifiez votre statut d'abonnement pour des alertes gel personnalisées." />
 	<link rel="icon" type="image/svg+xml" href="./asset/favicon.svg" />
-	<link rel="canonical" href="https://www.alertegelee.fr/check-subscription.html" />
-	<title>Vérifier mon inscription - Alerte gelées</title>
-	<link rel="alternate" hreflang="fr" href="https://www.alertegelee.fr/check-subscription.html" />
-	<link rel="alternate" hreflang="en" href="https://www.frostalert.net/check-subscription.html" />
+	<link rel="canonical" href="https://www.alertegelee.fr/unsubscribe.html" />
+	<title>Confirmation de désinscription - Alerte gelées</title>
+	<link rel="alternate" hreflang="fr" href="https://www.alertegelee.fr/unsubscribe.html" />
+	<link rel="alternate" hreflang="en" href="https://www.frostalert.net/unsubscribe.html" />
 	<meta name="robots" content="noindex" />
 </head>
 
@@ -22,7 +20,7 @@
 					class="navbar-brand d-flex align-items-center text-white text-decoration-none">Alerte
 					gelées</a>
 				<ul class="nav ms-auto justify-content-center">
-					<li><a href="https://www.frostalert.net/check-subscription.html" class="nav-link px-2 text-white"
+					<li><a href="https://www.frostalert.net/unsubscribe.html" class="nav-link px-2 text-white"
 							lang="en">English version</a></li>
 				</ul>
 			</nav>
@@ -33,15 +31,12 @@
 		<section class="py-5 container">
 			<div class="row py-lg-5">
 				<article class="col-lg-6 p-4 p-md-5">
-					<h1 class="fw-light mb-3">Vérifier mon inscription</h1>
-					<p class="lead text-muted col-lg-10">Entrez votre adresse e-mail pour vérifier si vous êtes abonné à
-						notre service d'alerte gel.</p>
-					<p class="text-muted col-lg-10">Nous vérifierons notre base de données et confirmerons le statut
-						de votre inscription.</p>
+					<h1 class="fw-light mb-3">Confirmation de désinscription</h1>
+					<p class="lead text-muted col-lg-10">Veuillez confirmer vos coordonnées afin de ne plus recevoir d'alertes.</p>
 				</article>
 				<article class="col-md-10 mx-auto col-lg-6">
-					<form class="p-4 p-md-5 border rounded-3 bg-light" action="%VITE_CHECKSUBSCRIPTION_URL%"
-						aria-label="Formulaire de vérification d'inscription" method="post"
+					<form class="p-4 p-md-5 border rounded-3 bg-light" action="%VITE_UNSUBSCRIBE_URL%"
+						aria-label="Formulaire de confirmation de désinscription" method="post"
 						enctype="application/x-www-form-urlencoded">
 						<div class="form-floating mb-3">
 							<input type="email" class="form-control" id="email" name="email"
@@ -49,15 +44,17 @@
 								autocomplete="email" />
 							<label for="email">Adresse e-mail</label>
 						</div>
-						<div class="checkbox mb-3">
-							<label for="userConsent">
-								<input type="checkbox" id="userConsent" name="userConsent" value="true"
-									required="required" />
-								<small>J'accepte que mes coordonnées personnelles soient utilisées
-									dans le cadre de ce service.</small></label>
+						<div class="form-floating mb-3" aria-hidden="true">
+							<input type="text" class="form-control" id="reason" name="reason"
+								placeholder="exemple : Trop de messages" required="required"
+								autocomplete="none" />
+							<label for="reason">Raison de la désinscription</label>
 						</div>
+						<input type="hidden" id="user" name="user" value="fr" />
+						<input type="hidden" id="id" name="id" value="" />
+						<input type="hidden" id="origin" name="origin" value="site" />
 						<input type="hidden" id="lang" name="lang" value="fr" />
-						<button class="w-100 btn btn-lg btn-primary" type="submit" aria-live="polite">Vérifier</button>
+						<button class="w-100 btn btn-lg btn-primary" type="submit" aria-live="polite">Se désinscrire</button>
 					</form>
 				</article>
 			</div>
@@ -73,7 +70,7 @@
 		</section>
 	</main>
 
-	<script type="module" src="./check-subscription.js"></script>
+	<script type="module" src="./unsubscribe.js"></script>
 </body>
 
 </html>
