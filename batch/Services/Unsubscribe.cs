@@ -63,7 +63,7 @@ public class Unsubscribe: IDisposable
 		var queryString = HttpUtility.ParseQueryString(string.Empty);
 			queryString.Add("user", unsubscribeToken);
 			queryString.Add("email", notification.to);
-			queryString.Add("id", notification.rowKey);
+			queryString.Add("locid", notification.rowKey);
 			queryString.Add("lang", notification.lang ?? "fr");
 
 		uriBuilder.Query = queryString.ToString();

@@ -122,7 +122,7 @@ public class Unsubscribe
 			token = queryParameters.FirstOrDefault("token"),
 			user = queryParameters.FirstOrDefault("user"),
 			email = queryParameters.FirstOrDefault("email"),
-			id = queryParameters.FirstOrDefault("id"),
+			locid = queryParameters.FirstOrDefault("locid"),
 			reason = queryParameters.FirstOrDefault("reason"),
 			origin = queryParameters.FirstOrDefault("origin", defaultValue: "post"),
 			lang = queryParameters.FirstOrDefault("lang"),
@@ -136,7 +136,7 @@ public class Unsubscribe
 		var confirmationParameters = HttpUtility.ParseQueryString(string.Empty);
 		confirmationParameters.Add("user", queryParameters.FirstOrDefault("user"));
 		confirmationParameters.Add("email", queryParameters.FirstOrDefault("email"));
-		confirmationParameters.Add("id", queryParameters.FirstOrDefault("id"));
+		confirmationParameters.Add("locid", queryParameters.FirstOrDefault("locid"));
 		confirmationParameters.Add("reason", queryParameters.FirstOrDefault("reason"));
 		confirmationParameters.Add("origin", queryParameters.FirstOrDefault("origin", defaultValue: origin));
 		confirmationUrl.Query = confirmationParameters.ToString() ?? string.Empty;
