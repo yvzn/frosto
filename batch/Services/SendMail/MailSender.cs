@@ -19,7 +19,9 @@ abstract class SingleRecipientMailSender : IMailSender
 
 	public async Task<(bool success, string? error)> SendMailAsync(Notification notification)
 	{
-		var tasks = notification.to.Select(recipient => SendMailAsync(recipient, notification));
+		var tasks = notification.to
+			.Select(recipient => new SingleRecipientNotification(recipient, notification))
+			.Select(SendMailAsync);
 
 		var results = await Task.WhenAll(tasks);
 
@@ -35,5 +37,5 @@ abstract class SingleRecipientMailSender : IMailSender
 		return (overallSuccess, overallError);
 	}
 
-	public abstract Task<(bool success, string? error)> SendMailAsync(string recipient, Notification notification);
+	public abstract Task<(bool success, string? error)> SendMailAsync(SingleRecipientNotification notification);
 }

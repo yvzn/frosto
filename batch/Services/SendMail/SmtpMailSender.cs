@@ -18,7 +18,7 @@ internal class SmtpMailSender(
 {
 	private static readonly string ReplyTo = "eXZhbkBhbGVydGVnZWxlZS5mcg==";
 
-	public override async Task<(bool success, string? error)> SendMailAsync(string recipient, Notification notification)
+	public override async Task<(bool success, string? error)> SendMailAsync(SingleRecipientNotification notification)
 	{
 		var privateKey = File.OpenRead(Path.Combine(ThisFunctionApp.WorkingDirectory, "dkim_private.pem"));
 		var replyTo = new System.Net.Mail.MailAddress(Encoding.UTF8.GetString(Convert.FromBase64String(ReplyTo)));
@@ -37,26 +37,26 @@ internal class SmtpMailSender(
 		// Composing the whole email
 		var message = new MimeMessage();
 		message.From.Add(new MailboxAddress("Yvan de Alertegelee.fr", replyTo.Address));
-		message.To.Add(new MailboxAddress(recipient, recipient));
+		message.To.Add(new MailboxAddress(notification.to, notification.to));
 		message.Subject = notification.subject;
 
-		var unsubscribeToken = unsubscribe.BuildUnsubscribeToken(recipient, notification.rowKey);
+		var unsubscribeToken = unsubscribe.BuildUnsubscribeToken(notification);
 		if (!unsubscribeToken.StartsWith("ey"))
 		{
-			logger.LogWarning("Invalid unsubscribe token generated for recipient {recipient}", recipient);
+			logger.LogWarning("Invalid unsubscribe token generated for recipient {recipient}", notification.to);
 		}
 
-		var listUnsubscribeHeaders = Unsubscribe.GetListUnsubscribeHeaders(replyTo.Address, unsubscribeToken, notification.lang ?? "fr");
+		var listUnsubscribeHeaders = Unsubscribe.GetListUnsubscribeHeaders(replyTo.Address, unsubscribeToken, notification);
 		foreach (var header in listUnsubscribeHeaders)
 			message.Headers.Add(header.Key, header.Value);
 
-		var unsubscribeUrl = Unsubscribe.BuildUnsubscribeUrl(unsubscribeToken, notification.lang ?? "fr");
+		var unsubscribeUrl = Unsubscribe.BuildUnsubscribeUrl(unsubscribeToken, notification);
 		var unsubscribeLink = HtmlFormatter.FormatUnsubscribeLink(unsubscribeUrl);
 
 		var builder = new BodyBuilder
 		{
 			TextBody = notification.raw,
-			HtmlBody = notification.body?.Replace(HtmlFormatter.unsubscribeLinkPlaceholder, unsubscribeUrl)
+			HtmlBody = notification.body?.Replace(HtmlFormatter.unsubscribeLinkPlaceholder, unsubscribeLink)
 		};
 
 		message.Body = builder.ToMessageBody();

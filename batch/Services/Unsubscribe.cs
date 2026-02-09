@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Security.Cryptography;
+using System.Web;
+using batch.Models;
 using Microsoft.IdentityModel.Tokens;
 
 namespace batch.Services;
@@ -34,10 +36,13 @@ public class Unsubscribe: IDisposable
 		return credentials;
 	}
 
-	public static IDictionary<string, string> GetListUnsubscribeHeaders(string senderEmail, string unsubscribeToken, string language)
+	public static IDictionary<string, string> GetListUnsubscribeHeaders(
+		string senderEmail,
+		string unsubscribeToken,
+		SingleRecipientNotification notification)
 	{
 		var mailto = BuildMailtoHeader(senderEmail);
-		var http = BuildHttpHeader(unsubscribeToken, language);
+		var http = BuildHttpHeader(unsubscribeToken, notification);
 		return new Dictionary<string, string>
 		{
 			{ "List-Unsubscribe", $"{mailto}, {http}" },
@@ -48,18 +53,28 @@ public class Unsubscribe: IDisposable
 	private static string BuildMailtoHeader(string senderEmail)
 		=> $"<mailto:{senderEmail}?subject=STOP&body=STOP>";
 
-	private static string BuildHttpHeader(string unsubscribeToken, string language)
-		=> $"<{BuildUnsubscribeUrl(unsubscribeToken, language)}>";
+	private static string BuildHttpHeader(string unsubscribeToken, SingleRecipientNotification notification)
+		=> $"<{BuildUnsubscribeUrl(unsubscribeToken, notification)}>";
 
-	internal static string BuildUnsubscribeUrl(string unsubscribeToken, string language)
+	internal static string BuildUnsubscribeUrl(string unsubscribeToken, SingleRecipientNotification notification)
 	{
-		return $"{AppSettings.UnsubscribeUrl}?token={unsubscribeToken}&lang={language}";
+		var uriBuilder = new UriBuilder(AppSettings.UnsubscribeUrl);
+
+		var queryString = HttpUtility.ParseQueryString(string.Empty);
+			queryString.Add("user", unsubscribeToken);
+			queryString.Add("email", notification.to);
+			queryString.Add("id", notification.rowKey);
+			queryString.Add("lang", notification.lang ?? "fr");
+
+		uriBuilder.Query = queryString.ToString();
+
+		return uriBuilder.ToString();
 	}
 
-	internal string BuildUnsubscribeToken(string recipientEmail, string? subscriptionId)
+	internal string BuildUnsubscribeToken(SingleRecipientNotification notification)
 	{
-		var sub = recipientEmail;
-		var sub_id = subscriptionId ?? "none";
+		var sub = notification.to;
+		var sub_id = notification.rowKey ?? "none";
 
 		var token = new JwtSecurityToken(
 			claims:
