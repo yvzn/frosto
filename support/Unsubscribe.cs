@@ -39,7 +39,7 @@ public class Unsubscribe
 		}
 		else
 		{
-			redirectionUrl = BuildConfirmationUrl(queryParameters);
+			redirectionUrl = BuildConfirmationUrl(queryParameters, "post_invalid");
 		}
 
 		request.HttpContext.Response.Headers.Append("Location", redirectionUrl.ToString());
@@ -53,7 +53,7 @@ public class Unsubscribe
 	{
 		var queryParameters = await GetQueryParameters(request);
 
-		var redirectionUrl = BuildConfirmationUrl(queryParameters);
+		var redirectionUrl = BuildConfirmationUrl(queryParameters, "get");
 
 		request.HttpContext.Response.Headers.Append("Location", redirectionUrl.ToString());
 		return new StatusCodeResult(StatusCodes.Status303SeeOther);
@@ -107,10 +107,7 @@ public class Unsubscribe
 	private static bool IsEmailValid(UnsubscribeQueryParameters queryParameters)
 		=> queryParameters.TryGetValue("email", out var emailValues)
 			&& emailValues.Length == 1
-			&& emailValues.All(v => !string.IsNullOrWhiteSpace(v))
-		&& queryParameters.TryGetValue("id", out var idValues)
-			&& idValues.Length == 1
-			&& idValues.All(v => Guid.TryParse(v, out _));
+			&& emailValues.All(v => !string.IsNullOrWhiteSpace(v));
 
 	private static bool IsLangValid(UnsubscribeQueryParameters queryParameters)
 		=> queryParameters.TryGetValue("lang", out var langValues)
@@ -125,13 +122,13 @@ public class Unsubscribe
 			token = queryParameters.FirstOrDefault("token"),
 			user = queryParameters.FirstOrDefault("user"),
 			email = queryParameters.FirstOrDefault("email"),
-			id = Guid.TryParse(queryParameters.FirstOrDefault("id"), out var guid) ? guid : default,
+			id = queryParameters.FirstOrDefault("id"),
 			reason = queryParameters.FirstOrDefault("reason"),
 			origin = queryParameters.FirstOrDefault("origin", defaultValue: "post"),
 			lang = queryParameters.FirstOrDefault("lang"),
 		};
 
-	private static Uri BuildConfirmationUrl(UnsubscribeQueryParameters queryParameters)
+	private static Uri BuildConfirmationUrl(UnsubscribeQueryParameters queryParameters, string origin)
 	{
 		var baseUrl = GetSiteUrl(queryParameters);
 
@@ -141,7 +138,7 @@ public class Unsubscribe
 		confirmationParameters.Add("email", queryParameters.FirstOrDefault("email"));
 		confirmationParameters.Add("id", queryParameters.FirstOrDefault("id"));
 		confirmationParameters.Add("reason", queryParameters.FirstOrDefault("reason"));
-		confirmationParameters.Add("origin", queryParameters.FirstOrDefault("origin", defaultValue: "site"));
+		confirmationParameters.Add("origin", queryParameters.FirstOrDefault("origin", defaultValue: origin));
 		confirmationUrl.Query = confirmationParameters.ToString() ?? string.Empty;
 
 		return confirmationUrl.Uri;
