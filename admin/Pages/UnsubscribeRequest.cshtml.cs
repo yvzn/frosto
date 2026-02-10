@@ -40,7 +40,7 @@ public class UnsubscribeRequestModel(
 			return Page();
 		}
 
-		var token = CurrentRequest.token;
+		var token = CurrentRequest.user;
 		if (string.IsNullOrEmpty(token))
 		{
 			ErrorMessage = "Token is empty.";

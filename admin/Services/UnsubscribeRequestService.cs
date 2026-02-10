@@ -43,7 +43,11 @@ public class UnsubscribeRequestService(IAzureClientFactory<TableClient> azureCli
 	{
 		return new()
 		{
-			token = entity.token ?? "",
+			user = entity.user ?? "",
+			email = entity.email ?? "",
+			locid = entity.locid ?? "",
+			reason = entity.reason ?? "",
+			origin = entity.origin ?? "",
 			lang = entity.lang ?? "",
 			PartitionKey = entity.PartitionKey ?? "",
 			RowKey = entity.RowKey ?? "",

@@ -2,6 +2,9 @@
 @model admin.Pages.UnsubscribeRequestModel
 @{
 	ViewData["Title"] = "Unsubscribe by link";
+	var hasEmail = !string.IsNullOrWhiteSpace(Model.CurrentRequest?.email);
+	var hasLocid = !string.IsNullOrWhiteSpace(Model.CurrentRequest?.locid);
+	var hasEmailScenario = hasEmail;
 }
 
 <div class="text-center">
@@ -12,16 +15,9 @@
 {
 	<div class="row mb-5">
 		<div class="col-12">
-			<h2>Token Validation Results</h2>
-
-			@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+			@if (hasEmailScenario)
 			{
-				<div class="alert alert-danger" role="alert">
-					@Model.ErrorMessage
-				</div>
-			}
-			else
-			{
+				<h2>Request Details</h2>
 				<div class="table-responsive">
 					<table class="table table-bordered">
 						<thead>
@@ -32,39 +28,88 @@
 						</thead>
 						<tbody>
 							<tr>
-								<td><strong>Signature Verification</strong></td>
-								<td>
-									@if (Model.SignatureValid)
-									{
-										<span class="badge bg-success">Valid</span>
-									}
-									else
-									{
-										<span class="badge bg-danger">Invalid</span>
-									}
-								</td>
+								<td><strong>Email</strong></td>
+								<td>@Model.CurrentRequest?.email</td>
 							</tr>
-							<tr>
-								<td><strong>Algorithm</strong></td>
-								<td>@Model.Algorithm</td>
-							</tr>
-							@foreach (var claim in Model.TokenClaims)
+							@if (hasLocid)
 							{
 								<tr>
-									<td><strong>@claim.Key</strong></td>
-									<td>@claim.Value</td>
+									<td><strong>Location Id</strong></td>
+									<td>@Model.CurrentRequest?.locid</td>
 								</tr>
 							}
 						</tbody>
 					</table>
 				</div>
-			}
 
-			@if (string.IsNullOrEmpty(Model.ErrorMessage) && Model.SignatureValid)
+				@if (hasLocid)
+				{
+					<a asp-page="./UnsubscribeEmail" asp-route-q='@Model.CurrentRequest?.email'
+						asp-route-id='@Model.CurrentRequest?.locid' target="_blank" class="btn btn-success mt-3">Proceed to
+						Unsubscribe</a>
+				}
+				else
+				{
+					<a asp-page="./UnsubscribeEmail" asp-route-q='@Model.CurrentRequest?.email'
+						target="_blank" class="btn btn-success mt-3">Proceed to Unsubscribe</a>
+				}
+			}
+			else
 			{
-				<a asp-page="./UnsubscribeEmail" asp-route-q='@Model.TokenClaims["sub"]'
-					asp-route-id='@Model.TokenClaims["sub_id"]' target="_blank" class="btn btn-success mt-3">Proceed to
-					Unsubscribe</a>
+				<h2>Token Validation Results</h2>
+
+				@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+				{
+					<div class="alert alert-danger" role="alert">
+						@Model.ErrorMessage
+					</div>
+				}
+				else
+				{
+					<div class="table-responsive">
+						<table class="table table-bordered">
+							<thead>
+								<tr>
+									<th>Property</th>
+									<th>Value</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td><strong>Signature Verification</strong></td>
+									<td>
+										@if (Model.SignatureValid)
+										{
+											<span class="badge bg-success">Valid</span>
+										}
+										else
+										{
+											<span class="badge bg-danger">Invalid</span>
+										}
+									</td>
+								</tr>
+								<tr>
+									<td><strong>Algorithm</strong></td>
+									<td>@Model.Algorithm</td>
+								</tr>
+								@foreach (var claim in Model.TokenClaims)
+								{
+									<tr>
+										<td><strong>@claim.Key</strong></td>
+										<td>@claim.Value</td>
+									</tr>
+								}
+							</tbody>
+						</table>
+					</div>
+				}
+
+				@if (string.IsNullOrEmpty(Model.ErrorMessage) && Model.SignatureValid)
+				{
+					<a asp-page="./UnsubscribeEmail" asp-route-q='@Model.TokenClaims["sub"]'
+						asp-route-id='@Model.TokenClaims["sub_id"]' target="_blank" class="btn btn-success mt-3">Proceed to
+						Unsubscribe</a>
+				}
 			}
 
 			<a asp-page="./UnsubscribeRequest" class="btn btn-outline-secondary mt-3">Back to List</a>
@@ -92,8 +137,8 @@
 								<td><strong>Token</strong></td>
 								<td>
 									<span class="text-truncate d-inline-block" style="max-width: 600px;"
-										title="@Model.DeletedRequest.token">
-										@Model.DeletedRequest.token
+										title="@Model.DeletedRequest.user">
+										@Model.DeletedRequest.user
 									</span>
 								</td>
 							</tr>
@@ -132,6 +177,7 @@
 					<thead>
 						<tr>
 							<th>Token</th>
+							<th>Email</th>
 							<th>Language</th>
 							<th>Last Modified</th>
 							<th></th>
@@ -142,10 +188,11 @@
 						{
 							<tr>
 								<td>
-									<span class="text-truncate d-inline-block" style="max-width: 300px;" title="@request.token">
-										@request.token
+									<span class="text-truncate d-inline-block" style="max-width: 300px;" title="@request.user">
+										@request.user
 									</span>
 								</td>
+								<td>@Html.DisplayFor(modelItem => request.email)</td>
 								<td>@Html.DisplayFor(modelItem => request.lang)</td>
 								<td>@Html.DisplayFor(modelItem => request.Timestamp)</td>
 								<td><a asp-page-handler="Process" asp-route-id="@request.Id">Process</a></td>
