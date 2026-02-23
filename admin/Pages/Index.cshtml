@@ -11,7 +11,7 @@
 @if (!string.IsNullOrWhiteSpace(Model.Message))
 {
 	<div class="alert alert-success" role="alert">
-	@Model.Message
+		@Model.Message
 	</div>
 }
 
@@ -30,9 +30,9 @@
 	<tbody>
 		@foreach (var item in Model.NewSignUps)
 		{
-			<tr class="table-info">
+			<tr>
 				<td>
-					<input type="checkbox" name="location" checked aria-label="Mark as active" />
+					<input type="checkbox" name="location" value="@item.Id" />
 				</td>
 				<td>
 					@Html.DisplayFor(modelItem => item.city)
@@ -57,19 +57,48 @@
 @if (Model.NewSignUps.Count() < 1)
 {
 	<div class="alert alert-secondary" role="alert">
-		All sign-ups completed. <a class="link-body-emphasis" asp-area="" asp-page="/Batch">Re-configure batches</a> if necessary.
+		All sign-ups completed. <a class="link-body-emphasis" asp-area="" asp-page="/Batch">Re-configure batches</a> if
+		necessary.
 	</div>
 }
 
+@if (Model.NewSignUps.Count() > 0)
+{
+	<div class="row pt-5">
+		<div class="p-5 my-5 border rounded-3 border-danger bg-danger-subtle">
+			<h2 class="text-danger mb-3">Danger zone</h2>
+
+			<details>
+				<summary>Bulk actions:</summary>
+				<button type="submit" form="bulk-process-form" class="btn btn-danger mt-3">Process Multiple Sign-ups</button>
+			</details>
+		</div>
+	</div>
+}
+
+<form id="bulk-process-form" method="post" asp-page="./ProcessMultiple" hidden>
+	<input type="hidden" name="selectedIds" id="selected-ids" value="" />
+</form>
+
 <script>
 	addEventListener('load', function () {
-		for (var checkbox of document.querySelectorAll('input[type=checkbox]')) {
-			checkbox.addEventListener('click', onLocationChecked);
+		for (var checkbox of document.querySelectorAll('input[name=location]')) {
+			checkbox.addEventListener('click', toggleLocationSelection);
 		}
 	});
 
-	function onLocationChecked(event) {
+	function toggleLocationSelection(event) {
 		var checkbox = event.target;
 		checkbox.closest('tr')?.classList.toggle('table-info');
+	}
+
+	var bulkProcessForm = document.getElementById('bulk-process-form');
+	bulkProcessForm.addEventListener('submit', sendMultipleProcessRequest);
+
+	function sendMultipleProcessRequest(event) {
+		var checkboxes = document.querySelectorAll('input[name=location]:checked');
+		var selectedIds = Array.from(checkboxes).map(function (cb) { return cb.value; });
+
+		document.getElementById('selected-ids').value = selectedIds.join(',');
 	}
 </script>

@@ -1,0 +1,149 @@
+@page
+@model admin.Pages.ProcessMultipleModel
+@{
+	ViewData["Title"] = "Process Multiple Sign-ups";
+}
+
+<div class="text-center">
+	<h1 class="display-4">Process Multiple Sign-ups</h1>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+{
+	<div class="alert alert-danger" role="alert">
+		@Model.ErrorMessage
+	</div>
+}
+
+@if (Model.DiscardedItems.Count > 0)
+{
+	var successCount = Model.DiscardedItems.Count(d => d.Success);
+	var failureCount = Model.DiscardedItems.Count(d => !d.Success);
+
+	<div class="row mb-5">
+		<div class="col-12">
+			@if (successCount > 0 && failureCount == 0)
+			{
+				<div class="alert alert-success" role="alert">
+					<h4 class="alert-heading">Sign-ups Discarded Successfully</h4>
+					<p>@successCount sign-up(s) have been removed from the queue.</p>
+				</div>
+			}
+			else if (successCount > 0 && failureCount > 0)
+			{
+				<div class="alert alert-warning" role="alert">
+					<h4 class="alert-heading">Partial Success</h4>
+					<p>@successCount sign-up(s) discarded successfully, but @failureCount failed.</p>
+				</div>
+			}
+			else if (failureCount > 0)
+			{
+				<div class="alert alert-danger" role="alert">
+					<h4 class="alert-heading">Discard Failed</h4>
+					<p>Failed to discard @failureCount sign-up(s).</p>
+				</div>
+			}
+
+			<div class="card">
+				<div class="card-header">
+					<strong>Discard Summary</strong>
+				</div>
+				<div class="card-body">
+					<p class="text-muted">Below is a summary of the discard operation. Keep this information for manual recovery if needed.</p>
+					<div class="table-responsive">
+						<table class="table table-bordered">
+							<thead>
+								<tr>
+									<th>Status</th>
+									<th>ID</th>
+									<th>City</th>
+									<th>Country</th>
+									<th>Language</th>
+									<th>Error</th>
+								</tr>
+							</thead>
+							<tbody>
+								@foreach (var result in Model.DiscardedItems)
+								{
+									<tr>
+										<td>
+											@if (result.Success)
+											{
+												<span class="badge bg-success">Deleted</span>
+											}
+											else
+											{
+												<span class="badge bg-danger">Failed</span>
+											}
+										</td>
+										<td>
+											<span class="text-truncate d-inline-block" style="max-width: 300px;" title="@result.SignUp.Id">
+												@result.SignUp.Id
+											</span>
+										</td>
+										<td>@result.SignUp.city</td>
+										<td>@result.SignUp.country</td>
+										<td>@result.SignUp.lang</td>
+										<td>@result.ErrorMessage</td>
+									</tr>
+								}
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+
+			<div class="mt-3">
+				<a asp-page="./Index" class="btn btn-primary">Back to List</a>
+			</div>
+		</div>
+	</div>
+}
+else if (Model.SelectedItems.Count > 0)
+{
+	<div class="alert alert-info" role="alert">
+		<strong>@Model.SelectedItems.Count item(s) selected</strong> for processing.
+	</div>
+
+	<table class="table">
+		<thead>
+			<tr>
+				<th></th>
+				<th>City</th>
+				<th>Country</th>
+				<th>Language</th>
+				<th>Last Modified</th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var item in Model.SelectedItems)
+			{
+				<tr>
+					<td><input type="checkbox" name="location" value="@item.Id" checked disabled /></td>
+					<td>@item.city</td>
+					<td>@item.country</td>
+					<td>@item.lang</td>
+					<td>@item.Timestamp</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+
+	<div class="row">
+		<div class="py-5 my-5">
+			<form method="post" asp-page-handler="Discard">
+				<input type="hidden" name="selectedIds" value="@string.Join(',', Model.SelectedItems.Select(s => s.Id))" />
+				<div class="btn-toolbar gap-2">
+					<button type="submit" class="btn btn-danger">Discard Selected Sign-ups</button>
+					<a asp-page="./Index" class="btn btn-outline-secondary">Cancel</a>
+				</div>
+			</form>
+		</div>
+	</div>
+}
+else
+{
+	<div class="alert alert-warning" role="alert">
+		No items selected for processing. <a asp-page="./Index" class="link-body-emphasis">Return to sign-ups</a>.
+	</div>
+}
