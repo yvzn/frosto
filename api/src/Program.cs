@@ -14,7 +14,7 @@ var host = new HostBuilder()
 			clientBuilder
 				.AddTableServiceClient(Environment.GetEnvironmentVariable("ALERTS_CONNECTION_STRING"));
 
-			string[] tableNames = ["location", "user", "signup"];
+			string[] tableNames = ["location", "validlocation", "user", "signup"];
 			foreach (var tableName in tableNames)
 			{
 				clientBuilder
