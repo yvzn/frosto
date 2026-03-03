@@ -5,7 +5,7 @@ using Azure.Data.Tables;
 
 namespace batch.Models;
 
-public class LocationEntity : ITableEntity
+public class LocationEntity : weather.ILocation, ITableEntity
 {
 	public string? city { get; set; }
 	public string? country { get; set; }
