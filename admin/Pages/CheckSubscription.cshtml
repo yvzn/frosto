@@ -50,7 +50,7 @@
 
 @if (Model.ShowResults)
 {
-	<div class="row mt-5">
+	<div id="search-results" class="row mt-5">
 		<section class="col-lg-8 p-5 border rounded-3">
 			<h2 class="text-muted mb-3">Search Results</h2>
 
@@ -179,5 +179,11 @@
 				sel.addRange(range);
 			});
 		});
+
+		const searchResults = document.getElementById('search-results');
+		if (searchResults) {
+			const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+			searchResults.scrollIntoView({ behavior: prefersReducedMotion ? 'instant' : 'smooth' });
+		}
 	</script>
 }
