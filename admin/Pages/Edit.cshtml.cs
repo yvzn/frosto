@@ -8,6 +8,7 @@ namespace admin.Pages;
 
 public class EditModel(
 	LocationService locationService,
+	IConfiguration configuration,
 	ILogger<EditModel> logger) : PageModel
 {
 	private readonly LocationService _locationService = locationService;
@@ -22,6 +23,10 @@ public class EditModel(
 	public ICollection<string> CountryList { get; set; } = Array.Empty<string>();
 
 	public ICollection<string> TimezoneList { get; set; } = Array.Empty<string>();
+
+	public string AzureMapsSubscriptionKey => _azureMapsSubscriptionKey;
+
+	private readonly string _azureMapsSubscriptionKey = configuration.GetConnectionString("AzureMaps") ?? string.Empty;
 
 	public async Task OnGetAsync(string id)
 	{
