@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace admin.Pages;
 
-public class UnsubscribeEmailModel(LocationService locationService, UnsubscribeEmailService unsubscribeService, UserService userService) : PageModel
+public class UnsubscribeEmailModel(LocationService locationService, UnsubscribeEmailService unsubscribeService, UserService userService, SmtpMailSender mailSender) : PageModel
 {
 	[BindProperty]
 	[EmailAddress]
@@ -16,7 +16,11 @@ public class UnsubscribeEmailModel(LocationService locationService, UnsubscribeE
 	public bool ShowDeletionSummary { get; private set; }
 	public string? SuccessMessage { get; private set; }
 	public IList<UnsubscribeChange> DeletionSummary { get; private set; } = [];
-	public string? Lang { get; private set; }
+
+	[BindProperty]
+	public string? Lang { get; set; }
+	public bool MailSent { get; private set; }
+	public string? MailError { get; private set; }
 
 	[BindProperty]
 	public string? SelectedValidLocationId { get; set; }
@@ -108,6 +112,57 @@ public class UnsubscribeEmailModel(LocationService locationService, UnsubscribeE
 		}
 
 		ErrorMessage = result.Message;
+		return Page();
+	}
+
+	public async Task<IActionResult> OnPostSendMailAsync()
+	{
+		if (string.IsNullOrWhiteSpace(Email))
+		{
+			return Page();
+		}
+
+		ShowDeletionSummary = true;
+
+		var isEnglish = !string.IsNullOrEmpty(Lang) && Lang.Equals("en", StringComparison.OrdinalIgnoreCase);
+
+		var subject = isEnglish
+			? "Your Unsubscription from FrostAlert.net"
+			: "Votre désinscription de AlerteGelee.fr";
+
+		var body = isEnglish
+			? """
+				Hello,
+
+				Your unsubscription has been processed.
+				You may still receive a few alerts but these will be the last ones.
+
+				Best regards,
+				Yvan from FrostAlert.net
+				"""
+			: """
+				Bonjour,
+
+				Votre désinscription a bien été prise en compte.
+				Vous avez pu recevoir encore quelques alertes mais ce seront les dernières.
+
+				Bonne continuation,
+
+				Cordialement,
+				Yvan de Alertegelee.fr
+				""";
+
+		var (success, error) = await mailSender.SendMailAsync(Email, subject, body, HttpContext.RequestAborted);
+
+		if (success)
+		{
+			MailSent = true;
+		}
+		else
+		{
+			MailError = error ?? "Failed to send mail.";
+		}
+
 		return Page();
 	}
 

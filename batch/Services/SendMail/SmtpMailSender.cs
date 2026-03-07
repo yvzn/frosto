@@ -38,7 +38,7 @@ internal class SmtpMailSender(
 		var message = new MimeMessage();
 		message.From.Add(new MailboxAddress("Yvan de Alertegelee.fr", replyTo.Address));
 		message.To.Add(new MailboxAddress(notification.to, notification.to));
-		message.Subject = notification.subject;
+		message.Subject = notification.subject ?? string.Empty;
 
 		var unsubscribeToken = unsubscribe.BuildUnsubscribeToken(notification);
 		if (!unsubscribeToken.StartsWith("ey"))

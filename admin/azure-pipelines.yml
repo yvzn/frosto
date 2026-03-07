@@ -70,6 +70,18 @@ jobs:
               echo Installing $(dkimCertificate.secureFilePath) to build directory
               rm $(Pipeline.Workspace)/wip/dkim_public.pem
               cp $(dkimCertificate.secureFilePath) $(Pipeline.Workspace)/wip/dkim_public.pem
+        - task: DownloadSecureFile@1
+          name: dkimPrivateKey
+          displayName: 'Download DKIM private key'
+          inputs:
+            secureFile: 'dkim_private.pem'
+        - task: Bash@3
+          inputs:
+            targetType: 'inline'
+            script: |
+              echo Installing $(dkimPrivateKey.secureFilePath) to build directory
+              rm -f $(Pipeline.Workspace)/wip/dkim_private.pem
+              cp $(dkimPrivateKey.secureFilePath) $(Pipeline.Workspace)/wip/dkim_private.pem
         - task: ArchiveFiles@2
           inputs:
             rootFolderOrFile: '$(Pipeline.Workspace)/wip'

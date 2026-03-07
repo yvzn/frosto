@@ -32,6 +32,7 @@ builder.Services.AddScoped<UnsubscribeEmailService>();
 builder.Services.AddScoped<UnsubscribeRequestService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddSingleton<JwtValidationService>();
+builder.Services.AddScoped<SmtpMailSender>();
 
 var app = builder.Build();
 

@@ -8,6 +8,7 @@ namespace admin.Pages;
 public class CheckSubscriptionModel(
 	CheckSubscriptionService checkSubscriptionService,
 	LocationService locationService,
+	SmtpMailSender mailSender,
 	ILogger<CheckSubscriptionModel> logger) : PageModel
 {
 	[BindProperty]
@@ -27,6 +28,9 @@ public class CheckSubscriptionModel(
 	public string? SearchError { get; private set; }
 
 	public bool ShowResults { get; private set; }
+
+	public bool MailSent { get; private set; }
+	public string? MailError { get; private set; }
 
 	public async Task OnGetAsync()
 	{
@@ -75,6 +79,84 @@ public class CheckSubscriptionModel(
 			SearchError = $"An error occurred while searching: {ex.Message}";
 			logger.LogError(ex, "Error searching locations for email {Email}", SelectedRequest.email);
 			ShowResults = true;
+		}
+
+		return Page();
+	}
+
+	public async Task<IActionResult> OnPostSendMailAsync()
+	{
+		if (SelectedRequest == null || string.IsNullOrWhiteSpace(SelectedRequest.Id))
+		{
+			return Page();
+		}
+
+		await LoadCheckSubscriptionRequestsAsync(HttpContext.RequestAborted);
+		var selected = CheckSubscriptionRequests.FirstOrDefault(r => r.Id == SelectedRequest.Id);
+		if (selected != null)
+		{
+			SelectedRequest = selected;
+		}
+
+		if (string.IsNullOrWhiteSpace(SelectedRequest.email))
+		{
+			MailError = "No email address found in the request.";
+			ShowResults = true;
+			return Page();
+		}
+
+		FoundLocations = await locationService.FindValidLocationsByUserAsync(SelectedRequest.email, HttpContext.RequestAborted);
+		ShowResults = true;
+
+		var isEnglish = "en".Equals(SelectedRequestLang, StringComparison.OrdinalIgnoreCase);
+
+		var subject = isEnglish
+			? "Your Subscription Status to FrostAlert.net"
+			: "Votre abonnement à AlerteGelee.fr";
+
+		var locationList = string.Join("\n", FoundLocations.Select(l => $"- {l.city}, {l.country}"));
+
+		var body = isEnglish
+			? $"""
+				Hello,
+
+				We are pleased to confirm that you are currently subscribed to frost alerts on FrostAlert.net for the following location(s):
+
+				{locationList}
+
+				To ensure you receive your alerts, please add {ContactEmail} to your contact list.
+
+				To unsubscribe, reply "STOP" to this message.
+
+				Best regards,
+				Yvan from FrostAlert.net
+				"""
+			: $"""
+				Bonjour,
+
+				Nous sommes heureux de confirmer que vous êtes actuellement abonné aux alertes gelées sur AlerteGelee.fr pour le(s) villes(s) suivante(s):
+
+				{locationList}
+
+				Pour bien recevoir vos alertes, pensez à ajouter {ContactEmail} à votre liste de contacts.
+
+				Pour vous désinscrire, répondez "STOP" à ce message.
+
+				Cordialement,
+				Yvan de AlerteGelee.fr
+				""";
+
+		logger.LogInformation("Sending confirmation mail to {Email}", SelectedRequest.email);
+		var (success, error) = await mailSender.SendMailAsync(SelectedRequest.email, subject, body, HttpContext.RequestAborted);
+
+		if (success)
+		{
+			MailSent = true;
+		}
+		else
+		{
+			MailError = error ?? "Failed to send mail.";
+			logger.LogWarning("Failed to send confirmation mail to {Email}: {Error}", SelectedRequest.email, error);
 		}
 
 		return Page();
