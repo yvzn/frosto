@@ -192,19 +192,6 @@
 	</form>
 </div>
 
-<div class="toast-container position-fixed bottom-0 end-0 p-3">
-	<div id="copy-email-toast" class="toast align-items-center text-bg-success border-0" role="status"
-		aria-live="polite" aria-atomic="true">
-		<div class="d-flex">
-			<div class="toast-body">
-				E-mail address copied to clipboard.
-			</div>
-			<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
-				aria-label="Close"></button>
-		</div>
-	</div>
-</div>
-
 <script>
 	var cityInput = document.getElementById('valid-location-city');
 	var countryInput = document.getElementById('valid-location-country');
@@ -222,20 +209,15 @@
 
 	var usersInput = document.getElementById('valid-location-users');
 	var copyEmailBtn = document.getElementById('copy-email-btn');
-	var copyEmailToastEl = document.getElementById('copy-email-toast');
-	var copyEmailToast = copyEmailToastEl ? new bootstrap.Toast(copyEmailToastEl) : null;
+	var copyEmailBtnDefaultContent = copyEmailBtn ? copyEmailBtn.textContent : '';
 
 	if (copyEmailBtn) {
 		copyEmailBtn.addEventListener('click', function () {
 			var email = usersInput ? usersInput.value : '';
 			if (!email) return;
 			navigator.clipboard.writeText(email).then(function () {
-				if (copyEmailToast) copyEmailToast.show();
-			}).catch(function () {
-				copyEmailToastEl.classList.remove('text-bg-success');
-				copyEmailToastEl.classList.add('text-bg-danger');
-				copyEmailToastEl.querySelector('.toast-body').textContent = 'Failed to copy e-mail to clipboard.';
-				if (copyEmailToast) copyEmailToast.show();
+				copyEmailBtn.textContent = 'Copied !';
+				setTimeout(function () { copyEmailBtn.textContent = copyEmailBtnDefaultContent; }, 1500);
 			});
 		});
 	}
