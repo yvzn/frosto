@@ -202,14 +202,13 @@
 	var timezoneRequestToken = 0;
 	var timezoneSearchButton = document.getElementById('valid-location-timezone-search');
 	var timezoneSearchButtonDefaultContent = timezoneSearchButton ? timezoneSearchButton.innerHTML : '';
+	var usersInput = document.getElementById('valid-location-users');
+	var copyEmailBtn = document.getElementById('copy-email-btn');
+	var copyEmailBtnDefaultContent = copyEmailBtn ? copyEmailBtn.textContent : '';
 
 	cityInput.addEventListener('change', onChangeCity);
 	countryInput.addEventListener('change', onChangeCity);
 	cityCoordinates.addEventListener('change', onChangeCoordinates);
-
-	var usersInput = document.getElementById('valid-location-users');
-	var copyEmailBtn = document.getElementById('copy-email-btn');
-	var copyEmailBtnDefaultContent = copyEmailBtn ? copyEmailBtn.textContent : '';
 
 	if (copyEmailBtn) {
 		copyEmailBtn.addEventListener('click', function () {
