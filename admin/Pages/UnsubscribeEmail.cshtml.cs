@@ -124,9 +124,9 @@ public class UnsubscribeEmailModel(LocationService locationService, UnsubscribeE
 
 		ShowDeletionSummary = true;
 
-		var (subject, body) = MailTemplates.UnsubscribeConfirmation(Lang ?? "fr");
+		var (subject, htmlBody, textBody) = MailTemplates.For(Lang).UnsubscribeConfirmation();
 
-		var (success, error) = await mailSender.SendMailAsync(Email, subject, body, HttpContext.RequestAborted);
+		var (success, error) = await mailSender.SendMailAsync(Email, subject, textBody, htmlBody, HttpContext.RequestAborted);
 
 		if (success)
 		{

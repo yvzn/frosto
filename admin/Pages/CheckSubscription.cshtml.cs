@@ -108,13 +108,12 @@ public class CheckSubscriptionModel(
 		FoundLocations = await locationService.FindValidLocationsByUserAsync(SelectedRequest.email, HttpContext.RequestAborted);
 		ShowResults = true;
 
-		var (subject, body) = MailTemplates.SubscriptionConfirmation(
-			SelectedRequestLang,
+		var (subject, htmlBody, textBody) = MailTemplates.For(SelectedRequestLang).SubscriptionConfirmation(
 			FoundLocations,
 			ContactEmail);
 
 		logger.LogInformation("Sending confirmation mail to {Email}", SelectedRequest.email);
-		var (success, error) = await mailSender.SendMailAsync(SelectedRequest.email, subject, body, HttpContext.RequestAborted);
+		var (success, error) = await mailSender.SendMailAsync(SelectedRequest.email, subject, textBody, htmlBody, HttpContext.RequestAborted);
 
 		if (success)
 		{

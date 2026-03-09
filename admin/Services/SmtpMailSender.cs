@@ -15,6 +15,7 @@ public class SmtpMailSender(IConfiguration configuration, IWebHostEnvironment en
 		string to,
 		string subject,
 		string textBody,
+		string? htmlBody = null,
 		CancellationToken cancellationToken = default)
 	{
 		var connectionString = configuration.GetConnectionString("Smtp");
@@ -50,7 +51,7 @@ public class SmtpMailSender(IConfiguration configuration, IWebHostEnvironment en
 		message.To.Add(new MailboxAddress(to, to));
 		message.Subject = subject;
 
-		var builder = new BodyBuilder { TextBody = textBody };
+		var builder = new BodyBuilder { TextBody = textBody, HtmlBody = htmlBody };
 		message.Body = builder.ToMessageBody();
 		message.Prepare(EncodingConstraint.SevenBit);
 
