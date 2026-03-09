@@ -4,6 +4,12 @@
 	ViewData["Title"] = $"Edit {Model.ValidLocation.city} Location";
 }
 
+@section Head
+{
+	<link rel="stylesheet" href="https://atlas.microsoft.com/sdk/javascript/mapcontrol/2/atlas.min.css" type="text/css" />
+	<script src="https://atlas.microsoft.com/sdk/javascript/mapcontrol/2/atlas.min.js"></script>
+}
+
 <div class="row">
 	<form method="post" class="col-lg-6 p-5 mb-5 border rounded-3 bg-light">
 		<h2 class="text-muted mb-3">Edit location</h2>
@@ -95,7 +101,60 @@
 		</div>
 	</form>
 
+	<section class="col-lg-6 p-5 mb-5">
+		<h2 class="text-muted mb-3">Current coordinates</h2>
+		<div id="coordinates-map" class="w-100 border rounded-3 shadow-sm" style="height: 320px;"></div>
+	</section>
+
 	<div hidden>
 		@Html.ValidationSummary()
 	</div>
 </div>
+
+<script>
+	var azureMapsSubscriptionKey = '@Model.AzureMapsSubscriptionKey';
+	var coordinatesMap;
+	var coordinatesMarker;
+
+	function initCoordinatesMap(latitude, longitude) {
+		if (typeof atlas === 'undefined') {
+			console.warn('Azure Maps SDK not available.');
+			return;
+		}
+
+		if (!azureMapsSubscriptionKey) {
+			console.warn('Azure Maps subscription key not configured; skipping map preview.');
+			return;
+		}
+
+		coordinatesMap = new atlas.Map('coordinates-map', {
+			center: [longitude, latitude],
+			zoom: 12,
+			language: 'en-US',
+			view: 'Auto',
+			authOptions: {
+				authType: 'subscriptionKey',
+				subscriptionKey: azureMapsSubscriptionKey
+			}
+		});
+
+		coordinatesMap.events.add('ready', function () {
+			coordinatesMarker = new atlas.HtmlMarker({
+				color: '#2563eb',
+				position: [longitude, latitude]
+			});
+			coordinatesMap.markers.add(coordinatesMarker);
+		});
+	}
+
+	(function () {
+		var rawCoordinates = '@Model.ValidLocation.coordinates';
+		if (!rawCoordinates) return;
+		var parts = rawCoordinates.split(',').map(function (p) { return p.trim(); });
+		if (parts.length < 2) return;
+		var latitude = Number(parts[0]);
+		var longitude = Number(parts[1]);
+		if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return;
+		initCoordinatesMap(latitude, longitude);
+	})();
+</script>
