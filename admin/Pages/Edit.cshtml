@@ -44,10 +44,17 @@
 			<input asp-for="ValidLocation.coordinates" class="form-control" id="valid-location-coordinates" required />
 			<span asp-validation-for="ValidLocation.coordinates" class="text-danger"></span>
 		</div>
-		<div class="form-group mb-3">
+		<div class="form-group mb-3" id="users-editor">
 			<label asp-for="ValidLocation.users" class="form-label"></label>
-			<textarea asp-for="ValidLocation.users" class="form-control" required></textarea>
-			<span asp-validation-for="ValidLocation.users" class="text-danger"></span>
+			<input asp-for="ValidLocation.users" type="hidden" id="users-hidden" />
+			<span asp-validation-for="ValidLocation.users" class="text-danger d-block mb-1"></span>
+			<ul id="users-list" class="list-unstyled d-flex flex-wrap gap-2 mb-2" aria-label="User email list" role="list"></ul>
+			<div class="input-group">
+				<input type="email" id="users-new-email" class="form-control" placeholder="Add email address"
+					aria-label="New email address" autocomplete="off" />
+				<button type="button" id="users-add-btn" class="btn btn-outline-secondary">Add</button>
+			</div>
+			<div id="users-new-email-error" class="text-danger mt-1" role="alert" aria-live="polite"></div>
 		</div>
 		<div class="row gx-3">
 			<div class="form-group col-md-6 mb-3 form-check form-switch">
@@ -156,5 +163,100 @@
 		var longitude = Number(parts[1]);
 		if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return;
 		initCoordinatesMap(latitude, longitude);
+	})();
+
+	(function () {
+		var hiddenInput = document.getElementById('users-hidden');
+		var usersList = document.getElementById('users-list');
+		var newEmailInput = document.getElementById('users-new-email');
+		var addBtn = document.getElementById('users-add-btn');
+		var errorDiv = document.getElementById('users-new-email-error');
+
+		function getEmails() {
+			var val = hiddenInput.value.trim();
+			if (!val) return [];
+			return val.split(',').map(function (e) { return e.trim(); }).filter(function (e) { return e.length > 0; });
+		}
+
+		function syncHidden(emails) {
+			hiddenInput.value = emails.join(',');
+		}
+
+		function isValidEmail(email) {
+			return /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(email);
+		}
+
+		function renderChips() {
+			var emails = getEmails();
+			usersList.innerHTML = '';
+			emails.forEach(function (email) {
+				var li = document.createElement('li');
+				li.className = 'badge text-bg-secondary d-inline-flex align-items-center gap-1 px-2 py-1 fs-6 fw-normal';
+				li.setAttribute('role', 'listitem');
+
+				var span = document.createElement('span');
+				span.textContent = email;
+
+				var btn = document.createElement('button');
+				btn.type = 'button';
+				btn.className = 'btn-close btn-close-white ms-1';
+				btn.style.fontSize = '0.6em';
+				btn.setAttribute('aria-label', 'Remove ' + email);
+				btn.addEventListener('click', function () {
+					var current = getEmails();
+					var updated = current.filter(function (e) { return e !== email; });
+					syncHidden(updated);
+					renderChips();
+				});
+
+				li.appendChild(span);
+				li.appendChild(btn);
+				usersList.appendChild(li);
+			});
+		}
+
+		function addEmail() {
+			var email = newEmailInput.value.trim();
+			errorDiv.textContent = '';
+			if (!email) {
+				errorDiv.textContent = 'Please enter an email address.';
+				newEmailInput.focus();
+				return;
+			}
+			if (!isValidEmail(email)) {
+				errorDiv.textContent = 'Please enter a valid email address.';
+				newEmailInput.focus();
+				return;
+			}
+			var current = getEmails();
+			if (current.some(function (e) { return e.toLowerCase() === email.toLowerCase(); })) {
+				errorDiv.textContent = 'This email address is already in the list.';
+				newEmailInput.focus();
+				return;
+			}
+			current.push(email);
+			syncHidden(current);
+			renderChips();
+			newEmailInput.value = '';
+			newEmailInput.focus();
+		}
+
+		addBtn.addEventListener('click', addEmail);
+
+		newEmailInput.addEventListener('keydown', function (e) {
+			if (e.key === 'Enter') {
+				e.preventDefault();
+				addEmail();
+			}
+		});
+
+		var form = hiddenInput.closest('form');
+		if (form) {
+			form.addEventListener('reset', function () {
+				setTimeout(renderChips, 0);
+			});
+		}
+
+		renderChips();
 	})();
 </script>
