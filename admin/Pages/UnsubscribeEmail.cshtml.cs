@@ -124,33 +124,7 @@ public class UnsubscribeEmailModel(LocationService locationService, UnsubscribeE
 
 		ShowDeletionSummary = true;
 
-		var isEnglish = !string.IsNullOrEmpty(Lang) && Lang.Equals("en", StringComparison.OrdinalIgnoreCase);
-
-		var subject = isEnglish
-			? "Your Unsubscription from FrostAlert.net"
-			: "Votre désinscription de AlerteGelee.fr";
-
-		var body = isEnglish
-			? """
-				Hello,
-
-				Your unsubscription has been processed.
-				You may still receive a few alerts but these will be the last ones.
-
-				Best regards,
-				Yvan from FrostAlert.net
-				"""
-			: """
-				Bonjour,
-
-				Votre désinscription a bien été prise en compte.
-				Vous avez pu recevoir encore quelques alertes mais ce seront les dernières.
-
-				Bonne continuation,
-
-				Cordialement,
-				Yvan de Alertegelee.fr
-				""";
+		var (subject, body) = MailTemplates.UnsubscribeConfirmation(Lang ?? "fr");
 
 		var (success, error) = await mailSender.SendMailAsync(Email, subject, body, HttpContext.RequestAborted);
 

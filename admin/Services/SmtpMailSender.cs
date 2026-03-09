@@ -17,13 +17,10 @@ public class SmtpMailSender(IConfiguration configuration, IWebHostEnvironment en
 		string textBody,
 		CancellationToken cancellationToken = default)
 	{
-		var smtpUrl = configuration["Smtp:Url"];
-		var smtpLogin = configuration["Smtp:Login"];
-		var smtpPassword = configuration["Smtp:Password"];
-
-		if (string.IsNullOrEmpty(smtpUrl) || string.IsNullOrEmpty(smtpLogin) || string.IsNullOrEmpty(smtpPassword))
+		var connectionString = configuration.GetConnectionString("Smtp");
+		if (!TryParseSmtpConnectionString(connectionString, out var smtpUrl, out var smtpLogin, out var smtpPassword))
 		{
-			logger.LogWarning("SMTP configuration is missing; cannot send mail");
+			logger.LogWarning("SMTP connection string is missing or invalid; cannot send mail");
 			return (success: false, error: "SMTP configuration is missing");
 		}
 
@@ -80,5 +77,38 @@ public class SmtpMailSender(IConfiguration configuration, IWebHostEnvironment en
 			logger.LogError(ex, "Failed to send mail to {Recipient}", to);
 			return (success: false, error: ex.Message);
 		}
+	}
+
+	// Parses a connection string of the form "login:password@url"
+	// The url is taken after the last '@'; the password may contain '@' or ':'
+	// (login may not contain ':')
+	internal static bool TryParseSmtpConnectionString(
+		string? connectionString,
+		out string url,
+		out string login,
+		out string password)
+	{
+		url = string.Empty;
+		login = string.Empty;
+		password = string.Empty;
+
+		if (string.IsNullOrEmpty(connectionString))
+			return false;
+
+		var atIndex = connectionString.LastIndexOf('@');
+		if (atIndex <= 0 || atIndex == connectionString.Length - 1)
+			return false;
+
+		url = connectionString[(atIndex + 1)..];
+
+		var credentials = connectionString[..atIndex];
+		var colonIndex = credentials.IndexOf(':');
+		if (colonIndex <= 0)
+			return false;
+
+		login = credentials[..colonIndex];
+		password = credentials[(colonIndex + 1)..];
+
+		return !string.IsNullOrEmpty(url) && !string.IsNullOrEmpty(login) && !string.IsNullOrEmpty(password);
 	}
 }
