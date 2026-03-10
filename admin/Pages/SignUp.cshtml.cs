@@ -36,6 +36,10 @@ public class SignUpModel(
 	public async Task OnGetAsync(string id)
 	{
 		ValidLocation = await locationService.GetLocationAsync(id, HttpContext.RequestAborted) ?? new();
+		if (string.IsNullOrWhiteSpace(ValidLocation.channel))
+		{
+			ValidLocation.channel = ChannelService.DefaultChannel;
+		}
 
 		await PopulateReferenceDataAsync(HttpContext.RequestAborted);
 	}
