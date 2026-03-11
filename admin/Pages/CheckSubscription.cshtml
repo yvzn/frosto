@@ -141,13 +141,13 @@
 
 				@if (Model.MailSent)
 				{
-					<div class="alert alert-success mt-3" role="alert">
+					<div class="alert alert-success mt-3" role="alert" id="send-mail-result">
 						<strong>Confirmation mail sent successfully</strong> to @Model.SelectedRequest?.email.
 					</div>
 				}
 				@if (!string.IsNullOrEmpty(Model.MailError))
 				{
-					<div class="alert alert-danger mt-3" role="alert">
+					<div class="alert alert-danger mt-3" role="alert" id="send-mail-result">
 						<strong>Failed to send mail:</strong> @Model.MailError
 					</div>
 				}
@@ -200,10 +200,16 @@
 			});
 		});
 
+		const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 		const searchResults = document.getElementById('search-results');
 		if (searchResults) {
-			const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 			searchResults.scrollIntoView({ behavior: prefersReducedMotion ? 'instant' : 'smooth' });
+		}
+
+		const sendMailResult = document.getElementById('send-mail-result');
+		if (sendMailResult) {
+			sendMailResult.scrollIntoView({ behavior: prefersReducedMotion ? 'instant' : 'smooth' });
 		}
 	</script>
 }
