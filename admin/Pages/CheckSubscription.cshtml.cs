@@ -8,6 +8,7 @@ namespace admin.Pages;
 public class CheckSubscriptionModel(
 	CheckSubscriptionService checkSubscriptionService,
 	LocationService locationService,
+	SmtpMailSender mailSender,
 	ILogger<CheckSubscriptionModel> logger) : PageModel
 {
 	[BindProperty]
@@ -27,6 +28,9 @@ public class CheckSubscriptionModel(
 	public string? SearchError { get; private set; }
 
 	public bool ShowResults { get; private set; }
+
+	public bool MailSent { get; private set; }
+	public string? MailError { get; private set; }
 
 	public async Task OnGetAsync()
 	{
@@ -75,6 +79,50 @@ public class CheckSubscriptionModel(
 			SearchError = $"An error occurred while searching: {ex.Message}";
 			logger.LogError(ex, "Error searching locations for email {Email}", SelectedRequest.email);
 			ShowResults = true;
+		}
+
+		return Page();
+	}
+
+	public async Task<IActionResult> OnPostSendMailAsync()
+	{
+		if (SelectedRequest == null || string.IsNullOrWhiteSpace(SelectedRequest.Id))
+		{
+			return Page();
+		}
+
+		await LoadCheckSubscriptionRequestsAsync(HttpContext.RequestAborted);
+		var selected = CheckSubscriptionRequests.FirstOrDefault(r => r.Id == SelectedRequest.Id);
+		if (selected != null)
+		{
+			SelectedRequest = selected;
+		}
+
+		if (string.IsNullOrWhiteSpace(SelectedRequest.email))
+		{
+			MailError = "No email address found in the request.";
+			ShowResults = true;
+			return Page();
+		}
+
+		FoundLocations = await locationService.FindValidLocationsByUserAsync(SelectedRequest.email, HttpContext.RequestAborted);
+		ShowResults = true;
+
+		var (subject, htmlBody, textBody) = MailTemplates.For(SelectedRequestLang).SubscriptionConfirmation(
+			FoundLocations,
+			ContactEmail);
+
+		logger.LogInformation("Sending confirmation mail to {Email}", SelectedRequest.email);
+		var (success, error) = await mailSender.SendMailAsync(SelectedRequest.email, subject, textBody, htmlBody, HttpContext.RequestAborted);
+
+		if (success)
+		{
+			MailSent = true;
+		}
+		else
+		{
+			MailError = error ?? "Failed to send mail.";
+			logger.LogWarning("Failed to send confirmation mail to {Email}: {Error}", SelectedRequest.email, error);
 		}
 
 		return Page();

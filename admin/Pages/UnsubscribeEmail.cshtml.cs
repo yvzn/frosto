@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace admin.Pages;
 
-public class UnsubscribeEmailModel(LocationService locationService, UnsubscribeEmailService unsubscribeService, UserService userService) : PageModel
+public class UnsubscribeEmailModel(LocationService locationService, UnsubscribeEmailService unsubscribeService, UserService userService, SmtpMailSender mailSender) : PageModel
 {
 	[BindProperty]
 	[EmailAddress]
@@ -16,7 +16,11 @@ public class UnsubscribeEmailModel(LocationService locationService, UnsubscribeE
 	public bool ShowDeletionSummary { get; private set; }
 	public string? SuccessMessage { get; private set; }
 	public IList<UnsubscribeChange> DeletionSummary { get; private set; } = [];
-	public string? Lang { get; private set; }
+
+	[BindProperty]
+	public string? Lang { get; set; }
+	public bool MailSent { get; private set; }
+	public string? MailError { get; private set; }
 
 	[BindProperty]
 	public string? SelectedValidLocationId { get; set; }
@@ -108,6 +112,31 @@ public class UnsubscribeEmailModel(LocationService locationService, UnsubscribeE
 		}
 
 		ErrorMessage = result.Message;
+		return Page();
+	}
+
+	public async Task<IActionResult> OnPostSendMailAsync()
+	{
+		if (string.IsNullOrWhiteSpace(Email))
+		{
+			return Page();
+		}
+
+		ShowDeletionSummary = true;
+
+		var (subject, htmlBody, textBody) = MailTemplates.For(Lang).UnsubscribeConfirmation();
+
+		var (success, error) = await mailSender.SendMailAsync(Email, subject, textBody, htmlBody, HttpContext.RequestAborted);
+
+		if (success)
+		{
+			MailSent = true;
+		}
+		else
+		{
+			MailError = error ?? "Failed to send mail.";
+		}
+
 		return Page();
 	}
 

@@ -94,9 +94,30 @@
 				</div>
 			</div>
 
-			<div class="mt-3 btn-toolbar justify-content-between">
-				<a class="btn btn-primary" asp-page="/UnsubscribeEmail">Unsubscribe another email</a>
-			</div>
+			@if (Model.MailSent)
+			{
+				<div class="alert alert-success mt-3" role="alert" id="send-mail-result">
+					<strong>Confirmation mail sent successfully</strong> to @Model.Email.
+				</div>
+			}
+			@if (!string.IsNullOrEmpty(Model.MailError))
+			{
+				<div class="alert alert-danger mt-3" role="alert" id="send-mail-result">
+					<strong>Failed to send mail:</strong> @Model.MailError
+				</div>
+			}
+
+			<form method="post">
+				<div class="mt-3 btn-toolbar justify-content-between">
+					<input type="hidden" name="Email" value="@Model.Email" />
+					<input type="hidden" name="Lang" value="@Model.Lang" />
+					@if (!Model.MailSent)
+					{
+						<button type="submit" class="btn btn-primary" asp-page-handler="SendMail">Send confirmation mail</button>
+					}
+					<a class="btn btn-outline-secondary" asp-page="/UnsubscribeEmail">Unsubscribe another email</a>
+				</div>
+			</form>
 		</div>
 	</div>
 }
@@ -270,5 +291,12 @@ else
 				sel.addRange(range);
 			});
 		});
+
+		const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+		const sendMailResult = document.getElementById('send-mail-result');
+		if (sendMailResult) {
+			sendMailResult.scrollIntoView({ behavior: prefersReducedMotion ? 'instant' : 'smooth' });
+		}
 	</script>
 }
