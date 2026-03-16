@@ -9,7 +9,7 @@ public interface IMailSender
 	Task<(bool success, string? error)> SendMailAsync(Notification notification);
 }
 
-internal interface IBatchMailSender: IMailSender
+internal interface IBatchMailSender : IMailSender
 {
 }
 

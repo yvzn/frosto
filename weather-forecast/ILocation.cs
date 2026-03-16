@@ -4,11 +4,11 @@ namespace weather;
 
 public interface ILocation
 {
-    string? coordinates { get; }
-    string? timezone { get; }
-    string? weatherApiUrl { get; }
+	string? coordinates { get; }
+	string? timezone { get; }
+	string? weatherApiUrl { get; }
 	double? minThreshold { get; }
-    double? minTemperatureAdjustment { get; }
+	double? minTemperatureAdjustment { get; }
 }
 
 #pragma warning restore IDE1006 // Naming Styles

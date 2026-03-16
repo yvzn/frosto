@@ -138,10 +138,8 @@ public class NotifyAtLocation2(IHttpClientFactory httpClientFactory, IAzureClien
 			throw;
 		}
 
-		var forecasts = new weather.ForecastBuilder()
-			.WithWeatherApiResult(weatherApiResult)
-			.WithLocation(location)
-			.Build();
+		var forecasts = new weather.ForecastBuilder(
+			weatherApiResult, location, applyTemperatureThreshold: true).Build();
 
 		if (forecasts is not null)
 		{
@@ -188,7 +186,8 @@ public class NotifyAtLocation2(IHttpClientFactory httpClientFactory, IAzureClien
 			raw = text,
 			lang = language,
 			rowKey = location.RowKey,
-			from = new() {
+			from = new()
+			{
 				address = Encoding.UTF8.GetString(Convert.FromBase64String(address)),
 				displayName = displayName
 			},

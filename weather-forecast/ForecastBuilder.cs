@@ -1,40 +1,28 @@
 namespace weather;
 
-public class ForecastBuilder
+public class ForecastBuilder(
+	OpenMeteoApiResult? weatherApiResult,
+	ILocation? location,
+	bool applyTemperatureThreshold = false)
 {
-	private OpenMeteoApiResult? weatherApiResult;
-	private ILocation? location;
-
-	public ForecastBuilder WithWeatherApiResult(OpenMeteoApiResult? weatherApiResult)
-    {
-        this.weatherApiResult = weatherApiResult;
-        return this;
-    }
-
-    public ForecastBuilder WithLocation(ILocation? location)
-    {
-        this.location = location;
-        return this;
-    }
-
-    public List<Forecast>? Build()
-    {
-        var forecasts = FromWeatherApiResult();
-        if (forecasts.Count is 0)
-        {
-            return null;
-        }
+	public List<Forecast>? Build()
+	{
+		var forecasts = FromWeatherApiResult();
+		if (forecasts.Count is 0)
+		{
+			return null;
+		}
 
 		forecasts = AdjustForLocation(forecasts);
 
-        forecasts = ApplyTemperatureThreshold(forecasts);
+		forecasts = ApplyTemperatureThreshold(forecasts);
 
-        return forecasts;
-    }
+		return forecasts;
+	}
 
-    private List<Forecast> FromWeatherApiResult()
-    {
-        var forecasts = new List<Forecast>();
+	private List<Forecast> FromWeatherApiResult()
+	{
+		var forecasts = new List<Forecast>();
 
 		if (weatherApiResult?.hourly.time.Count is > 0)
 		{
@@ -86,27 +74,32 @@ public class ForecastBuilder
 				group.Key,
 				group.Min(f => f.Minimum),
 				group.Max(f => f.Maximum)))];
-    
-        return forecasts;
-    }
 
-    private List<Forecast> AdjustForLocation(List<Forecast> forecasts)
-    {
-    if (location?.minTemperatureAdjustment.HasValue is true)
+		return forecasts;
+	}
+
+	private List<Forecast> AdjustForLocation(List<Forecast> forecasts)
+	{
+		if (location?.minTemperatureAdjustment.HasValue is true)
 		{
 			var adjustment = Convert.ToDecimal(location.minTemperatureAdjustment.Value);
 			return [.. forecasts.Select(f => f with { Minimum = f.Minimum + adjustment })];
-		}        
+		}
 
-        return forecasts;
-    }
+		return forecasts;
+	}
 
-    private List<Forecast> ApplyTemperatureThreshold(List<Forecast> forecasts)
-    {
-        var threshold = location?.minThreshold.HasValue is true
-            ? Convert.ToDecimal(location.minThreshold.Value)
-            : Forecast.defaultTemperatureThreshold;
+	private List<Forecast> ApplyTemperatureThreshold(List<Forecast> forecasts)
+	{
+		if (!applyTemperatureThreshold)
+		{
+			return forecasts;
+		}
 
-        return [.. forecasts.Where(f => f.Minimum <= threshold)];
-    }
+		var threshold = location?.minThreshold.HasValue is true
+			? Convert.ToDecimal(location.minThreshold.Value)
+			: Forecast.defaultTemperatureThreshold;
+
+		return [.. forecasts.Where(f => f.Minimum <= threshold)];
+	}
 }
