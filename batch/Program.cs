@@ -10,7 +10,8 @@ using Microsoft.Extensions.Logging;
 
 var host = new HostBuilder()
 	.ConfigureFunctionsWebApplication()
-	.ConfigureServices(services => {
+	.ConfigureServices(services =>
+	{
 		services.AddHttpClient("default", client =>
 		{
 			client.DefaultRequestHeaders.UserAgent.ParseAdd(

@@ -11,7 +11,7 @@ internal static class Formatter
 {
 	internal static readonly CultureInfo FrenchCultureInfo = CultureInfo.CreateSpecificCulture("fr-FR");
 
-	public static string FormatSubject(List<Forecast> forecasts, LocationEntity location)
+	public static string FormatSubject(List<weather.Forecast> forecasts, LocationEntity location)
 	{
 		var header = "Températures proches de zéro prévues ces prochains jours";
 
@@ -29,7 +29,7 @@ internal static class Formatter
 
 		var forecastsBelowThreshold = location.minThreshold.HasValue
 			? [.. forecasts.Where(f => f.Minimum <= Convert.ToDecimal(location.minThreshold.Value))]
-			: Array.Empty<Forecast>();
+			: Array.Empty<weather.Forecast>();
 		if (forecastsBelowThreshold.Length != 0)
 		{
 			var first = forecastsBelowThreshold.OrderBy(f => f.Date).First();
@@ -77,7 +77,7 @@ répondez ""STOP"" à ce message.
 
 	private static readonly string unsubscribeLinkTemplate = @"utilisez ce <a href=""{0}"" target=""_blank"">lien de désinscription</a> ou";
 
-	public static string FormatBody(List<Forecast> forecasts, LocationEntity location)
+	public static string FormatBody(List<weather.Forecast> forecasts, LocationEntity location)
 	{
 		var table = new StringBuilder();
 		table.Append(tableHeaderTemplate);
@@ -140,7 +140,7 @@ __________
 
 Les données météo sont fournies par Open-Meteo.com -- Weather data by Open-Meteo.com";
 
-	public static string FormatBody(List<Forecast> forecasts, LocationEntity location)
+	public static string FormatBody(List<weather.Forecast> forecasts, LocationEntity location)
 	{
 		var table = new StringBuilder();
 		table.Append(string.Format(

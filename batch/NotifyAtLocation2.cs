@@ -22,8 +22,6 @@ namespace batch;
 
 public class NotifyAtLocation2(IHttpClientFactory httpClientFactory, IAzureClientFactory<TableClient> azureClientFactory, ILogger<NotifyAtLocation2> logger)
 {
-	private static readonly decimal defaultThreshold = 1.0m;
-
 	private static readonly (string, string) FromFrench = ("Yvan de AlerteGelee.fr", "eXZhbkBhbGVydGVnZWxlZXMuZnI=");
 	private static readonly (string, string) FromEnglish = ("Yvan from FrostAlert.net", "eXZhbkBmcm9zdGFsZXJ0Lm5ldA==");
 
@@ -83,14 +81,8 @@ public class NotifyAtLocation2(IHttpClientFactory httpClientFactory, IAzureClien
 			return;
 		}
 
-		var forecasts = await GetWeatherForecastsAsync(location);
-
-		var threshold = location.minThreshold.HasValue
-			? Convert.ToDecimal(location.minThreshold.Value)
-			: defaultThreshold;
-
-		var forecastsBelowThreshold = forecasts?.Where(f => f.Minimum <= threshold).ToList();
-		if (forecastsBelowThreshold?.Count is not > 0)
+		var forecastsBelowThreshold = await GetWeatherForecastsAsync(location);
+		if (forecastsBelowThreshold.Count is 0)
 		{
 			return;
 		}
@@ -107,20 +99,11 @@ public class NotifyAtLocation2(IHttpClientFactory httpClientFactory, IAzureClien
 		await ScheduleNotificationAsync(notification, channel);
 	}
 
-	private async Task<IList<Forecast>> GetWeatherForecastsAsync(LocationEntity location)
+	private async Task<List<weather.Forecast>> GetWeatherForecastsAsync(LocationEntity location)
 	{
 		logger.LogInformation("Get weather for {Coordinates}", location.coordinates);
 
-		ArgumentNullException.ThrowIfNull(location.coordinates, nameof(location));
-
-		var (latitude, longitude) = ParseCoordinates(location.coordinates);
-		if (!latitude.HasValue || !longitude.HasValue) throw new ArgumentOutOfRangeException(nameof(location), location.coordinates, "Expected comma-separated numbers");
-
-		var timeZone = location.timezone ?? "Europe/Berlin";
-
-		var weatherApiUrl = location.weatherApiUrl ?? AppSettings.WeatherApiUrl;
-
-		var requestUri = string.Format(CultureInfo.InvariantCulture, weatherApiUrl, latitude.Value, longitude.Value, timeZone);
+		var requestUri = weather.RequestUri.From(location, AppSettings.WeatherApiUrl);
 
 		var response = default(HttpResponseMessage);
 
@@ -143,11 +126,11 @@ public class NotifyAtLocation2(IHttpClientFactory httpClientFactory, IAzureClien
 			throw new Exception(string.Format("Failed to get weather for {0}: HTTP {1} {2} [{3}]", location.coordinates, response?.StatusCode, requestUri, responseContent));
 		}
 
-		var weatherApiResult = default(WeatherApiResult);
+		var weatherApiResult = default(weather.OpenMeteoApiResult);
 
 		try
 		{
-			weatherApiResult = await JsonSerializer.DeserializeAsync<WeatherApiResult>(await response.Content.ReadAsStreamAsync());
+			weatherApiResult = await JsonSerializer.DeserializeAsync<weather.OpenMeteoApiResult>(await response.Content.ReadAsStreamAsync());
 		}
 		catch (Exception ex)
 		{
@@ -155,94 +138,19 @@ public class NotifyAtLocation2(IHttpClientFactory httpClientFactory, IAzureClien
 			throw;
 		}
 
-		var forecasts = new List<Forecast>();
+		var forecasts = new weather.ForecastBuilder(
+			weatherApiResult, location, applyTemperatureThreshold: true).Build();
 
-		if (weatherApiResult?.hourly.time.Count is > 0)
-		{
-			var emptyArray = new decimal?[weatherApiResult.hourly.time.Count];
-
-			forecasts.AddRange(
-				weatherApiResult.hourly.time
-					.Zip(weatherApiResult.hourly.soil_temperature_0cm ?? emptyArray)
-					.Where(tuple => tuple.Second.HasValue)
-					.GroupBy(tuple => DateOnly.FromDateTime(tuple.First))
-					.Select(group => new Forecast(
-						group.Key,
-						group.Min(tuple => tuple.Second!.Value),
-						group.Max(tuple => tuple.Second!.Value)))
-			);
-
-			forecasts.AddRange(
-				weatherApiResult.hourly.time
-					.Zip(weatherApiResult.hourly.soil_temperature_6cm ?? emptyArray)
-					.Where(tuple => tuple.Second.HasValue)
-					.GroupBy(tuple => DateOnly.FromDateTime(tuple.First))
-					.Select(group => new Forecast(
-						group.Key,
-						group.Min(tuple => tuple.Second!.Value),
-						group.Max(tuple => tuple.Second!.Value)))
-			);
-		}
-
-		if (weatherApiResult?.daily.time.Count is > 0)
-		{
-			var emptyArray = new decimal?[weatherApiResult.hourly.time.Count];
-
-			forecasts.AddRange(
-				weatherApiResult.daily.time
-					.Zip(
-						weatherApiResult.daily.temperature_2m_min ?? emptyArray,
-						weatherApiResult.daily.temperature_2m_max ?? emptyArray)
-					.Where(tuple => tuple.Second.HasValue && tuple.Third.HasValue)
-					.Select(tuple => new Forecast(
-						tuple.First,
-						tuple.Second!.Value,
-						tuple.Third!.Value))
-			);
-		}
-
-		forecasts = [.. forecasts
-			.GroupBy(f => f.Date)
-			.Select(group => new Forecast(
-				group.Key,
-				group.Min(f => f.Minimum),
-				group.Max(f => f.Maximum)))];
-
-		if (location.minTemperatureAdjustment.HasValue)
-		{
-			var adjustment = Convert.ToDecimal(location.minTemperatureAdjustment.Value);
-			forecasts = [.. forecasts.Select(f => f with { Minimum = f.Minimum + adjustment })];
-		}
-
-		if (forecasts.Count is > 0)
+		if (forecasts is not null)
 		{
 			return forecasts;
 		}
 
-		logger.LogError("Weather forecast for {Coordinates} has no data [{RequestUri}]", location.coordinates, weatherApiUrl);
+		logger.LogError("Weather forecast for {Coordinates} has no data [{RequestUri}]", location.coordinates, requestUri);
 		throw new Exception(string.Format("Weather forecast for {0} has no data [{1}]", location.coordinates, weatherApiResult));
 	}
 
-	private static (decimal? latitude, decimal? longitude) ParseCoordinates(string coordinates)
-	{
-		decimal? latitude = default;
-		decimal? longitude = default;
-
-		var split = coordinates.Split(",", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-
-		if (split.Length > 0 && decimal.TryParse(split[0], CultureInfo.InvariantCulture, out var parsedAt0))
-		{
-			latitude = parsedAt0;
-		}
-		if (split.Length > 1 && decimal.TryParse(split[1], CultureInfo.InvariantCulture, out var parsedAt1))
-		{
-			longitude = parsedAt1;
-		}
-
-		return (latitude, longitude);
-	}
-
-	private static Notification BuildNotification(List<Forecast> forecasts, LocationEntity location)
+	private static Notification BuildNotification(List<weather.Forecast> forecasts, LocationEntity location)
 	{
 		// Determine language, default to French
 		var language = location.lang ?? "fr";
@@ -278,7 +186,8 @@ public class NotifyAtLocation2(IHttpClientFactory httpClientFactory, IAzureClien
 			raw = text,
 			lang = language,
 			rowKey = location.RowKey,
-			from = new() {
+			from = new()
+			{
 				address = Encoding.UTF8.GetString(Convert.FromBase64String(address)),
 				displayName = displayName
 			},

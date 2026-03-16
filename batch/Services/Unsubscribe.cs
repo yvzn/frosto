@@ -9,7 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace batch.Services;
 
-public class Unsubscribe: IDisposable
+public class Unsubscribe : IDisposable
 {
 	private readonly RSA signingAlgorithm;
 	private readonly SigningCredentials signingCredentials;
@@ -61,10 +61,10 @@ public class Unsubscribe: IDisposable
 		var uriBuilder = new UriBuilder(AppSettings.UnsubscribeUrl);
 
 		var queryString = HttpUtility.ParseQueryString(string.Empty);
-			queryString.Add("user", unsubscribeToken);
-			queryString.Add("email", notification.to);
-			queryString.Add("locid", notification.rowKey);
-			queryString.Add("lang", notification.lang ?? "fr");
+		queryString.Add("user", unsubscribeToken);
+		queryString.Add("email", notification.to);
+		queryString.Add("locid", notification.rowKey);
+		queryString.Add("lang", notification.lang ?? "fr");
 
 		uriBuilder.Query = queryString.ToString();
 
