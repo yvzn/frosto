@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using Azure.Data.Tables;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,12 +24,18 @@ var host = new HostBuilder()
 				.WithName($"{tableName}TableClient");
 			}
 		});
+
+		services.AddHttpClient("default", client =>
+		{
+			client.DefaultRequestHeaders.UserAgent.ParseAdd(
+				$"Frosto/{Assembly.GetExecutingAssembly().GetName().Version} (https://github.com/yvzn/frosto)");
+		});
 	})
 	.ConfigureLogging(logging =>
-    {
+	{
 		logging.SetMinimumLevel(LogLevel.Warning);
 		logging.AddFilter("Function", LogLevel.Warning);
-    })
+	})
 	.Build();
 
 host.Run();

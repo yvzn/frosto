@@ -14,6 +14,9 @@
 		<PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Tables" Version="1.5.0" />
 	</ItemGroup>
 	<ItemGroup>
+		<ProjectReference Include="../weather-forecast/weather-forecast.csproj" />
+	</ItemGroup>
+	<ItemGroup>
 		<None Update="host.json">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>

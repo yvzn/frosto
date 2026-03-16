@@ -9,3 +9,7 @@ GET {{apiUrl}}/api/healthz
 POST {{apiUrl}}/api/sign-up
 
 email=user@example.com&userConsent=true&country=US&city=Seattle&lang=en&zipCode=98101
+
+###
+
+GET {{apiUrl}}/api/weather-forecast?p=France&r=35ca8737-58ec-4466-9574-90a7776085ac
