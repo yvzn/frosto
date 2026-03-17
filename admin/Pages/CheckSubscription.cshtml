@@ -152,12 +152,15 @@
 					</div>
 				}
 
-				<div class="mt-3">
-					<form method="post">
-						<input type="hidden" name="SelectedRequest.Id" value="@Model.SelectedRequest?.Id" />
-						<button type="submit" class="btn btn-primary" asp-page-handler="SendMail">Send confirmation mail</button>
-					</form>
-				</div>
+				@if (!Model.MailSent || !string.IsNullOrEmpty(Model.MailError))
+				{
+					<div class="mt-3">
+						<form method="post">
+							<input type="hidden" name="SelectedRequest.Id" value="@Model.SelectedRequest?.Id" />
+							<button type="submit" class="btn btn-primary" asp-page-handler="SendMail">Send confirmation mail</button>
+						</form>
+					</div>
+				}
 			}
 		</section>
 	</div>
