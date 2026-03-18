@@ -1,5 +1,7 @@
 {
-  "$schema": "./node_modules/oxfmt/configuration_schema.json",
-  "semi": true,
-  "singleQuote": true
+	"$schema": "./node_modules/oxfmt/configuration_schema.json",
+	"semi": true,
+	"singleQuote": true,
+	"useTabs": true,
+	"sortImports": { "newlinesBetween": true }
 }
