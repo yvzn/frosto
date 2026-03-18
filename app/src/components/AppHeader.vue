@@ -9,7 +9,7 @@ function changeLocale(newLocale: string) {
 </script>
 
 <template>
-	<header class="p-3 text-bg-dark shadow-sm">
+	<header class="p-3 text-bg-dark shadow-sm" :lang="locale">
 		<div class="container">
 			<nav class="navbar navbar-dark d-flex flex-wrap align-items-center justify-content-start">
 				<a

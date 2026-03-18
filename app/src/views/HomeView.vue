@@ -8,6 +8,7 @@ const { t } = useI18n();
 <template>
 	<Head>
 		<title>{{ t('app.homePage') }} &ndash; {{ t('app.title') }}</title>
+		<meta name="description" :content="t('app.description')" />
 	</Head>
 	<main>
 		<TheWelcome />

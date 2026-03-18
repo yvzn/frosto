@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router';
 import AppHeader from './components/AppHeader.vue';
-import HelloWorld from './components/HelloWorld.vue';
+import { useI18n } from 'vue-i18n';
+const { locale } = useI18n();
 </script>
 
 <template>
 	<AppHeader />
 
-	<main>
+	<main :lang="locale">
 		<RouterView />
 	</main>
 </template>
