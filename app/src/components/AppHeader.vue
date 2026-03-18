@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import i18n from '../i18n';
+import { useI18n } from 'vue-i18n';
+import LanguageIcon from './LanguageIcon.vue';
+const { t, locale, availableLocales } = useI18n();
 
-function changeLocale(locale: string) {
-	i18n.global.locale = locale;
+function changeLocale(newLocale: string) {
+	locale.value = newLocale;
 }
 </script>
 
@@ -12,9 +14,9 @@ function changeLocale(locale: string) {
 			<nav class="navbar navbar-dark d-flex flex-wrap align-items-center justify-content-start">
 				<a
 					href="/"
-					aria-label="Home page"
+					:title="t('app.backToHome')"
 					class="navbar-brand d-flex align-items-center text-white text-decoration-none"
-					>{{ $t('app.title') }}</a
+					>{{ t('app.title') }}</a
 				>
 
 				<div class="nav ms-auto">
@@ -24,18 +26,15 @@ function changeLocale(locale: string) {
 							type="button"
 							data-bs-toggle="dropdown"
 							aria-expanded="false"
+							:title="t('app.languageSwitcher')"
 						>
-							{{ $t('app.language switcher') }} {{ $i18n.locale }}
+							<LanguageIcon :language="locale" />
 						</button>
 						<ul class="dropdown-menu">
-							<li
-								v-for="locale in $i18n.availableLocales"
-								:key="`locale-${locale}`"
-								:value="locale"
-							>
-								<a class="dropdown-item" href="#" @click.prevent="changeLocale(locale)">{{
-									locale
-								}}</a>
+							<li v-for="l in availableLocales" :key="`locale-${l}`" :value="l">
+								<a class="dropdown-item" href="#" @click.prevent="changeLocale(l)">
+									<LanguageIcon :language="l" />
+								</a>
 							</li>
 						</ul>
 					</div>
