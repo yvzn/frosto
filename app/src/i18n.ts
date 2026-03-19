@@ -14,6 +14,13 @@ const i18n = createI18n({
 				backToHome: 'Back to home',
 				languageSwitcher: 'Change language',
 			},
+			welcome: {
+				heading: 'Anticipate frost',
+				lead: 'Receive a free alert when the weather forecast predicts negative temperatures in your area.',
+				verifyEmail: 'Please verify your email address to get full access to your subscription.',
+				cta: 'Check Subscription',
+				imageAlt: 'A person observing weather change icons',
+			},
 		},
 		fr: {
 			app: {
@@ -23,6 +30,13 @@ const i18n = createI18n({
 				homePage: 'Accueil',
 				backToHome: "Retour à l'accueil",
 				languageSwitcher: 'Changer de langue',
+			},
+			welcome: {
+				heading: 'Anticipez les gelées',
+				lead: 'Recevez gratuitement une alerte lorsque la météo prévoit des températures négatives dans votre ville.',
+				verifyEmail: 'Veuillez vérifier votre adresse e-mail pour accéder pleinement à votre inscription.',
+				cta: 'Vérifier mon inscription',
+				imageAlt: 'Une personne observe des icônes de changement de météo',
 			},
 		},
 	},
