@@ -39,6 +39,7 @@ public class CheckSubscriptionService(IAzureClientFactory<TableClient> azureClie
 			userConsent = entity.userConsent ?? "",
 			lang = entity.lang ?? "",
 			source = entity.source ?? "",
+			reason = entity.reason ?? "",
 			PartitionKey = entity.PartitionKey ?? "",
 			RowKey = entity.RowKey ?? "",
 			Timestamp = entity.Timestamp,

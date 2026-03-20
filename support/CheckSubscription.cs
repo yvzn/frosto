@@ -59,5 +59,6 @@ public class CheckSubscription
 			userConsent = requestParams["userConsent"],
 			lang = requestParams["lang"],
 			source = requestParams["source"],
+			reason = requestParams["reason"],
 		};
 }
