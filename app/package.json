@@ -12,7 +12,8 @@
 		"lint": "run-s lint:*",
 		"lint:oxlint": "oxlint . --fix",
 		"lint:eslint": "eslint . --fix --cache",
-		"format": "oxfmt src/"
+		"format": "oxfmt src/",
+		"clean": "rimraf dist"
 	},
 	"dependencies": {
 		"@popperjs/core": "^2.11.8",

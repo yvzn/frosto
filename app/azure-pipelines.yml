@@ -1,0 +1,57 @@
+variables:
+- group: "production-en"
+
+trigger:
+  branches:
+    include:
+    - main
+  paths:
+    include:
+    - app
+
+pool:
+  vmImage: ubuntu-latest
+
+jobs:
+- job: CI
+  steps:
+  - task: PowerShell@2
+    displayName: 'build .env.production file'
+    inputs:
+      targetType: 'inline'
+      # npm will not pick environment variables, use .env files instead
+      script: './build-env-production.ps1 -SignUpUrl $(signUpUrl) -HealthCheckUrl $(healthCheckUrl) -SupportUrl $(supportUrl) -CheckSubscriptionUrl $(checkSubscriptionUrl) -UnsubscribeUrl $(unsubscribeUrl)'
+      workingDirectory: 'app'
+  - task: Npm@1
+    displayName: 'npm install'
+    inputs:
+      command: 'ci'
+      workingDir: 'app'
+  - task: Npm@1
+    displayName: 'npm build'
+    inputs:
+      command: 'custom'
+      workingDir: 'app'
+      customCommand: 'run build'
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: 'app/dist'
+      publishLocation: 'pipeline'
+      artifact: 'app'
+
+- deployment: CD
+  dependsOn: CI
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+  environment: 'Azure'
+  strategy:
+    runOnce:
+      deploy:
+        steps:
+        - task: CopyFilesOverSSH@0
+          inputs:
+            sshEndpoint: '$(sshEndpoint)'
+            sourceFolder: '$(Pipeline.Workspace)/app'
+            contents: '**'
+            targetFolder: '$(sshTargetFolder)/app'
+            readyTimeout: '20000'
+            overwrite: true
