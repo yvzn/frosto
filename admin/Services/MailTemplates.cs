@@ -37,17 +37,14 @@ public static class MailTemplates
 				var appLinkListText = string.Join("\n", locations.Select(l =>
 					$"- {l.city}, {l.country}: {appLinkBase}/app/weather-forecast/{Uri.EscapeDataString(l.PartitionKey)}/{Uri.EscapeDataString(l.RowKey)}"));
 				appSectionHtml = $"""
-					<p>You can also visit the FrostAlert.net app to add your weather forecast alerts to your calendar:</p>
+					<p>You can also optionally visit the FrostAlert.net app to add your frost alerts to your calendar &mdash; you will continue to receive alerts by email regardless:</p>
 					<ul>{appLinkListHtml}</ul>
-					<p>Please note that use of the app is entirely optional. You will continue to receive frost alerts by email, even if you do not use the app.</p>
 					""";
 				appSectionText = $"""
 
-					You can also visit the FrostAlert.net app to add your weather forecast alerts to your calendar:
+					You can also optionally visit the FrostAlert.net app to add your frost alerts to your calendar — you will continue to receive alerts by email regardless:
 
 					{appLinkListText}
-
-					Please note that use of the app is entirely optional. You will continue to receive frost alerts by email, even if you do not use the app.
 					""";
 			}
 
@@ -58,8 +55,8 @@ public static class MailTemplates
 					<p>Hello,</p>
 					<p>We are pleased to confirm that you are currently subscribed to frost alerts on FrostAlert.net for the following location(s):</p>
 					<ul>{locationListHtml}</ul>
-					{appSectionHtml}<p>To ensure you receive your alerts, please add {contactEmailHtml} to your contact list.</p>
-					<p>To unsubscribe, reply &ldquo;STOP&rdquo; to this message.</p>
+					<p>To ensure you receive your alerts, please add {contactEmailHtml} to your contact list.</p>
+					{appSectionHtml}<p>To unsubscribe, reply &ldquo;STOP&rdquo; to this message.</p>
 					<p>Best regards,<br>Yvan from FrostAlert.net</p>
 					</body></html>
 					""",
@@ -69,9 +66,9 @@ public static class MailTemplates
 					We are pleased to confirm that you are currently subscribed to frost alerts on FrostAlert.net for the following location(s):
 
 					{locationListText}
-					{appSectionText}
-					To ensure you receive your alerts, please add {contactEmail} to your contact list.
 
+					To ensure you receive your alerts, please add {contactEmail} to your contact list.
+					{appSectionText}
 					To unsubscribe, reply "STOP" to this message.
 
 					Best regards,
@@ -123,17 +120,14 @@ public static class MailTemplates
 				var appLinkListText = string.Join("\n", locations.Select(l =>
 					$"- {l.city}, {l.country}: {appLinkBase}/app/weather-forecast/{Uri.EscapeDataString(l.PartitionKey)}/{Uri.EscapeDataString(l.RowKey)}"));
 				appSectionHtml = $"""
-					<p>Vous pouvez également visiter l'application FrostAlert.net pour ajouter vos alertes météo à votre calendrier&nbsp;:</p>
+					<p>Vous pouvez également visiter l'application FrostAlert.net pour ajouter vos alertes de gel à votre calendrier, en option &mdash; vous continuerez à recevoir vos alertes par e-mail quoi qu'il arrive&nbsp;:</p>
 					<ul>{appLinkListHtml}</ul>
-					<p>Veuillez noter que l'utilisation de l'application est entièrement facultative. Vous continuerez à recevoir vos alertes gelées par e-mail, même si vous n'utilisez pas l'application.</p>
 					""";
 				appSectionText = $"""
 
-					Vous pouvez également visiter l'application FrostAlert.net pour ajouter vos alertes météo à votre calendrier :
+					Vous pouvez également visiter l'application FrostAlert.net pour ajouter vos alertes de gel à votre calendrier, en option — vous continuerez à recevoir vos alertes par e-mail quoi qu'il arrive :
 
 					{appLinkListText}
-
-					Veuillez noter que l'utilisation de l'application est entièrement facultative. Vous continuerez à recevoir vos alertes gelées par e-mail, même si vous n'utilisez pas l'application.
 					""";
 			}
 
@@ -144,8 +138,8 @@ public static class MailTemplates
 					<p>Bonjour,</p>
 					<p>Nous sommes heureux de confirmer que vous êtes actuellement abonné aux alertes gelées sur AlerteGelee.fr pour le(s) villes(s) suivante(s)&nbsp;:</p>
 					<ul>{locationListHtml}</ul>
-					{appSectionHtml}<p>Pour bien recevoir vos alertes, pensez à ajouter {contactEmailHtml} à votre liste de contacts.</p>
-					<p>Pour vous désinscrire, répondez &laquo;&nbsp;STOP&nbsp;&raquo; à ce message.</p>
+					<p>Pour bien recevoir vos alertes, pensez à ajouter {contactEmailHtml} à votre liste de contacts.</p>
+					{appSectionHtml}<p>Pour vous désinscrire, répondez &laquo;&nbsp;STOP&nbsp;&raquo; à ce message.</p>
 					<p>Cordialement,<br>Yvan de AlerteGelee.fr</p>
 					</body></html>
 					""",
@@ -155,9 +149,9 @@ public static class MailTemplates
 					Nous sommes heureux de confirmer que vous êtes actuellement abonné aux alertes gelées sur AlerteGelee.fr pour le(s) villes(s) suivante(s):
 
 					{locationListText}
-					{appSectionText}
-					Pour bien recevoir vos alertes, pensez à ajouter {contactEmail} à votre liste de contacts.
 
+					Pour bien recevoir vos alertes, pensez à ajouter {contactEmail} à votre liste de contacts.
+					{appSectionText}
 					Pour vous désinscrire, répondez "STOP" à ce message.
 
 					Cordialement,

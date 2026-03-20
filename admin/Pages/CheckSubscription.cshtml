@@ -114,10 +114,11 @@
 										<li>@location.city, @location.country</li>
 									}
 								</ul>
+								<p>To ensure you receive your alerts, please add @Model.ContactEmail to your contact list.</p>
 								@if (!string.IsNullOrEmpty(Model.AppLinkBase))
 								{
-									<p>You can also visit the FrostAlert.net app to add your weather forecast alerts to your
-										calendar:</p>
+									<p>You can also optionally visit the FrostAlert.net app to add your frost alerts to your
+										calendar &mdash; you will continue to receive alerts by email regardless:</p>
 									<ul>
 										@foreach (var location in Model.FoundLocations)
 										{
@@ -125,10 +126,7 @@
 											<li><a href="@appUrl">@location.city, @location.country</a></li>
 										}
 									</ul>
-									<p>Please note that use of the app is entirely optional. You will continue to receive frost
-										alerts by email, even if you do not use the app.</p>
 								}
-								<p>To ensure you receive your alerts, please add @Model.ContactEmail to your contact list.</p>
 								<p>To unsubscribe, reply "STOP" to this message.</p>
 								<p>Best regards,<br />Yvan from FrostAlert.net</p>
 							</div>
@@ -147,10 +145,12 @@
 										<li>@location.city, @location.country</li>
 									}
 								</ul>
+								<p>Pour bien recevoir vos alertes, pensez à ajouter @Model.ContactEmail à votre liste de contacts.</p>
 								@if (!string.IsNullOrEmpty(Model.AppLinkBase))
 								{
-									<p>Vous pouvez également visiter l'application FrostAlert.net pour ajouter vos alertes météo à
-										votre calendrier&nbsp;:</p>
+									<p>Vous pouvez également visiter l'application FrostAlert.net pour ajouter vos alertes de gel à
+										votre calendrier, en option &mdash; vous continuerez à recevoir vos alertes par e-mail quoi
+										qu'il arrive&nbsp;:</p>
 									<ul>
 										@foreach (var location in Model.FoundLocations)
 										{
@@ -158,11 +158,7 @@
 											<li><a href="@appUrl">@location.city, @location.country</a></li>
 										}
 									</ul>
-									<p>Veuillez noter que l'utilisation de l'application est entièrement facultative. Vous
-										continuerez à recevoir vos alertes gelées par e-mail, même si vous n'utilisez pas
-										l'application.</p>
 								}
-								<p>Pour bien recevoir vos alertes, pensez à ajouter @Model.ContactEmail à votre liste de contacts.</p>
 								<p>Pour vous désinscrire, répondez "STOP" à ce message.</p>
 								<p>Cordialement,<br />Yvan de AlerteGelee.fr</p>
 							</div>
