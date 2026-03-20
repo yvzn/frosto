@@ -4,7 +4,7 @@ namespace admin.Services;
 
 public interface IMailTemplates
 {
-	(string subject, string htmlBody, string textBody) SubscriptionConfirmation(IList<Location> locations, string contactEmail);
+	(string subject, string htmlBody, string textBody) SubscriptionConfirmation(IList<Location> locations, string contactEmail, string? appLinkBase = null);
 	(string subject, string htmlBody, string textBody) UnsubscribeConfirmation();
 }
 
@@ -20,12 +20,33 @@ public static class MailTemplates
 	{
 		public (string subject, string htmlBody, string textBody) SubscriptionConfirmation(
 			IList<Location> locations,
-			string contactEmail)
+			string contactEmail,
+			string? appLinkBase = null)
 		{
 			var locationListText = string.Join("\n", locations.Select(l => $"- {l.city}, {l.country}"));
 			var locationListHtml = string.Concat(locations.Select(l =>
 				$"<li>{System.Net.WebUtility.HtmlEncode(l.city)}, {System.Net.WebUtility.HtmlEncode(l.country)}</li>"));
 			var contactEmailHtml = System.Net.WebUtility.HtmlEncode(contactEmail);
+
+			var appSectionHtml = string.Empty;
+			var appSectionText = string.Empty;
+			if (!string.IsNullOrEmpty(appLinkBase))
+			{
+				var appLinkListHtml = string.Concat(locations.Select(l =>
+					$"<li><a href=\"{System.Net.WebUtility.HtmlEncode(appLinkBase)}/app/weather-forecast/{Uri.EscapeDataString(l.PartitionKey)}/{Uri.EscapeDataString(l.RowKey)}\">{System.Net.WebUtility.HtmlEncode(l.city)}, {System.Net.WebUtility.HtmlEncode(l.country)}</a></li>"));
+				var appLinkListText = string.Join("\n", locations.Select(l =>
+					$"- {l.city}, {l.country}: {appLinkBase}/app/weather-forecast/{Uri.EscapeDataString(l.PartitionKey)}/{Uri.EscapeDataString(l.RowKey)}"));
+				appSectionHtml = $"""
+					<p>You can also optionally visit the FrostAlert.net app to add your frost alerts to your calendar &mdash; you will continue to receive alerts by email regardless:</p>
+					<ul>{appLinkListHtml}</ul>
+					""";
+				appSectionText = $"""
+
+					You can also optionally visit the FrostAlert.net app to add your frost alerts to your calendar — you will continue to receive alerts by email regardless:
+
+					{appLinkListText}
+					""";
+			}
 
 			return (
 				subject: "Your Subscription Status to FrostAlert.net",
@@ -35,7 +56,7 @@ public static class MailTemplates
 					<p>We are pleased to confirm that you are currently subscribed to frost alerts on FrostAlert.net for the following location(s):</p>
 					<ul>{locationListHtml}</ul>
 					<p>To ensure you receive your alerts, please add {contactEmailHtml} to your contact list.</p>
-					<p>To unsubscribe, reply &ldquo;STOP&rdquo; to this message.</p>
+					{appSectionHtml}<p>To unsubscribe, reply &ldquo;STOP&rdquo; to this message.</p>
 					<p>Best regards,<br>Yvan from FrostAlert.net</p>
 					</body></html>
 					""",
@@ -47,7 +68,7 @@ public static class MailTemplates
 					{locationListText}
 
 					To ensure you receive your alerts, please add {contactEmail} to your contact list.
-
+					{appSectionText}
 					To unsubscribe, reply "STOP" to this message.
 
 					Best regards,
@@ -82,12 +103,33 @@ public static class MailTemplates
 	{
 		public (string subject, string htmlBody, string textBody) SubscriptionConfirmation(
 			IList<Location> locations,
-			string contactEmail)
+			string contactEmail,
+			string? appLinkBase = null)
 		{
 			var locationListText = string.Join("\n", locations.Select(l => $"- {l.city}, {l.country}"));
 			var locationListHtml = string.Concat(locations.Select(l =>
 				$"<li>{System.Net.WebUtility.HtmlEncode(l.city)}, {System.Net.WebUtility.HtmlEncode(l.country)}</li>"));
 			var contactEmailHtml = System.Net.WebUtility.HtmlEncode(contactEmail);
+
+			var appSectionHtml = string.Empty;
+			var appSectionText = string.Empty;
+			if (!string.IsNullOrEmpty(appLinkBase))
+			{
+				var appLinkListHtml = string.Concat(locations.Select(l =>
+					$"<li><a href=\"{System.Net.WebUtility.HtmlEncode(appLinkBase)}/app/weather-forecast/{Uri.EscapeDataString(l.PartitionKey)}/{Uri.EscapeDataString(l.RowKey)}\">{System.Net.WebUtility.HtmlEncode(l.city)}, {System.Net.WebUtility.HtmlEncode(l.country)}</a></li>"));
+				var appLinkListText = string.Join("\n", locations.Select(l =>
+					$"- {l.city}, {l.country}: {appLinkBase}/app/weather-forecast/{Uri.EscapeDataString(l.PartitionKey)}/{Uri.EscapeDataString(l.RowKey)}"));
+				appSectionHtml = $"""
+					<p>Vous pouvez également visiter l'application FrostAlert.net pour ajouter vos alertes de gel à votre calendrier, en option &mdash; vous continuerez à recevoir vos alertes par e-mail quoi qu'il arrive&nbsp;:</p>
+					<ul>{appLinkListHtml}</ul>
+					""";
+				appSectionText = $"""
+
+					Vous pouvez également visiter l'application FrostAlert.net pour ajouter vos alertes de gel à votre calendrier, en option — vous continuerez à recevoir vos alertes par e-mail quoi qu'il arrive :
+
+					{appLinkListText}
+					""";
+			}
 
 			return (
 				subject: "Votre abonnement à AlerteGelee.fr",
@@ -97,7 +139,7 @@ public static class MailTemplates
 					<p>Nous sommes heureux de confirmer que vous êtes actuellement abonné aux alertes gelées sur AlerteGelee.fr pour le(s) villes(s) suivante(s)&nbsp;:</p>
 					<ul>{locationListHtml}</ul>
 					<p>Pour bien recevoir vos alertes, pensez à ajouter {contactEmailHtml} à votre liste de contacts.</p>
-					<p>Pour vous désinscrire, répondez &laquo;&nbsp;STOP&nbsp;&raquo; à ce message.</p>
+					{appSectionHtml}<p>Pour vous désinscrire, répondez &laquo;&nbsp;STOP&nbsp;&raquo; à ce message.</p>
 					<p>Cordialement,<br>Yvan de AlerteGelee.fr</p>
 					</body></html>
 					""",
@@ -109,7 +151,7 @@ public static class MailTemplates
 					{locationListText}
 
 					Pour bien recevoir vos alertes, pensez à ajouter {contactEmail} à votre liste de contacts.
-
+					{appSectionText}
 					Pour vous désinscrire, répondez "STOP" à ce message.
 
 					Cordialement,
