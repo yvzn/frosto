@@ -1,21 +1,17 @@
 <script setup lang="ts">
+import gbFlag from 'flag-icons/flags/4x3/gb.svg';
+import frFlag from 'flag-icons/flags/4x3/fr.svg';
+
 const props = defineProps<{
 	language: string;
 }>();
 </script>
 
 <template>
-	<span
-		class="fi me-2"
-		:class="{
-			'fi-gb': props.language === 'en',
-			'fi-fr': props.language === 'fr',
-		}"
-	></span>
 	<span v-if="props.language === 'en'" lang="en" aria-label="Change language to English"
-		>English</span
+		class="d-inline-flex align-items-center"><img :src="gbFlag" class="me-2" alt="" width="20" height="15" />English</span
 	>
 	<span v-else-if="props.language === 'fr'" lang="fr" aria-label="Changer la langue en français"
-		>Français</span
+		class="d-inline-flex align-items-center"><img :src="frFlag" class="me-2" alt="" width="20" height="15" />Français</span
 	>
 </template>
