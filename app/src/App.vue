@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router';
+import { RouterView } from 'vue-router';
 import AppHeader from './components/AppHeader.vue';
 import { useI18n } from 'vue-i18n';
 const { locale } = useI18n();
