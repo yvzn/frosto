@@ -7,6 +7,8 @@ public class CheckSubscriptionEntity: Azure.Data.Tables.ITableEntity
 	public string? email { get; set; }
 	public string? userConsent { get; set; }
 	public string? lang { get; set; }
+	public string? source { get; set; }
+	public string? reason { get; set; }
 
 	public required string PartitionKey {get; set; }
 	public required string RowKey {get; set; }

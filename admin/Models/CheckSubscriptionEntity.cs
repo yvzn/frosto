@@ -7,4 +7,6 @@ public class CheckSubscriptionEntity: EntityBase
 	public string? email { get; set; }
 	public string? userConsent { get; set; }
 	public string? lang { get; set; }
+	public string? source { get; set; }
+	public string? reason { get; set; }
 }

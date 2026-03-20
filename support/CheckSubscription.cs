@@ -38,7 +38,9 @@ public class CheckSubscription
 		await checkSubscriptionEntities.AddEntityAsync(checkSubscriptionEntity);
 
 		var siteUrl = requestParams["lang"] == "en" ? AppSettings.SiteEnUrl : AppSettings.SiteFrUrl;
-		var checkSubscriptionCompleteUrl = siteUrl + "check-subscription-complete.html";
+		var checkSubscriptionCompleteUrl = requestParams["source"] == "app"
+			? siteUrl + "app/check-subscription-complete"
+			: siteUrl + "check-subscription-complete.html";
 		request.HttpContext.Response.Headers.Append("Location", checkSubscriptionCompleteUrl);
 		return new StatusCodeResult(StatusCodes.Status303SeeOther);
 	}
@@ -56,5 +58,7 @@ public class CheckSubscription
 			email = requestParams["email"],
 			userConsent = requestParams["userConsent"],
 			lang = requestParams["lang"],
+			source = requestParams["source"],
+			reason = requestParams["reason"],
 		};
 }
