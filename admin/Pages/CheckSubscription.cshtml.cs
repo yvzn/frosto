@@ -9,6 +9,7 @@ public class CheckSubscriptionModel(
 	CheckSubscriptionService checkSubscriptionService,
 	LocationService locationService,
 	SmtpMailSender mailSender,
+	IConfiguration configuration,
 	ILogger<CheckSubscriptionModel> logger) : PageModel
 {
 	[BindProperty]
@@ -16,10 +17,19 @@ public class CheckSubscriptionModel(
 
 	public string SelectedRequestLang => string.IsNullOrEmpty(SelectedRequest?.lang) ? "fr" : SelectedRequest.lang;
 
+	public string SelectedRequestSource => SelectedRequest?.source ?? string.Empty;
+
 	public string ContactEmail =>
 		"en".Equals(SelectedRequestLang, StringComparison.OrdinalIgnoreCase)
 			? System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(ContactDataService.FromEnglish))
 			: System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(ContactDataService.FromFrench));
+
+	public string? SiteEnUrl => configuration["SiteEnUrl"];
+
+	public string? AppLinkBase =>
+		"app".Equals(SelectedRequestSource, StringComparison.OrdinalIgnoreCase)
+			? SiteEnUrl
+			: null;
 
 	public IList<CheckSubscription> CheckSubscriptionRequests { get; private set; } = [];
 
@@ -110,7 +120,8 @@ public class CheckSubscriptionModel(
 
 		var (subject, htmlBody, textBody) = MailTemplates.For(SelectedRequestLang).SubscriptionConfirmation(
 			FoundLocations,
-			ContactEmail);
+			ContactEmail,
+			AppLinkBase);
 
 		logger.LogInformation("Sending confirmation mail to {Email}", SelectedRequest.email);
 		var (success, error) = await mailSender.SendMailAsync(SelectedRequest.email, subject, textBody, htmlBody, HttpContext.RequestAborted);
