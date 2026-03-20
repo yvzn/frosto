@@ -8,11 +8,21 @@
 	</head>
 	<body>
 		<div id="app">
-			<div aria-busy="true" aria-describedby="progress-bar"></div>
+			<div aria-busy="true" aria-describedby="progress-bar">
+				<noscript>
+					<p>
+						JavaScript is required to use this application. You can refer to these
+						<a href="https://www.enable-javascript.com/" target="_blank" rel="noopener noreferrer"
+							>instructions to enable JavaScript</a
+						>.
+					</p>
+				</noscript>
+			</div>
 			<progress id="progress-bar" aria-label="Loading..."></progress>
 			<style>
 				body {
 					display: flex;
+					font-family: sans-serif;
 					justify-content: center;
 					align-items: center;
 					height: 100vh;
