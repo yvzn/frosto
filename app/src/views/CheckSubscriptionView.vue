@@ -1,9 +1,85 @@
 <script setup lang="ts">
+import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { Head } from '@unhead/vue/components';
 import { useI18n } from 'vue-i18n';
 const { t, locale } = useI18n();
 
 const checkSubscriptionUrl = import.meta.env.VITE_CHECKSUBSCRIPTION_URL;
+const supportUrl = import.meta.env.VITE_SUPPORT_URL;
+
+const SLOW_LOADING_THRESHOLD_MS = 10_000;
+const FAILURE_TIMEOUT_MS = 50_000;
+const HEALTH_CHECK_TIMEOUT_MS = 30 * 1000;
+
+type FormStatus = 'IDLE' | 'PENDING' | 'FAILED';
+const formStatus = ref<FormStatus>('IDLE');
+const submitLabel = ref<string | null>(null);
+const failureMessage = ref(false);
+
+let updateLoadingTextTimeoutId: ReturnType<typeof setTimeout> | null = null;
+let showFailureTextTimeoutId: ReturnType<typeof setTimeout> | null = null;
+
+function onSubmit(event: Event) {
+	if (formStatus.value === 'IDLE') {
+		formStatus.value = 'PENDING';
+		submitLabel.value = null;
+
+		updateLoadingTextTimeoutId = setTimeout(updateLoadingText, SLOW_LOADING_THRESHOLD_MS);
+
+		// trick to allow setTimeout during form submission
+		event.preventDefault();
+		(event.target as HTMLFormElement).submit();
+	} else {
+		event.preventDefault();
+	}
+}
+
+function updateLoadingText() {
+	submitLabel.value = 'slow';
+	showFailureTextTimeoutId = setTimeout(showFailureText, FAILURE_TIMEOUT_MS);
+}
+
+function showFailureText() {
+	formStatus.value = 'FAILED';
+	failureMessage.value = true;
+}
+
+function retryPage() {
+	location.reload();
+}
+
+function clearLoadingTimeouts() {
+	if (updateLoadingTextTimeoutId !== null) {
+		clearTimeout(updateLoadingTextTimeoutId);
+	}
+	if (showFailureTextTimeoutId !== null) {
+		clearTimeout(showFailureTextTimeoutId);
+	}
+}
+
+function healthCheck(retries: number) {
+	const request = new XMLHttpRequest();
+
+	request.timeout = HEALTH_CHECK_TIMEOUT_MS;
+	const onRetry = function () {
+		if (retries > 1) {
+			healthCheck(retries - 1);
+		}
+	};
+	request.ontimeout = onRetry;
+	request.onerror = onRetry;
+
+	request.open('GET', supportUrl, true);
+	request.send();
+}
+
+onMounted(() => {
+	healthCheck(3);
+});
+
+onBeforeUnmount(() => {
+	clearLoadingTimeouts();
+});
 </script>
 
 <template>
@@ -25,6 +101,7 @@ const checkSubscriptionUrl = import.meta.env.VITE_CHECKSUBSCRIPTION_URL;
 					:aria-label="t('checkSubscription.formLabel')"
 					method="post"
 					enctype="application/x-www-form-urlencoded"
+					@submit="onSubmit"
 				>
 					<div class="form-floating mb-3">
 						<input
@@ -63,8 +140,34 @@ const checkSubscriptionUrl = import.meta.env.VITE_CHECKSUBSCRIPTION_URL;
 					</div>
 					<input type="hidden" id="lang" name="lang" :value="locale" />
 					<input type="hidden" id="source" name="source" value="app" />
-					<button class="w-100 btn btn-lg btn-primary" type="submit" aria-live="polite">
-						{{ t('checkSubscription.submit') }}
+					<div v-if="failureMessage" class="alert alert-danger mt-3" role="alert">
+						{{ t('checkSubscription.failureMessage') }}
+					</div>
+					<button
+						v-if="formStatus !== 'FAILED'"
+						class="w-100 btn btn-lg btn-primary"
+						type="submit"
+						aria-live="polite"
+					>
+						<template v-if="formStatus === 'IDLE'">
+							{{ t('checkSubscription.submit') }}
+						</template>
+						<template v-else-if="submitLabel === 'slow'">
+							<span class="spinner-border spinner-border-sm fs-6" role="status" aria-hidden="true"></span>
+							{{ t('checkSubscription.takingLonger') }}
+						</template>
+						<template v-else>
+							<span class="spinner-border spinner-border-sm fs-6" role="status" aria-hidden="true"></span>
+							{{ t('checkSubscription.pleaseWait') }}
+						</template>
+					</button>
+					<button
+						v-else
+						class="w-100 btn btn-lg btn-primary"
+						type="button"
+						@click="retryPage"
+					>
+						{{ t('checkSubscription.retry') }}
 					</button>
 				</form>
 			</article>
