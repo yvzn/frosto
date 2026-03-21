@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
+
 import HomeView from '../views/HomeView.vue';
 
 const router = createRouter({
@@ -26,6 +27,11 @@ const router = createRouter({
 			path: '/check-subscription-complete',
 			name: 'check-subscription-complete',
 			component: () => import('../views/CheckSubscriptionCompleteView.vue'),
+		},
+		{
+			path: '/weather-forecast/:partitionKey/:rowKey',
+			name: 'weather-forecast',
+			component: () => import('../views/WeatherForecastView.vue'),
 		},
 	],
 });

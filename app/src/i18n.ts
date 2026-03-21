@@ -51,6 +51,16 @@ const i18n = createI18n({
 				lead: 'We will send you an email shortly to confirm your subscription and finalize the process.',
 				imageAlt: 'An operator reviewing user preferences',
 			},
+			weatherForecast: {
+				title: 'Weather Forecast',
+				loading: 'Loading forecast…',
+				error: 'An error occurred while loading the forecast.',
+				retry: 'Retry',
+				thresholdLabel: 'Frost threshold (°C)',
+				tableDate: 'Date',
+				tableMinTemp: 'Min temp (°C)',
+				tableMaxTemp: 'Max temp (°C)',
+			},
 		},
 		fr: {
 			app: {
@@ -98,6 +108,16 @@ const i18n = createI18n({
 				heading: 'Vérification soumise',
 				lead: 'Nous vous enverrons un e-mail prochainement pour confirmer votre inscription et finaliser le processus.',
 				imageAlt: 'Un opérateur examinant les préférences utilisateur',
+			},
+			weatherForecast: {
+				title: 'Prévisions météo',
+				loading: 'Chargement des prévisions…',
+				error: 'Une erreur est survenue lors du chargement des prévisions.',
+				retry: 'Réessayer',
+				thresholdLabel: 'Seuil de gelée (°C)',
+				tableDate: 'Date',
+				tableMinTemp: 'Temp. min (°C)',
+				tableMaxTemp: 'Temp. max (°C)',
 			},
 		},
 	},
