@@ -11,7 +11,7 @@ const { t } = useI18n();
 		<meta name="robots" content="noindex" />
 	</Head>
 	<section class="container py-5">
-		<div class="row flex-lg-row-reverse align-items-center py-lg-5">
+		<div class="row flex-lg-row-reverse align-items-center">
 			<article class="col-8 col-sm-6 col-lg-5 p-4 p-md-5">
 				<img
 					src="/undraw_preferences-popup_cru5.svg"

@@ -1,20 +1,37 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, onMounted, onBeforeUnmount, computed, useTemplateRef } from 'vue';
 import { Head } from '@unhead/vue/components';
 import { useI18n } from 'vue-i18n';
 const { t, locale } = useI18n();
 
 const checkSubscriptionUrl = import.meta.env.VITE_CHECKSUBSCRIPTION_URL;
 const supportUrl = import.meta.env.VITE_SUPPORT_URL;
+const signUpFormUrl = computed(() => {
+	switch (locale.value) {
+		case 'fr':
+			return import.meta.env.VITE_SITE_FR_URL + '/sign-up.html';
+		default:
+			return import.meta.env.VITE_SITE_EN_URL + '/sign-up.html';
+	}
+});
+const legalUrl = computed(() => {
+	switch (locale.value) {
+		case 'fr':
+			return import.meta.env.VITE_SITE_FR_URL + '/legal.html';
+		default:
+			return import.meta.env.VITE_SITE_EN_URL + '/legal.html';
+	}
+});
 
 const SLOW_LOADING_THRESHOLD_MS = 10_000;
 const FAILURE_TIMEOUT_MS = 50_000;
-const HEALTH_CHECK_TIMEOUT_MS = 30 * 1000;
+const HEALTH_CHECK_TIMEOUT_MS = 30_000;
 
 type FormStatus = 'IDLE' | 'PENDING' | 'FAILED';
 const formStatus = ref<FormStatus>('IDLE');
 const submitLabel = ref<string | null>(null);
 const failureMessage = ref(false);
+const reasonField = useTemplateRef('reasonField');
 
 let updateLoadingTextTimeoutId: ReturnType<typeof setTimeout> | null = null;
 let showFailureTextTimeoutId: ReturnType<typeof setTimeout> | null = null;
@@ -75,7 +92,18 @@ function healthCheck(retries: number) {
 
 onMounted(() => {
 	healthCheck(3);
+	fixAccessibility();
 });
+
+function fixAccessibility() {
+	const style = reasonField.value?.style;
+	if (style) {
+		style.position = 'absolute';
+		style.width = '1px';
+		style.height = '1px';
+		style.overflow = 'hidden';
+	}
+}
 
 onBeforeUnmount(() => {
 	clearLoadingTimeouts();
@@ -93,6 +121,12 @@ onBeforeUnmount(() => {
 				<h1 class="fw-light mb-3">{{ t('checkSubscription.heading') }}</h1>
 				<p class="lead text-muted col-lg-10">{{ t('checkSubscription.lead') }}</p>
 				<p class="text-muted col-lg-10">{{ t('checkSubscription.description') }}</p>
+				<p class="text-muted">
+					{{ t('checkSubscription.noSubscription') }}
+					<a :href="signUpFormUrl" class="link-secondary">{{
+						t('checkSubscription.signUpLink')
+					}}</a>
+				</p>
 			</article>
 			<article class="col-md-10 mx-auto col-lg-6">
 				<form
@@ -115,7 +149,7 @@ onBeforeUnmount(() => {
 						/>
 						<label for="email">{{ t('checkSubscription.emailLabel') }}</label>
 					</div>
-					<div class="form-floating mb-3" aria-hidden="true">
+					<div class="form-floating mb-3" inert aria-hidden="true" ref="reasonField">
 						<input
 							type="text"
 							class="form-control"
@@ -126,15 +160,16 @@ onBeforeUnmount(() => {
 						/>
 						<label for="reason">{{ t('checkSubscription.reasonLabel') }}</label>
 					</div>
-					<div class="checkbox mb-3">
-						<label for="userConsent">
-							<input
-								type="checkbox"
-								id="userConsent"
-								name="userConsent"
-								value="true"
-								:required="true"
-							/>
+					<div class="form-check mb-3">
+						<input
+							type="checkbox"
+							class="form-check-input"
+							id="userConsent"
+							name="userConsent"
+							value="true"
+							:required="true"
+						/>
+						<label class="form-check-label" for="userConsent">
 							<small>{{ t('checkSubscription.consent') }}</small>
 						</label>
 					</div>
@@ -153,20 +188,23 @@ onBeforeUnmount(() => {
 							{{ t('checkSubscription.submit') }}
 						</template>
 						<template v-else-if="submitLabel === 'slow'">
-							<span class="spinner-border spinner-border-sm fs-6" role="status" aria-hidden="true"></span>
+							<span
+								class="spinner-border spinner-border-sm fs-6"
+								role="status"
+								aria-hidden="true"
+							></span>
 							{{ t('checkSubscription.takingLonger') }}
 						</template>
 						<template v-else>
-							<span class="spinner-border spinner-border-sm fs-6" role="status" aria-hidden="true"></span>
+							<span
+								class="spinner-border spinner-border-sm fs-6"
+								role="status"
+								aria-hidden="true"
+							></span>
 							{{ t('checkSubscription.pleaseWait') }}
 						</template>
 					</button>
-					<button
-						v-else
-						class="w-100 btn btn-lg btn-primary"
-						type="button"
-						@click="retryPage"
-					>
+					<button v-else class="w-100 btn btn-lg btn-primary" type="button" @click="retryPage">
 						{{ t('checkSubscription.retry') }}
 					</button>
 				</form>
@@ -179,7 +217,9 @@ onBeforeUnmount(() => {
 			<p>
 				<i18n-t keypath="checkSubscription.legalLink" tag="span">
 					<template #link>
-						<a class="link-dark" href="./legal.html">{{ t('checkSubscription.legalLinkText') }}</a>
+						<a class="link-dark" :href="legalUrl" target="_blank">{{
+							t('checkSubscription.legalLinkText')
+						}}</a>
 					</template>
 				</i18n-t>
 			</p>
