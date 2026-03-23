@@ -22,6 +22,11 @@ const router = createRouter({
 			name: 'check-subscription',
 			component: () => import('../views/CheckSubscriptionView.vue'),
 		},
+		{
+			path: '/check-subscription-complete',
+			name: 'check-subscription-complete',
+			component: () => import('../views/CheckSubscriptionCompleteView.vue'),
+		},
 	],
 });
 

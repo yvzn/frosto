@@ -3,6 +3,8 @@ import { useI18n } from 'vue-i18n';
 import LanguageIcon from './LanguageIcon.vue';
 const { t, locale, availableLocales } = useI18n();
 
+const baseUrl = import.meta.env.BASE_URL;
+
 function changeLocale(newLocale: string) {
 	locale.value = newLocale;
 }
@@ -13,7 +15,7 @@ function changeLocale(newLocale: string) {
 		<div class="container">
 			<nav class="navbar navbar-dark d-flex flex-wrap align-items-center justify-content-start">
 				<a
-					href="/"
+					:href="baseUrl"
 					:title="t('app.backToHome')"
 					class="navbar-brand d-flex align-items-center text-white text-decoration-none"
 					>{{ t('app.title') }}</a
