@@ -126,7 +126,41 @@ onMounted(fetchForecast);
 	<div class="container py-5">
 		<h1 class="fw-light mb-4">{{ t('weatherForecast.title') }}</h1>
 
-		<div v-if="loading" class="text-muted">{{ t('weatherForecast.loading') }}</div>
+		<div v-if="loading" class="d-grid gap-3 mb-4">
+			<h2 class="h4 mb-3 placeholder-glow">
+				<span class="placeholder bg-secondary w-50"></span>
+			</h2>
+
+			<article class="card border shadow-sm rounded-4" v-for="i in 3" :key="i">
+				<div class="card-body">
+					<div class="card-title placeholder-glow">
+						<h3 class="h5 placeholder bg-secondary w-25"></h3>
+					</div>
+					<div class="card-text row row-cols-1 row-cols-sm-2 g-3">
+						<div class="col">
+							<div class="p-3 rounded-4 bg-body-tertiary bg-opacity-50">
+								<div class="placeholder-glow">
+									<span class="placeholder bg-secondary w-50"></span>
+								</div>
+								<div class="placeholder-glow">
+									<span class="placeholder bg-secondary w-25"></span>
+								</div>
+							</div>
+						</div>
+						<div class="col">
+							<div class="p-3 rounded-4 bg-body-tertiary bg-opacity-50">
+								<div class="placeholder-glow">
+									<span class="placeholder bg-secondary w-50"></span>
+								</div>
+								<div class="placeholder-glow">
+									<span class="placeholder bg-secondary w-25"></span>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</article>
+		</div>
 
 		<div v-else-if="error" class="my-3">
 			<p class="text-danger">{{ t('weatherForecast.error') }}</p>
