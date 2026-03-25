@@ -15,6 +15,8 @@
 	URL of the French version of the website
 .PARAMETER SiteEnUrl
 	URL of the English version of the website
+.PARAMETER WeatherForecastUrl
+	URL of the Weather Forecast page
 #>
 
 param (
@@ -22,7 +24,8 @@ param (
 	[string] $SupportUrl,
 	[string] $CheckSubscriptionUrl,
 	[string] $SiteFrUrl,
-	[string] $SiteEnUrl
+	[string] $SiteEnUrl,
+	[string] $WeatherForecastUrl
 )
 
 Write-Output "HealthCheckUrl: $HealthCheckUrl"
@@ -30,6 +33,7 @@ Write-Output "SupportUrl: $SupportUrl"
 Write-Output "CheckSubscriptionUrl: $CheckSubscriptionUrl"
 Write-Output "SiteFrUrl: $SiteFrUrl"
 Write-Output "SiteEnUrl: $SiteEnUrl"
+Write-Output "WeatherForecastUrl: $WeatherForecastUrl"
 
 $dotEnv = Get-Content -Path .env
 $dotEnvForProd = $dotEnv
@@ -38,5 +42,6 @@ $dotEnvForProd = $dotEnvForProd.Replace("VITE_SUPPORT_URL=", "VITE_SUPPORT_URL=$
 $dotEnvForProd = $dotEnvForProd.Replace("VITE_CHECKSUBSCRIPTION_URL=", "VITE_CHECKSUBSCRIPTION_URL=$CheckSubscriptionUrl")
 $dotEnvForProd = $dotEnvForProd.Replace("VITE_SITE_FR_URL=", "VITE_SITE_FR_URL=$SiteFrUrl")
 $dotEnvForProd = $dotEnvForProd.Replace("VITE_SITE_EN_URL=", "VITE_SITE_EN_URL=$SiteEnUrl")
+$dotEnvForProd = $dotEnvForProd.Replace("VITE_WEATHERFORECAST_URL=", "VITE_WEATHERFORECAST_URL=$WeatherForecastUrl")
 
 Set-Content -Path .env.production -Value $dotEnvForProd
