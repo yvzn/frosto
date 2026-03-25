@@ -2,11 +2,13 @@
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
+import { Head } from '@unhead/vue/components';
+import TemperatureCard from '@/components/TemperatureCard.vue';
 
 interface ForecastEntry {
 	date: string;
-	minTemperature: number;
-	maxTemperature: number;
+	minimum: number;
+	maximum: number;
 }
 
 interface WeatherForecastResponse {
@@ -20,7 +22,52 @@ interface WeatherForecastResponse {
 
 const route = useRoute();
 const router = useRouter();
-const { t } = useI18n();
+const { t, d } = useI18n({
+	messages: {
+		en: {
+			weatherForecast: {
+				title: 'Weather Forecast',
+				loading: 'Loading forecast…',
+				error: 'An error occurred while loading the forecast.',
+				retry: 'Retry',
+				thresholdLabel: 'Alert threshold (°C)',
+				tableDate: 'Date',
+				tableMinTemp: 'Min (°C)',
+				tableMaxTemp: 'Max (°C)',
+				tableFrost: 'Frost expected',
+			},
+		},
+		fr: {
+			weatherForecast: {
+				title: 'Prévisions météo',
+				loading: 'Chargement des prévisions…',
+				error: 'Une erreur est survenue lors du chargement des prévisions.',
+				retry: 'Réessayer',
+				thresholdLabel: "Seuil d'alerte (°C)",
+				tableDate: 'Date',
+				tableMinTemp: 'Min (°C)',
+				tableMaxTemp: 'Max (°C)',
+				tableFrost: 'Gelée prévue',
+			},
+		},
+	},
+	datetimeFormats: {
+		en: {
+			short: {
+				weekday: 'long',
+				month: 'long',
+				day: 'numeric',
+			},
+		},
+		fr: {
+			short: {
+				weekday: 'long',
+				month: 'long',
+				day: 'numeric',
+			},
+		},
+	},
+});
 
 const loading = ref(false);
 const error = ref(false);
@@ -38,8 +85,8 @@ async function fetchForecast() {
 
 	const partitionKey = route.params.partitionKey as string;
 	const rowKey = route.params.rowKey as string;
-	const baseUrl = import.meta.env.VITE_WEATHERFORECAST_URL as string;
-	const url = `${baseUrl}/api/weather-forecast?p=${encodeURIComponent(partitionKey)}&r=${encodeURIComponent(rowKey)}`;
+	const weatherForecastUrl = import.meta.env.VITE_WEATHERFORECAST_URL as string;
+	const url = `${weatherForecastUrl}?p=${encodeURIComponent(partitionKey)}&r=${encodeURIComponent(rowKey)}`;
 
 	try {
 		const response = await fetch(url);
@@ -64,10 +111,18 @@ async function fetchForecast() {
 	}
 }
 
+function isTemperatureDropping(currentValue: number, previousValue?: number): boolean {
+	return previousValue !== undefined && currentValue < previousValue;
+}
+
 onMounted(fetchForecast);
 </script>
 
 <template>
+	<Head>
+		<title>{{ t('weatherForecast.title') }} &ndash; {{ t('app.title') }}</title>
+		<meta name="description" :content="t('app.description')" />
+	</Head>
 	<div class="container py-5">
 		<h1 class="fw-light mb-4">{{ t('weatherForecast.title') }}</h1>
 
@@ -75,11 +130,59 @@ onMounted(fetchForecast);
 
 		<div v-else-if="error" class="my-3">
 			<p class="text-danger">{{ t('weatherForecast.error') }}</p>
-			<button class="btn btn-primary" @click="fetchForecast">{{ t('weatherForecast.retry') }}</button>
+			<button class="btn btn-primary" @click="fetchForecast">
+				{{ t('weatherForecast.retry') }}
+			</button>
 		</div>
 
 		<template v-else-if="data">
 			<h2 class="h4 mb-3">{{ data.location.city }}, {{ data.location.country }}</h2>
+
+			<div class="d-grid gap-3 mb-4">
+				<article
+					v-for="(forecast, index) in data.forecasts"
+					:key="forecast.date"
+					class="card border shadow-sm rounded-4"
+				>
+					<div class="card-body">
+						<div class="d-grid d-sm-flex align-items-start justify-content-between gap-3 mb-3">
+							<h3 class="h5 mb-0 fw-semibold text-body-emphasis">
+								{{ d(forecast.date, 'short') }}
+							</h3>
+							<span
+								v-if="forecast.minimum < threshold"
+								class="badge text-bg-info align-self-start fw-medium"
+								:title="t('weatherForecast.tableFrost')"
+							>
+								❄️ {{ t('weatherForecast.tableFrost') }}
+							</span>
+						</div>
+
+						<div class="row row-cols-1 row-cols-sm-2 g-3">
+							<div class="col">
+								<TemperatureCard
+									:label="t('weatherForecast.tableMinTemp')"
+									:value="forecast.minimum"
+									:isDropping="
+										isTemperatureDropping(forecast.minimum, data.forecasts[index - 1]?.minimum)
+									"
+									:isBelowThreshold="forecast.minimum < threshold"
+								/>
+							</div>
+							<div class="col">
+								<TemperatureCard
+									:label="t('weatherForecast.tableMaxTemp')"
+									:value="forecast.maximum"
+									:isDropping="
+										isTemperatureDropping(forecast.maximum, data.forecasts[index - 1]?.maximum)
+									"
+									:isBelowThreshold="forecast.maximum < threshold"
+								/>
+							</div>
+						</div>
+					</div>
+				</article>
+			</div>
 
 			<div class="mb-4">
 				<label for="threshold-slider" class="form-label">
@@ -95,29 +198,6 @@ onMounted(fetchForecast);
 					:step="THRESHOLD_STEP"
 				/>
 			</div>
-
-			<table class="table table-striped table-bordered">
-				<thead>
-					<tr>
-						<th>{{ t('weatherForecast.tableDate') }}</th>
-						<th>{{ t('weatherForecast.tableMinTemp') }}</th>
-						<th>{{ t('weatherForecast.tableMaxTemp') }}</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr v-for="forecast in data.forecasts" :key="forecast.date">
-						<td>{{ forecast.date }}</td>
-						<td>
-							<span v-if="forecast.minTemperature < threshold" aria-label="frost">❄️</span>
-							{{ forecast.minTemperature }}
-						</td>
-						<td>
-							<span v-if="forecast.maxTemperature < threshold" aria-label="frost">❄️</span>
-							{{ forecast.maxTemperature }}
-						</td>
-					</tr>
-				</tbody>
-			</table>
 		</template>
 	</div>
 </template>

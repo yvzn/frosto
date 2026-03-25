@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import TheWelcome from '../components/TheWelcome.vue';
+import TheWelcome from '@/components/TheWelcome.vue';
 import { Head } from '@unhead/vue/components';
 import { useI18n } from 'vue-i18n';
 const { t } = useI18n();

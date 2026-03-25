@@ -4,6 +4,7 @@ const i18n = createI18n({
 	legacy: false,
 	locale: navigator.language.split('-')[0],
 	fallbackLocale: 'en',
+	fallbackWarn: false,
 	messages: {
 		en: {
 			app: {
@@ -13,13 +14,6 @@ const i18n = createI18n({
 				homePage: 'Home page',
 				backToHome: 'Back to home',
 				languageSwitcher: 'Change language',
-			},
-			welcome: {
-				heading: 'Anticipate frost',
-				lead: 'Receive a free alert when the weather forecast predicts negative temperatures in your area.',
-				verifyEmail: 'Please verify your email address to continue.',
-				cta: 'Check Subscription',
-				imageAlt: 'A person observing weather change icons',
 			},
 			checkSubscription: {
 				pageTitle: 'Check My Subscription',
@@ -51,16 +45,6 @@ const i18n = createI18n({
 				lead: 'We will send you an email shortly to confirm your subscription and finalize the process.',
 				imageAlt: 'An operator reviewing user preferences',
 			},
-			weatherForecast: {
-				title: 'Weather Forecast',
-				loading: 'Loading forecast…',
-				error: 'An error occurred while loading the forecast.',
-				retry: 'Retry',
-				thresholdLabel: 'Frost threshold (°C)',
-				tableDate: 'Date',
-				tableMinTemp: 'Min temp (°C)',
-				tableMaxTemp: 'Max temp (°C)',
-			},
 		},
 		fr: {
 			app: {
@@ -70,13 +54,6 @@ const i18n = createI18n({
 				homePage: 'Accueil',
 				backToHome: "Retour à l'accueil",
 				languageSwitcher: 'Changer de langue',
-			},
-			welcome: {
-				heading: 'Anticipez les gelées',
-				lead: 'Recevez gratuitement une alerte lorsque la météo prévoit des températures négatives dans votre ville.',
-				verifyEmail: 'Veuillez vérifier votre adresse e-mail pour continuer.',
-				cta: 'Vérifier mon inscription',
-				imageAlt: 'Une personne observe des icônes de changement de météo',
 			},
 			checkSubscription: {
 				pageTitle: 'Vérifier mon inscription',
@@ -108,16 +85,6 @@ const i18n = createI18n({
 				heading: 'Vérification soumise',
 				lead: 'Nous vous enverrons un e-mail prochainement pour confirmer votre inscription et finaliser le processus.',
 				imageAlt: 'Un opérateur examinant les préférences utilisateur',
-			},
-			weatherForecast: {
-				title: 'Prévisions météo',
-				loading: 'Chargement des prévisions…',
-				error: 'Une erreur est survenue lors du chargement des prévisions.',
-				retry: 'Réessayer',
-				thresholdLabel: 'Seuil de gelée (°C)',
-				tableDate: 'Date',
-				tableMinTemp: 'Temp. min (°C)',
-				tableMaxTemp: 'Temp. max (°C)',
 			},
 		},
 	},
