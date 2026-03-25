@@ -4,6 +4,8 @@ import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { Head } from '@unhead/vue/components';
 import TemperatureCard from '@/components/TemperatureCard.vue';
+import AddToCalendarButton from '@/components/AddToCalendarButton.vue';
+import type { CalendarEvent } from '@/utils/calendarLinks';
 
 interface ForecastEntry {
 	date: string;
@@ -35,6 +37,9 @@ const { t, d } = useI18n({
 				tableMinTemp: 'Min (°C)',
 				tableMaxTemp: 'Max (°C)',
 				tableFrost: 'Frost expected',
+				calendarEventTitle: 'Frost alert — {city}, {country}',
+				calendarEventBody:
+					'Frost expected — Temperature forecast for {city}, {country}: Min {min}°C, Max {max}°C.',
 			},
 		},
 		fr: {
@@ -48,6 +53,9 @@ const { t, d } = useI18n({
 				tableMinTemp: 'Min (°C)',
 				tableMaxTemp: 'Max (°C)',
 				tableFrost: 'Gelée prévue',
+				calendarEventTitle: 'Alerte gel — {city}, {country}',
+				calendarEventBody:
+					'Gelée prévue — Prévisions de température pour {city}, {country} : Min {min}°C, Max {max}°C.',
 			},
 		},
 	},
@@ -113,6 +121,22 @@ async function fetchForecast() {
 
 function isTemperatureDropping(currentValue: number, previousValue?: number): boolean {
 	return previousValue !== undefined && currentValue < previousValue;
+}
+
+function buildCalendarEvent(forecast: ForecastEntry): CalendarEvent {
+	const city = data.value?.location.city ?? '';
+	const country = data.value?.location.country ?? '';
+
+	return {
+		title: t('weatherForecast.calendarEventTitle', { city, country }),
+		description: t('weatherForecast.calendarEventBody', {
+			city,
+			country,
+			min: forecast.minimum,
+			max: forecast.maximum,
+		}),
+		date: forecast.date,
+	};
 }
 
 onMounted(fetchForecast);
@@ -213,6 +237,10 @@ onMounted(fetchForecast);
 									:isBelowThreshold="forecast.maximum < threshold"
 								/>
 							</div>
+						</div>
+
+						<div v-if="forecast.minimum < threshold" class="mt-3">
+							<AddToCalendarButton :event="buildCalendarEvent(forecast)" />
 						</div>
 					</div>
 				</article>
