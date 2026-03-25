@@ -4,7 +4,9 @@ import { ref, onMounted, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
+import AddToCalendarButton from '@/components/AddToCalendarButton.vue';
 import TemperatureCard from '@/components/TemperatureCard.vue';
+import type { CalendarEvent } from '@/utils/calendarLinks';
 
 interface ForecastEntry {
 	date: string;
@@ -37,6 +39,9 @@ const { t, d, locale } = useI18n({
 				tableMinTemp: 'Min (°C)',
 				tableMaxTemp: 'Max (°C)',
 				tableFrost: 'Frost expected',
+				calendarEventTitle: 'Frost alert — {city}, {country}',
+				calendarEventBody:
+					'Frost expected — Temperature forecast for {city}, {country}: Min {min}°C, Max {max}°C.',
 			},
 			footer: {
 				credits: 'Credits',
@@ -61,6 +66,9 @@ const { t, d, locale } = useI18n({
 				tableMinTemp: 'Min (°C)',
 				tableMaxTemp: 'Max (°C)',
 				tableFrost: 'Gelée prévue',
+				calendarEventTitle: 'Alerte gel — {city}, {country}',
+				calendarEventBody:
+					'Gelée prévue — Prévisions de température pour {city}, {country} : Min {min}°C, Max {max}°C.',
 			},
 			footer: {
 				credits: 'Crédits',
@@ -155,6 +163,22 @@ const donateUrl = computed(() => {
 			return import.meta.env.VITE_SITE_EN_URL + '/donate.html';
 	}
 });
+
+function buildCalendarEvent(forecast: ForecastEntry): CalendarEvent {
+	const city = data.value?.location.city ?? '';
+	const country = data.value?.location.country ?? '';
+
+	return {
+		title: t('weatherForecast.calendarEventTitle', { city, country }),
+		description: t('weatherForecast.calendarEventBody', {
+			city,
+			country,
+			min: forecast.minimum,
+			max: forecast.maximum,
+		}),
+		date: forecast.date,
+	};
+}
 
 onMounted(fetchForecast);
 </script>
@@ -260,6 +284,10 @@ onMounted(fetchForecast);
 								/>
 							</div>
 						</div>
+
+						<div v-if="forecast.minimum < threshold" class="mt-3">
+							<AddToCalendarButton :event="buildCalendarEvent(forecast)" />
+						</div>
 					</div>
 				</article>
 			</div>
@@ -286,21 +314,38 @@ onMounted(fetchForecast);
 				<div class="col-lg-6 py-3">
 					<h2 class="h4">{{ t('footer.credits') }}</h2>
 					<p>
-						<a class="link-dark" href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">{{ t('footer.weatherData') }}</a>
+						<a
+							class="link-dark"
+							href="https://open-meteo.com/"
+							target="_blank"
+							rel="noopener noreferrer"
+							>{{ t('footer.weatherData') }}</a
+						>
 					</p>
 					<p>
 						{{ t('footer.illustrations') }}
-						<a class="link-dark" href="https://undraw.co/" target="_blank" rel="noopener">unDraw</a>.
+						<a class="link-dark" href="https://undraw.co/" target="_blank" rel="noopener">unDraw</a
+						>.
 					</p>
 				</div>
 				<div class="col-lg-6 py-3">
 					<h2 class="h4">{{ t('footer.links') }}</h2>
-					<p><a class="link-dark" :href="contactUrl">{{ t('footer.contact') }}</a></p>
 					<p>
-						<a class="link-dark" href="https://github.com/yvzn/frosto/" target="_blank" rel="noopener">{{ t('footer.sourceCode') }}</a>
+						<a class="link-dark" :href="contactUrl">{{ t('footer.contact') }}</a>
+					</p>
+					<p>
+						<a
+							class="link-dark"
+							href="https://github.com/yvzn/frosto/"
+							target="_blank"
+							rel="noopener"
+							>{{ t('footer.sourceCode') }}</a
+						>
 						{{ t('footer.sourceCodeSuffix') }}
 					</p>
-					<p><a class="link-dark" :href="donateUrl">{{ t('footer.donate') }}</a></p>
+					<p>
+						<a class="link-dark" :href="donateUrl">{{ t('footer.donate') }}</a>
+					</p>
 				</div>
 			</div>
 		</div>

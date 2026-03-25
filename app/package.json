@@ -30,12 +30,14 @@
 		"@types/node": "^24.11.0",
 		"@vitejs/plugin-vue": "^6.0.4",
 		"@vue/eslint-config-typescript": "^14.7.0",
+		"@vue/test-utils": "^2.4.6",
 		"@vue/tsconfig": "^0.8.1",
 		"eslint": "^10.0.2",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-oxlint": "~1.57.0",
 		"eslint-plugin-vue": "~10.8.0",
 		"jiti": "^2.6.1",
+		"jsdom": "^29.0.1",
 		"npm-run-all2": "^8.0.4",
 		"oxfmt": "^0.42.0",
 		"oxlint": "~1.57.0",
@@ -43,6 +45,7 @@
 		"sass": "^1.98.0",
 		"typescript": "~5.9.3",
 		"vite": "^8.0.3",
+		"vitest": "^4.1.1",
 		"vue-tsc": "^3.2.5"
 	},
 	"engines": {
