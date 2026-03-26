@@ -1,5 +1,5 @@
 variables:
-- group: "production-en"
+- group: "production"
 
 trigger:
   branches:
