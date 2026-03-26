@@ -20,6 +20,7 @@ public class OpenMeteoApiHourlyForecast
 	public IList<DateTime> time { get; set; } = [];
 	public IList<decimal?> soil_temperature_0cm { get; set; } = [];
 	public IList<decimal?> soil_temperature_6cm { get; set; } = [];
+	public IList<decimal?> apparent_temperature { get; set; } = [];
 }
 
 #pragma warning restore IDE1006 // Naming Styles
