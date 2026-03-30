@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { useI18n } from 'vue-i18n';
 import { Head } from '@unhead/vue/components';
+import { ref, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRoute, useRouter } from 'vue-router';
+
 import TemperatureCard from '@/components/TemperatureCard.vue';
 
 interface ForecastEntry {
@@ -30,6 +31,7 @@ const { t, d } = useI18n({
 				loading: 'Loading forecast…',
 				error: 'An error occurred while loading the forecast.',
 				retry: 'Retry',
+				refresh: 'Refresh',
 				thresholdLabel: 'Alert threshold (°C)',
 				tableDate: 'Date',
 				tableMinTemp: 'Min (°C)',
@@ -43,6 +45,7 @@ const { t, d } = useI18n({
 				loading: 'Chargement des prévisions…',
 				error: 'Une erreur est survenue lors du chargement des prévisions.',
 				retry: 'Réessayer',
+				refresh: 'Actualiser',
 				thresholdLabel: "Seuil d'alerte (°C)",
 				tableDate: 'Date',
 				tableMinTemp: 'Min (°C)',
@@ -127,9 +130,7 @@ onMounted(fetchForecast);
 		<h1 class="fw-light mb-4">{{ t('weatherForecast.title') }}</h1>
 
 		<div v-if="loading" class="d-grid gap-3 mb-4">
-			<h2 class="h4 mb-3 placeholder-glow">
-				<span class="placeholder bg-secondary w-50"></span>
-			</h2>
+			<h2 class="h4 mb-3 placeholder-glow">{{ t('weatherForecast.loading') }}</h2>
 
 			<article class="card border shadow-sm rounded-4" v-for="i in 3" :key="i">
 				<div class="card-body">
@@ -170,7 +171,14 @@ onMounted(fetchForecast);
 		</div>
 
 		<template v-else-if="data">
-			<h2 class="h4 mb-3">{{ data.location.city }}, {{ data.location.country }}</h2>
+			<div class="d-flex mb-3">
+				<h2 class="h4 flex-grow-1">{{ data.location.city }}, {{ data.location.country }}</h2>
+				<div class="">
+					<button class="btn btn-outline-primary" @click="fetchForecast">
+						{{ t('weatherForecast.refresh') }}
+					</button>
+				</div>
+			</div>
 
 			<div class="d-grid gap-3 mb-4">
 				<article
