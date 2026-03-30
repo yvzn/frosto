@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head } from '@unhead/vue/components';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -23,7 +23,7 @@ interface WeatherForecastResponse {
 
 const route = useRoute();
 const router = useRouter();
-const { t, d } = useI18n({
+const { t, d, locale } = useI18n({
 	messages: {
 		en: {
 			weatherForecast: {
@@ -38,6 +38,16 @@ const { t, d } = useI18n({
 				tableMaxTemp: 'Max (°C)',
 				tableFrost: 'Frost expected',
 			},
+			footer: {
+				credits: 'Credits',
+				weatherData: 'Weather data by Open-Meteo.com',
+				illustrations: 'Illustrations by',
+				links: 'Links',
+				contact: 'Contact us',
+				sourceCode: 'Open source project',
+				sourceCodeSuffix: 'maintained by volunteers.',
+				donate: 'Support the service with an optional donation',
+			},
 		},
 		fr: {
 			weatherForecast: {
@@ -51,6 +61,16 @@ const { t, d } = useI18n({
 				tableMinTemp: 'Min (°C)',
 				tableMaxTemp: 'Max (°C)',
 				tableFrost: 'Gelée prévue',
+			},
+			footer: {
+				credits: 'Crédits',
+				weatherData: 'Weather data by Open-Meteo.com',
+				illustrations: 'Illustrations par',
+				links: 'Liens',
+				contact: 'Nous contacter',
+				sourceCode: 'Projet open source',
+				sourceCodeSuffix: 'maintenu par des bénévoles.',
+				donate: 'Soutenir le projet avec un don optionnel',
 			},
 		},
 	},
@@ -117,6 +137,24 @@ async function fetchForecast() {
 function isTemperatureDropping(currentValue: number, previousValue?: number): boolean {
 	return previousValue !== undefined && currentValue < previousValue;
 }
+
+const contactUrl = computed(() => {
+	switch (locale.value) {
+		case 'fr':
+			return import.meta.env.VITE_SITE_FR_URL + '/contact.html';
+		default:
+			return import.meta.env.VITE_SITE_EN_URL + '/contact.html';
+	}
+});
+
+const donateUrl = computed(() => {
+	switch (locale.value) {
+		case 'fr':
+			return import.meta.env.VITE_SITE_FR_URL + '/donate.html';
+		default:
+			return import.meta.env.VITE_SITE_EN_URL + '/donate.html';
+	}
+});
 
 onMounted(fetchForecast);
 </script>
@@ -242,4 +280,29 @@ onMounted(fetchForecast);
 			</div>
 		</template>
 	</div>
+	<footer class="text-muted py-5 bg-light">
+		<div class="container">
+			<div class="row">
+				<div class="col-lg-6 py-3">
+					<h2 class="h4">{{ t('footer.credits') }}</h2>
+					<p>
+						<a class="link-dark" href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">{{ t('footer.weatherData') }}</a>
+					</p>
+					<p>
+						{{ t('footer.illustrations') }}
+						<a class="link-dark" href="https://undraw.co/" target="_blank" rel="noopener">unDraw</a>.
+					</p>
+				</div>
+				<div class="col-lg-6 py-3">
+					<h2 class="h4">{{ t('footer.links') }}</h2>
+					<p><a class="link-dark" :href="contactUrl">{{ t('footer.contact') }}</a></p>
+					<p>
+						<a class="link-dark" href="https://github.com/yvzn/frosto/" target="_blank" rel="noopener">{{ t('footer.sourceCode') }}</a>
+						{{ t('footer.sourceCodeSuffix') }}
+					</p>
+					<p><a class="link-dark" :href="donateUrl">{{ t('footer.donate') }}</a></p>
+				</div>
+			</div>
+		</div>
+	</footer>
 </template>
