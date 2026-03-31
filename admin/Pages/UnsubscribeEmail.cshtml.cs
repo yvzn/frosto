@@ -6,7 +6,12 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace admin.Pages;
 
-public class UnsubscribeEmailModel(LocationService locationService, UnsubscribeEmailService unsubscribeService, UserService userService, SmtpMailSender mailSender) : PageModel
+public class UnsubscribeEmailModel(
+	LocationService locationService,
+	UnsubscribeEmailService unsubscribeService,
+	UserService userService,
+	SmtpMailSender mailSender,
+	MailTemplates mailTemplates) : PageModel
 {
 	[BindProperty]
 	[EmailAddress]
@@ -124,7 +129,7 @@ public class UnsubscribeEmailModel(LocationService locationService, UnsubscribeE
 
 		ShowDeletionSummary = true;
 
-		var (subject, htmlBody, textBody) = MailTemplates.For(Lang).UnsubscribeConfirmation();
+		var (subject, htmlBody, textBody) = mailTemplates.For(Lang).UnsubscribeConfirmation();
 
 		var (success, error) = await mailSender.SendMailAsync(Email, subject, textBody, htmlBody, HttpContext.RequestAborted);
 

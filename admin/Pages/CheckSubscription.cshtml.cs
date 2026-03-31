@@ -9,6 +9,7 @@ public class CheckSubscriptionModel(
 	CheckSubscriptionService checkSubscriptionService,
 	LocationService locationService,
 	SmtpMailSender mailSender,
+	MailTemplates mailTemplates,
 	IConfiguration configuration,
 	ILogger<CheckSubscriptionModel> logger) : PageModel
 {
@@ -24,12 +25,27 @@ public class CheckSubscriptionModel(
 			? System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(ContactDataService.FromEnglish))
 			: System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(ContactDataService.FromFrench));
 
-	public string? SiteEnUrl => configuration["SiteEnUrl"];
-
 	public string? AppLinkBase =>
-		"app".Equals(SelectedRequestSource, StringComparison.OrdinalIgnoreCase)
-			? SiteEnUrl
-			: null;
+		"en".Equals(SelectedRequestLang, StringComparison.OrdinalIgnoreCase)
+			? configuration["SiteEnUrl"]
+			: configuration["SiteFrUrl"];
+
+	private (string subject, string htmlBody, string textBody)? _emailTemplate;
+
+	private (string subject, string htmlBody, string textBody) GetEmailTemplate() =>
+		_emailTemplate ??= mailTemplates.For(SelectedRequestLang).SubscriptionConfirmation(
+			FoundLocations,
+			ContactEmail,
+			addLinkToApp: "app".Equals(SelectedRequestSource, StringComparison.OrdinalIgnoreCase),
+			includeBodyTag: false);
+
+	public string EmailSubject => ShowResults && FoundLocations.Count > 0
+		? GetEmailTemplate().subject
+		: string.Empty;
+
+	public string EmailHtmlBodyContent => ShowResults && FoundLocations.Count > 0
+		? GetEmailTemplate().htmlBody
+		: string.Empty;
 
 	public IList<CheckSubscription> CheckSubscriptionRequests { get; private set; } = [];
 
@@ -118,10 +134,10 @@ public class CheckSubscriptionModel(
 		FoundLocations = await locationService.FindValidLocationsByUserAsync(SelectedRequest.email, HttpContext.RequestAborted);
 		ShowResults = true;
 
-		var (subject, htmlBody, textBody) = MailTemplates.For(SelectedRequestLang).SubscriptionConfirmation(
+		var (subject, htmlBody, textBody) = mailTemplates.For(SelectedRequestLang).SubscriptionConfirmation(
 			FoundLocations,
 			ContactEmail,
-			AppLinkBase);
+			addLinkToApp: "app".Equals(SelectedRequestSource, StringComparison.OrdinalIgnoreCase));
 
 		logger.LogInformation("Sending confirmation mail to {Email}", SelectedRequest.email);
 		var (success, error) = await mailSender.SendMailAsync(SelectedRequest.email, subject, textBody, htmlBody, HttpContext.RequestAborted);

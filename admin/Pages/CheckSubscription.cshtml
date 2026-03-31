@@ -99,70 +99,11 @@
 					<div class="p-3 rounded mt-2 email-template">
 						<p><strong>To:</strong> <span class="email-selectable">@Model.SelectedRequest?.email</span></p>
 						<hr />
-						@if (isEnglish)
-						{
-							<p><strong>Subject:</strong> <span class="email-selectable">Your Subscription Status to
-									FrostAlert.net</span></p>
-							<hr />
-							<div class="email-selectable">
-								<p>Hello,</p>
-								<p>We are pleased to confirm that you are currently subscribed to frost alerts on FrostAlert.net for
-									the following location(s):</p>
-								<ul>
-									@foreach (var location in Model.FoundLocations)
-									{
-										<li>@location.city, @location.country</li>
-									}
-								</ul>
-								<p>To ensure you receive your alerts, please add @Model.ContactEmail to your contact list.</p>
-								@if (!string.IsNullOrEmpty(Model.AppLinkBase))
-								{
-									<p>You can also optionally visit the FrostAlert.net app to add your frost alerts to your
-										calendar &mdash; you will continue to receive alerts by email regardless:</p>
-									<ul>
-										@foreach (var location in Model.FoundLocations)
-										{
-											var appUrl = $"{Model.AppLinkBase}/app/weather-forecast/{Uri.EscapeDataString(location.PartitionKey)}/{Uri.EscapeDataString(location.RowKey)}";
-											<li><a href="@appUrl">@location.city, @location.country</a></li>
-										}
-									</ul>
-								}
-								<p>To unsubscribe, reply "STOP" to this message.</p>
-								<p>Best regards,<br />Yvan from FrostAlert.net</p>
-							</div>
-						}
-						else
-						{
-							<p><strong>Objet:</strong> <span class="email-selectable">Votre abonnement à AlerteGelee.fr</span></p>
-							<hr />
-							<div class="email-selectable">
-								<p>Bonjour,</p>
-								<p>Nous sommes heureux de confirmer que vous êtes actuellement abonné aux alertes gelées sur
-									AlerteGelee.fr pour le(s) villes(s) suivante(s):</p>
-								<ul>
-									@foreach (var location in Model.FoundLocations)
-									{
-										<li>@location.city, @location.country</li>
-									}
-								</ul>
-								<p>Pour bien recevoir vos alertes, pensez à ajouter @Model.ContactEmail à votre liste de contacts.</p>
-								@if (!string.IsNullOrEmpty(Model.AppLinkBase))
-								{
-									<p>Vous pouvez également visiter l'application FrostAlert.net pour ajouter vos alertes de gel à
-										votre calendrier, en option &mdash; vous continuerez à recevoir vos alertes par e-mail quoi
-										qu'il arrive&nbsp;:</p>
-									<ul>
-										@foreach (var location in Model.FoundLocations)
-										{
-											var appUrl = $"{Model.AppLinkBase}/app/weather-forecast/{Uri.EscapeDataString(location.PartitionKey)}/{Uri.EscapeDataString(location.RowKey)}";
-											<li><a href="@appUrl">@location.city, @location.country</a></li>
-										}
-									</ul>
-								}
-								<p>Pour vous désinscrire, répondez "STOP" à ce message.</p>
-								<p>Cordialement,<br />Yvan de AlerteGelee.fr</p>
-							</div>
-						}
+						<p><strong>@(isEnglish ? "Subject" : "Objet"):</strong> <span class="email-selectable">@Model.EmailSubject</span></p>
+						<hr />
+						<div class="email-selectable">
+							@Html.Raw(Model.EmailHtmlBodyContent)
+						</div>
 					</div>
 				</div>
 
