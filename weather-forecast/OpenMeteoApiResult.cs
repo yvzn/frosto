@@ -13,6 +13,8 @@ public class OpenMeteoApiDailyForecast
 	public IList<DateOnly> time { get; set; } = [];
 	public IList<decimal?> temperature_2m_max { get; set; } = [];
 	public IList<decimal?> temperature_2m_min { get; set; } = [];
+	public IList<decimal?> apparent_temperature_max { get; set; } = [];
+	public IList<decimal?> apparent_temperature_min { get; set; } = [];
 }
 
 public class OpenMeteoApiHourlyForecast
