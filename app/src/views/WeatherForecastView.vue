@@ -266,7 +266,7 @@ onMounted(fetchForecast);
 
 			<div class="mb-4">
 				<label for="threshold-slider" class="form-label">
-					{{ t('weatherForecast.thresholdLabel') }}: {{ threshold }}
+					{{ t('weatherForecast.thresholdLabel') }}: {{ threshold }}&deg;
 				</label>
 				<input
 					id="threshold-slider"

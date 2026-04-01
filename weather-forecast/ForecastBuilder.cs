@@ -49,6 +49,18 @@ public class ForecastBuilder(
 						group.Min(tuple => tuple.Second!.Value),
 						group.Max(tuple => tuple.Second!.Value)))
 			);
+
+			forecasts.AddRange(
+				weatherApiResult.hourly.time
+					.Zip(weatherApiResult.hourly.apparent_temperature ?? emptyArray)
+					.Where(tuple => tuple.Second.HasValue)
+					.GroupBy(tuple => DateOnly.FromDateTime(tuple.First))
+					.Select(group => new Forecast(
+						group.Key,
+						group.Min(tuple => tuple.Second!.Value),
+						group.Max(tuple => tuple.Second!.Value),
+						IsApparentTemperature: true))
+			);
 		}
 
 		if (weatherApiResult?.daily.time.Count is > 0)
@@ -66,14 +78,30 @@ public class ForecastBuilder(
 						tuple.Second!.Value,
 						tuple.Third!.Value))
 			);
+
+			forecasts.AddRange(
+				weatherApiResult.daily.time
+					.Zip(
+						weatherApiResult.daily.apparent_temperature_min ?? emptyArray,
+						weatherApiResult.daily.apparent_temperature_max ?? emptyArray)
+					.Where(tuple => tuple.Second.HasValue && tuple.Third.HasValue)
+					.Select(tuple => new Forecast(
+						tuple.First,
+						tuple.Second!.Value,
+						tuple.Third!.Value,
+						IsApparentTemperature: true))
+			);
 		}
 
 		forecasts = [.. forecasts
 			.GroupBy(f => f.Date)
-			.Select(group => new Forecast(
-				group.Key,
-				group.Min(f => f.Minimum),
-				group.Max(f => f.Maximum)))];
+			.Select(group =>
+			{
+				var min = group.MinBy(f => f.Minimum);
+				var max = group.MaxBy(f => f.Maximum);
+				var isApparentTemperature = min!.IsApparentTemperature || max!.IsApparentTemperature;
+				return new Forecast(group.Key, min!.Minimum, max!.Maximum, isApparentTemperature);
+			})];
 
 		return forecasts;
 	}
