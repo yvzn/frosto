@@ -4,7 +4,7 @@ import vue from '@vitejs/plugin-vue';
 import { defineConfig } from 'vite';
 
 // https://vite.dev/config/
-export default defineConfig(({ mode }) => ({
+export default defineConfig({
 	base: '/app/',
 	plugins: [vue()],
 	resolve: {
@@ -20,4 +20,4 @@ export default defineConfig(({ mode }) => ({
 			},
 		},
 	},
-}));
+});

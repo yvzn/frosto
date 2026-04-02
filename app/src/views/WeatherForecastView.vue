@@ -4,7 +4,9 @@ import { ref, onMounted, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
+import AddToCalendarButton from '@/components/AddToCalendarButton.vue';
 import TemperatureCard from '@/components/TemperatureCard.vue';
+import type { CalendarEvent } from '@/utils/calendarLinks';
 
 interface ForecastEntry {
 	date: string;
@@ -36,7 +38,9 @@ const { t, d, locale } = useI18n({
 				tableDate: 'Date',
 				tableMinTemp: 'Min (°C)',
 				tableMaxTemp: 'Max (°C)',
-				tableFrost: 'Frost expected',
+				tableFrost: 'Alert forecasted',
+				calendarEventTitle: 'Temperatures below {threshold}°C forecasted in {city}, {country}',
+				calendarEventBody: 'Temperature forecast for {city}, {country}: Min {min}°C, Max {max}°C.',
 			},
 			footer: {
 				credits: 'Credits',
@@ -60,7 +64,10 @@ const { t, d, locale } = useI18n({
 				tableDate: 'Date',
 				tableMinTemp: 'Min (°C)',
 				tableMaxTemp: 'Max (°C)',
-				tableFrost: 'Gelée prévue',
+				tableFrost: 'Alerte prévue',
+				calendarEventTitle: 'Températures en dessous de {threshold}°C prévues — {city}, {country}',
+				calendarEventBody:
+					'Prévisions de température pour {city}, {country} : Min {min}°C, Max {max}°C.',
 			},
 			footer: {
 				credits: 'Crédits',
@@ -156,6 +163,27 @@ const donateUrl = computed(() => {
 	}
 });
 
+function buildCalendarEvent(forecast: ForecastEntry): CalendarEvent {
+	const city = data.value?.location.city ?? '';
+	const country = data.value?.location.country ?? '';
+
+	return {
+		title: t('weatherForecast.calendarEventTitle', { city, country }),
+		description: t('weatherForecast.calendarEventBody', {
+			city,
+			country,
+			min: forecast.minimum,
+			max: forecast.maximum,
+		}),
+		date: forecast.date,
+	};
+}
+
+function capitalize(str: string): string {
+	if (str.length === 0) return str;
+	return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 onMounted(fetchForecast);
 </script>
 
@@ -212,7 +240,7 @@ onMounted(fetchForecast);
 			<div class="d-flex mb-3">
 				<h2 class="h4 flex-grow-1">{{ data.location.city }}, {{ data.location.country }}</h2>
 				<div class="">
-					<button class="btn btn-outline-primary" @click="fetchForecast">
+					<button class="btn btn-outline-secondary" @click="fetchForecast">
 						{{ t('weatherForecast.refresh') }}
 					</button>
 				</div>
@@ -225,17 +253,25 @@ onMounted(fetchForecast);
 					class="card border shadow-sm rounded-4"
 				>
 					<div class="card-body">
-						<div class="d-grid d-sm-flex align-items-start justify-content-between gap-3 mb-3">
+						<div class="d-flex flex-wrap gap-3 mb-3">
 							<h3 class="h5 mb-0 fw-semibold text-body-emphasis">
-								{{ d(forecast.date, 'short') }}
+								{{ capitalize(d(forecast.date, 'short')) }}
 							</h3>
-							<span
+
+							<div
 								v-if="forecast.minimum < threshold"
-								class="badge text-bg-info align-self-start fw-medium"
+								class="badge text-bg-info align-self-start fw-medium py-sm-2"
 								:title="t('weatherForecast.tableFrost')"
 							>
 								❄️ {{ t('weatherForecast.tableFrost') }}
-							</span>
+							</div>
+
+							<div
+								v-if="forecast.minimum < threshold"
+								class="d-none d-md-block flex-grow-1 text-end"
+							>
+								<AddToCalendarButton :event="buildCalendarEvent(forecast)" />
+							</div>
 						</div>
 
 						<div class="row row-cols-1 row-cols-sm-2 g-3">
@@ -260,11 +296,18 @@ onMounted(fetchForecast);
 								/>
 							</div>
 						</div>
+
+						<div
+							v-if="forecast.minimum < threshold"
+							class="d-flex justify-content-end d-md-none mt-3"
+						>
+							<AddToCalendarButton :event="buildCalendarEvent(forecast)" />
+						</div>
 					</div>
 				</article>
 			</div>
 
-			<div class="mb-4">
+			<div class="mb-4 col-12 col-md-6">
 				<label for="threshold-slider" class="form-label">
 					{{ t('weatherForecast.thresholdLabel') }}: {{ threshold }}&deg;
 				</label>
@@ -286,21 +329,38 @@ onMounted(fetchForecast);
 				<div class="col-lg-6 py-3">
 					<h2 class="h4">{{ t('footer.credits') }}</h2>
 					<p>
-						<a class="link-dark" href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">{{ t('footer.weatherData') }}</a>
+						<a
+							class="link-dark"
+							href="https://open-meteo.com/"
+							target="_blank"
+							rel="noopener noreferrer"
+							>{{ t('footer.weatherData') }}</a
+						>
 					</p>
 					<p>
 						{{ t('footer.illustrations') }}
-						<a class="link-dark" href="https://undraw.co/" target="_blank" rel="noopener">unDraw</a>.
+						<a class="link-dark" href="https://undraw.co/" target="_blank" rel="noopener">unDraw</a
+						>.
 					</p>
 				</div>
 				<div class="col-lg-6 py-3">
 					<h2 class="h4">{{ t('footer.links') }}</h2>
-					<p><a class="link-dark" :href="contactUrl">{{ t('footer.contact') }}</a></p>
 					<p>
-						<a class="link-dark" href="https://github.com/yvzn/frosto/" target="_blank" rel="noopener">{{ t('footer.sourceCode') }}</a>
+						<a class="link-dark" :href="contactUrl">{{ t('footer.contact') }}</a>
+					</p>
+					<p>
+						<a
+							class="link-dark"
+							href="https://github.com/yvzn/frosto/"
+							target="_blank"
+							rel="noopener"
+							>{{ t('footer.sourceCode') }}</a
+						>
 						{{ t('footer.sourceCodeSuffix') }}
 					</p>
-					<p><a class="link-dark" :href="donateUrl">{{ t('footer.donate') }}</a></p>
+					<p>
+						<a class="link-dark" :href="donateUrl">{{ t('footer.donate') }}</a>
+					</p>
 				</div>
 			</div>
 		</div>

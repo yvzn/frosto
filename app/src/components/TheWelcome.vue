@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { RouterLink } from 'vue-router';
 import { useI18n } from 'vue-i18n';
+import { RouterLink } from 'vue-router';
 const { t } = useI18n({
 	messages: {
 		en: {
