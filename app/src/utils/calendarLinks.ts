@@ -73,7 +73,11 @@ export function buildOutlookCalendarUrl(event: CalendarEvent): string {
 }
 
 function escapeIcsText(text: string): string {
-	return text.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
+	return text
+		.replace(/\\/g, '\\\\')
+		.replace(/;/g, '\\;')
+		.replace(/,/g, '\\,')
+		.replace(/\n/g, '\\n');
 }
 
 export function buildIcsFileContent(event: CalendarEvent): string {

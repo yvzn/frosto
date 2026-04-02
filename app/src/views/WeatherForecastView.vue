@@ -266,7 +266,10 @@ onMounted(fetchForecast);
 								❄️ {{ t('weatherForecast.tableFrost') }}
 							</div>
 
-							<div v-if="forecast.minimum < threshold" class="d-none d-md-block flex-grow-1 text-end">
+							<div
+								v-if="forecast.minimum < threshold"
+								class="d-none d-md-block flex-grow-1 text-end"
+							>
 								<AddToCalendarButton :event="buildCalendarEvent(forecast)" />
 							</div>
 						</div>
@@ -294,7 +297,10 @@ onMounted(fetchForecast);
 							</div>
 						</div>
 
-						<div v-if="forecast.minimum < threshold" class="d-flex justify-content-end d-md-none mt-3">
+						<div
+							v-if="forecast.minimum < threshold"
+							class="d-flex justify-content-end d-md-none mt-3"
+						>
 							<AddToCalendarButton :event="buildCalendarEvent(forecast)" />
 						</div>
 					</div>

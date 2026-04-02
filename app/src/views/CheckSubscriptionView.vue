@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, computed, useTemplateRef } from 'vue';
 import { Head } from '@unhead/vue/components';
+import { ref, onMounted, onBeforeUnmount, computed, useTemplateRef } from 'vue';
 import { useI18n } from 'vue-i18n';
 const { t, locale } = useI18n();
 

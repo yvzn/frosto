@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
+
 import LanguageIcon from './LanguageIcon.vue';
 const { t, locale, availableLocales } = useI18n();
 
