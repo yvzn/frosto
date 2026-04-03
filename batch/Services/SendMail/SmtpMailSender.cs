@@ -51,12 +51,12 @@ internal class SmtpMailSender(
 			message.Headers.Add(header.Key, header.Value);
 
 		var unsubscribeUrl = Unsubscribe.BuildUnsubscribeUrl(unsubscribeToken, notification);
-		var unsubscribeLink = HtmlFormatter.FormatUnsubscribeLink(unsubscribeUrl);
+		var unsubscribeLink = FrenchHtmlFormatter.FormatUnsubscribeLink(unsubscribeUrl);
 
 		var builder = new BodyBuilder
 		{
 			TextBody = notification.raw,
-			HtmlBody = notification.body?.Replace(HtmlFormatter.unsubscribeLinkPlaceholder, unsubscribeLink)
+			HtmlBody = notification.body?.Replace(FrenchHtmlFormatter.unsubscribeLinkPlaceholder, unsubscribeLink)
 		};
 
 		message.Body = builder.ToMessageBody();

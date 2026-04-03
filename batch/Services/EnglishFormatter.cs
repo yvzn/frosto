@@ -59,7 +59,7 @@ internal static class EnglishHtmlFormatter
 
 <p>The temperature forecast for the coming days ({0}, {1}):
 
-{2}
+{2}{3}
 
 <p>Best regards,
 <br>Yvan from FrostAlert.net
@@ -72,6 +72,11 @@ reply ""STOP"" to this message.
 
 <p>Weather data is provided by <em>Open-Meteo.com</em> &mdash;
 <a href=""https://open-meteo.com/"" target=""_blank"" rel=""noopener noreferrer"">Weather data by Open-Meteo.com</a>";
+
+	private static readonly string applicationInviteTemplate =
+	@"
+
+<p>You can also visit our application to <a href=""{0}"" target=""_blank"">add the alerts to your calendar</a>.";
 
 	private static readonly string unsubscribeLinkTemplate = @"use this <a href=""{0}"" target=""_blank"">unsubscribe link</a> or";
 
@@ -100,12 +105,23 @@ reply ""STOP"" to this message.
 
 		table.Append(tableFooterTemplate);
 
+		var applicationInvite = "";
+		if (location.appEnabled is true)
+		{
+			applicationInvite = string.Format(
+				EnglishFormatter.EnglishCultureInfo,
+				applicationInviteTemplate,
+				$"{AppSettings.SiteEnUrl}app/weather-forecast/{location.PartitionKey}/{location.RowKey}"
+			);
+		}
+
 		return string.Format(
 				EnglishFormatter.EnglishCultureInfo,
 				messageTemplate,
 				location.city,
 				location.country,
-				table.ToString()
+				table.ToString(),
+				applicationInvite
 			);
 	}
 
@@ -127,7 +143,7 @@ internal static class EnglishTextFormatter
 
 The temperature forecast for the coming days ({0}, {1}):
 
-{2}
+{2}{3}
 
 Best regards,
 Yvan from FrostAlert.net
@@ -165,12 +181,21 @@ Weather data is provided by Open-Meteo.com -- Weather data by Open-Meteo.com";
 			previousMinimum = forecast.Minimum;
 		}
 
+		var applicationInvite = new StringBuilder();
+		if (location.appEnabled is true)
+		{
+			applicationInvite.AppendLine();
+			applicationInvite.AppendLine("You can also visit our application to add the alerts to your calendar:");
+			applicationInvite.Append($"{AppSettings.SiteEnUrl}app/weather-forecast/{location.PartitionKey}/{location.RowKey}");
+		}
+
 		return string.Format(
 				EnglishFormatter.EnglishCultureInfo,
 				textTemplate,
 				location.city,
 				location.country,
-				table.ToString()
+				table.ToString(),
+				applicationInvite.ToString()
 			);
 	}
 }

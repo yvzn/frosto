@@ -7,7 +7,7 @@ using batch.Models;
 
 namespace batch.Services;
 
-internal static class Formatter
+internal static class FrenchFormatter
 {
 	internal static readonly CultureInfo FrenchCultureInfo = CultureInfo.CreateSpecificCulture("fr-FR");
 
@@ -46,7 +46,7 @@ internal static class Formatter
 	}
 }
 
-internal static class HtmlFormatter
+internal static class FrenchHtmlFormatter
 {
 	private static readonly string tableHeaderTemplate = "<table><thead><tr><th>date<th>minimum<th>maximum<th></thead><tbody>";
 
@@ -59,7 +59,7 @@ internal static class HtmlFormatter
 
 <p>Les prévisions de température des prochains jours ({0}, {1}):
 
-{2}
+{2}{3}
 
 <p>Cordialement,
 <br>Yvan de Alertegelee.fr
@@ -72,6 +72,11 @@ répondez ""STOP"" à ce message.
 
 <p>Les données météo sont fournies par <em>Open-Meteo.com</em> &mdash;
 <a href=""https://open-meteo.com/"" target=""_blank"" rel=""noopener noreferrer"">Weather data by Open-Meteo.com</a>";
+
+	private static readonly string applicationInviteTemplate =
+	@"
+
+<p>Vous pouvez également visiter notre application pour <a href=""{0}"" target=""_blank"">ajouter les alertes à votre calendrier</a>.";
 
 	internal static readonly string unsubscribeLinkPlaceholder = "<|unsubscribe_link|>";
 
@@ -87,7 +92,7 @@ répondez ""STOP"" à ce message.
 		foreach (var forecast in forecasts.OrderBy(f => f.Date))
 		{
 			table.Append(string.Format(
-				Formatter.FrenchCultureInfo,
+				FrenchFormatter.FrenchCultureInfo,
 				tableRowTemplate,
 				forecast.Date,
 				forecast.Minimum,
@@ -102,12 +107,23 @@ répondez ""STOP"" à ce message.
 
 		table.Append(tableFooterTemplate);
 
+		var applicationInvite = "";
+		if (location.appEnabled is true)
+		{
+			applicationInvite = string.Format(
+				FrenchFormatter.FrenchCultureInfo,
+				applicationInviteTemplate,
+				$"{AppSettings.SiteFrUrl}app/weather-forecast/{location.PartitionKey}/{location.RowKey}"
+			);
+		}
+
 		return string.Format(
-				Formatter.FrenchCultureInfo,
+				FrenchFormatter.FrenchCultureInfo,
 				messageTemplate,
 				location.city,
 				location.country,
-				table.ToString()
+				table.ToString(),
+				applicationInvite
 			);
 	}
 
@@ -129,7 +145,7 @@ internal static class TextFormatter
 
 Les prévisions de température des prochains jours ({0}, {1}):
 
-{2}
+{2}{3}
 
 Cordialement,
 Yvan de Alertegelee.fr
@@ -144,7 +160,7 @@ Les données météo sont fournies par Open-Meteo.com -- Weather data by Open-Me
 	{
 		var table = new StringBuilder();
 		table.Append(string.Format(
-			Formatter.FrenchCultureInfo,
+			FrenchFormatter.FrenchCultureInfo,
 			tableRowTemplate,
 			"date", "mini", "", "maxi", ""
  		));
@@ -154,7 +170,7 @@ Les données météo sont fournies par Open-Meteo.com -- Weather data by Open-Me
 		foreach (var forecast in forecasts.OrderBy(f => f.Date))
 		{
 			table.Append(string.Format(
-				Formatter.FrenchCultureInfo,
+				FrenchFormatter.FrenchCultureInfo,
 				tableRowTemplate,
 				forecast.Date,
 				forecast.Minimum,
@@ -167,12 +183,21 @@ Les données météo sont fournies par Open-Meteo.com -- Weather data by Open-Me
 			previousMinimum = forecast.Minimum;
 		}
 
+		var applicationInvite = new StringBuilder();
+		if (location.appEnabled is true)
+		{
+			applicationInvite.AppendLine();
+			applicationInvite.AppendLine("Vous pouvez également visiter notre application pour ajouter les alertes à votre calendrier:");
+			applicationInvite.Append($"{AppSettings.SiteFrUrl}app/weather-forecast/{location.PartitionKey}/{location.RowKey}");
+		}
+
 		return string.Format(
-				Formatter.FrenchCultureInfo,
+				FrenchFormatter.FrenchCultureInfo,
 				textTemplate,
 				location.city,
 				location.country,
-				table.ToString()
+				table.ToString(),
+				applicationInvite.ToString()
 			);
 	}
 }

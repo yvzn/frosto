@@ -28,7 +28,7 @@ internal class ScalewayMailSender(
 		}
 
 		var unsubscribeUrl = Unsubscribe.BuildUnsubscribeUrl(unsubscribeToken, notification);
-		var unsubscribeLink = HtmlFormatter.FormatUnsubscribeLink(unsubscribeUrl);
+		var unsubscribeLink = FrenchHtmlFormatter.FormatUnsubscribeLink(unsubscribeUrl);
 
 		var message = new ScalewayApiEmailRequest
 		{
@@ -41,7 +41,7 @@ internal class ScalewayMailSender(
 			subject = notification.subject,
 			project_id = AppSettings.ScalewayProjectId,
 			text = notification.raw,
-			html = notification.body?.Replace(HtmlFormatter.unsubscribeLinkPlaceholder, unsubscribeLink),
+			html = notification.body?.Replace(FrenchHtmlFormatter.unsubscribeLinkPlaceholder, unsubscribeLink),
 			attachments = [],
 			additional_headers = [.. BuildScalewayHeaders(unsubscribeToken, notification)]
 		};

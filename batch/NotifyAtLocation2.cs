@@ -158,13 +158,13 @@ public class NotifyAtLocation2(IHttpClientFactory httpClientFactory, IAzureClien
 		var subject = language switch
 		{
 			"en" => EnglishFormatter.FormatSubject(forecasts, location),
-			_ => Formatter.FormatSubject(forecasts, location)
+			_ => FrenchFormatter.FormatSubject(forecasts, location)
 		};
 
 		var body = language switch
 		{
 			"en" => EnglishHtmlFormatter.FormatBody(forecasts, location),
-			_ => HtmlFormatter.FormatBody(forecasts, location)
+			_ => FrenchHtmlFormatter.FormatBody(forecasts, location)
 		};
 
 		var text = language switch

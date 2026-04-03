@@ -48,6 +48,12 @@ internal static class AppSettings
 	private static readonly int periodInDays = int.Parse(TryGetEnvironmentVariable("PERIOD_IN_DAYS"));
 	public static int PeriodInDays => periodInDays;
 
+	private static readonly string siteFrUrl = TryGetEnvironmentVariable("SITE_FR_URL");
+	public static string SiteFrUrl => siteFrUrl;
+
+	private static readonly string siteEnUrl = TryGetEnvironmentVariable("SITE_EN_URL");
+	public static string SiteEnUrl => siteEnUrl;
+
 	private static string TryGetEnvironmentVariable(string variable)
 		=> Environment.GetEnvironmentVariable(variable) ?? throw new Exception($"{variable} variable not set");
 }
