@@ -37,6 +37,10 @@ public class Location : ModelBase
 	[RegularExpression(@"^[\+\-]([0-9]|[01][0-9]|2[0-3]):?([0-9]|[0-5][0-9])?$")]
 	public string? offset { get; set; } = "";
 
+	public int? utc_offset_minutes { get; set; }
+
+	public string? hemisphere { get; set; }
+
 	[HiddenInput]
 	public string Id
 	{

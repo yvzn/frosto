@@ -54,6 +54,13 @@ internal static class AppSettings
 	private static readonly string siteEnUrl = TryGetEnvironmentVariable("SITE_EN_URL");
 	public static string SiteEnUrl => siteEnUrl;
 
+	// Fixed epoch date shared across all Function App instances. Never change after go-live.
+	public static readonly DateTime EpochDate = new(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+	// Winter months for each hemisphere (months when frost is possible)
+	public static readonly int[] NorthernWinterMonths = [12, 1, 2, 3];
+	public static readonly int[] SouthernWinterMonths = [6, 7, 8, 9];
+
 	private static string TryGetEnvironmentVariable(string variable)
 		=> Environment.GetEnvironmentVariable(variable) ?? throw new Exception($"{variable} variable not set");
 }
