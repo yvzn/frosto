@@ -111,7 +111,7 @@ const { t, d, locale } = useI18n({
 const loading = ref(false);
 const error = ref(false);
 const data = ref<WeatherForecastResponse | null>(null);
-const threshold = ref(0);
+const thresholdCelsius = ref(0);
 const useFahrenheit = ref(false);
 
 const THRESHOLD_MIN_C = -20;
@@ -138,22 +138,21 @@ const unitLabel = computed(() =>
 	useFahrenheit.value ? t('weatherForecast.unitFahrenheit') : t('weatherForecast.unitCelsius'),
 );
 
+const threshold = computed({
+	get() {
+		return useFahrenheit.value ? celsiusToFahrenheit(thresholdCelsius.value) : thresholdCelsius.value;
+	},
+	set(val: number) {
+		thresholdCelsius.value = useFahrenheit.value ? fahrenheitToCelsius(val) : val;
+	},
+});
+
 function displayTemp(celsius: number): number {
 	return useFahrenheit.value ? celsiusToFahrenheit(celsius) : celsius;
 }
 
-function thresholdInCelsius(): number {
-	return useFahrenheit.value ? fahrenheitToCelsius(threshold.value) : threshold.value;
-}
-
 function toggleUnit() {
-	if (useFahrenheit.value) {
-		threshold.value = fahrenheitToCelsius(threshold.value);
-		useFahrenheit.value = false;
-	} else {
-		threshold.value = celsiusToFahrenheit(threshold.value);
-		useFahrenheit.value = true;
-	}
+	useFahrenheit.value = !useFahrenheit.value;
 }
 
 async function fetchForecast() {
@@ -186,8 +185,7 @@ async function fetchForecast() {
 			json.location.temperatureUnit === 'F' || json.location.temperatureUnit === 'f';
 		useFahrenheit.value = serverUseFahrenheit;
 
-		const thresholdC = json.location.temperatureThreshold;
-		threshold.value = serverUseFahrenheit ? celsiusToFahrenheit(thresholdC) : thresholdC;
+		thresholdCelsius.value = json.location.temperatureThreshold;
 	} catch {
 		error.value = true;
 	} finally {
@@ -320,7 +318,7 @@ onMounted(fetchForecast);
 							</h3>
 
 							<div
-								v-if="forecast.minimum < thresholdInCelsius()"
+								v-if="forecast.minimum < thresholdCelsius"
 								class="badge text-bg-info align-self-start fw-medium py-sm-2"
 								:title="t('weatherForecast.tableFrost')"
 							>
@@ -328,7 +326,7 @@ onMounted(fetchForecast);
 							</div>
 
 							<div
-								v-if="forecast.minimum < thresholdInCelsius()"
+								v-if="forecast.minimum < thresholdCelsius"
 								class="d-none d-md-block flex-grow-1 text-end"
 							>
 								<AddToCalendarButton :event="buildCalendarEvent(forecast)" />
@@ -343,7 +341,7 @@ onMounted(fetchForecast);
 									:isDropping="
 										isTemperatureDropping(forecast.minimum, data.forecasts[index - 1]?.minimum)
 									"
-									:isBelowThreshold="forecast.minimum < thresholdInCelsius()"
+									:isBelowThreshold="forecast.minimum < thresholdCelsius"
 								/>
 							</div>
 							<div class="col">
@@ -353,13 +351,13 @@ onMounted(fetchForecast);
 									:isDropping="
 										isTemperatureDropping(forecast.maximum, data.forecasts[index - 1]?.maximum)
 									"
-									:isBelowThreshold="forecast.maximum < thresholdInCelsius()"
+									:isBelowThreshold="forecast.maximum < thresholdCelsius"
 								/>
 							</div>
 						</div>
 
 						<div
-							v-if="forecast.minimum < thresholdInCelsius()"
+							v-if="forecast.minimum < thresholdCelsius"
 							class="d-flex justify-content-end d-md-none mt-3"
 						>
 							<AddToCalendarButton :event="buildCalendarEvent(forecast)" />
