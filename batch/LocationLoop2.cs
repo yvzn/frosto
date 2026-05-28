@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using Azure.Data.Tables;
 using batch.Models;
 using batch.Services;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Logging;
@@ -36,6 +38,31 @@ public class LocationLoop2(IHttpClientFactory httpClientFactory, IAzureClientFac
 
 		await LoopOverBatchAsync(slotIndex, dayOfCycle, now);
 	}
+
+#if DEBUG
+	[Function("BatchCronDebug")]
+	public async Task<IActionResult> RunDebug(
+		[HttpTrigger(AuthorizationLevel.Function, "get", Route = null)]
+		HttpRequest req)
+	{
+		var slotIndexParam = req.Query["slotIndex"];
+		if (!int.TryParse(slotIndexParam, out var slotIndex))
+		{
+			return new BadRequestResult();
+		}
+
+		var dayOfCycleParam = req.Query["dayOfCycle"];
+		if (!int.TryParse(dayOfCycleParam, out var dayOfCycle))
+		{
+			return new BadRequestResult();
+		}
+
+		logger.LogInformation("Processing slot {SlotIndex} day {DayOfCycle}", slotIndex, dayOfCycle);
+
+		await LoopOverBatchAsync(slotIndex, dayOfCycle, DateTime.UtcNow);
+		return new OkResult();
+	}
+#endif
 
 	private async Task LoopOverBatchAsync(int slotIndex, int dayOfCycle, DateTime utcNow)
 	{
