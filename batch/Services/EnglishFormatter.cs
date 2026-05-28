@@ -15,7 +15,7 @@ internal static class EnglishFormatter
 		=> "F".Equals(location.temperatureUnit, StringComparison.OrdinalIgnoreCase);
 
 	internal static decimal ToDisplayTemperature(decimal celsius, bool fahrenheit)
-		=> fahrenheit ? Math.Round(celsius * 9m / 5m + 32m, 1) : celsius;
+		=> fahrenheit ? Math.Round(celsius * 9m / 5m + 32m, 0) : celsius;
 
 	public static string FormatSubject(List<weather.Forecast> forecasts, LocationEntity location)
 	{

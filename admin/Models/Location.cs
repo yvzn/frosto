@@ -37,7 +37,7 @@ public class Location : ModelBase
 	[RegularExpression(@"^[\+\-]([0-9]|[01][0-9]|2[0-3]):?([0-9]|[0-5][0-9])?$")]
 	public string? offset { get; set; } = "";
 	[DisplayName("Temperature Unit")]
-	[RegularExpression(@"^[CF]?$")]
+	[RegularExpression(@"^F?$")]
 	public string? temperatureUnit { get; set; } = "";
 
 	public int? utc_offset_minutes { get; set; }
