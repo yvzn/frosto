@@ -30,6 +30,9 @@
 				<input asp-for="ValidLocation.country" class="form-control" list="country-names"
 					id="valid-location-country" required />
 				<span asp-validation-for="ValidLocation.country" class="text-danger"></span>
+				<div id="country-change-warning" class="text-warning small mt-1" hidden>
+					Changing the country will move this entry to a new partition key.
+				</div>
 
 				<datalist id="country-names">
 					@foreach (var country in Model.CountryList)
@@ -180,6 +183,7 @@
 
 		function syncHidden(emails) {
 			hiddenInput.value = emails.join(',');
+			hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
 		}
 
 		function isValidEmail(email) {
@@ -213,6 +217,20 @@
 				li.appendChild(btn);
 				usersList.appendChild(li);
 			});
+		}
+
+		function deduplicateEmails() {
+			var emails = getEmails();
+			var seen = {};
+			var unique = emails.filter(function (e) {
+				var lower = e.toLowerCase();
+				if (seen[lower]) return false;
+				seen[lower] = true;
+				return true;
+			});
+			if (unique.length !== emails.length) {
+				hiddenInput.value = unique.join(',');
+			}
 		}
 
 		function addEmail() {
@@ -257,6 +275,46 @@
 			});
 		}
 
+		deduplicateEmails();
 		renderChips();
+	})();
+
+	(function () {
+		var countryInput = document.getElementById('valid-location-country');
+		var warningDiv = document.getElementById('country-change-warning');
+		if (!countryInput || !warningDiv) return;
+
+		var originalCountry = countryInput.value;
+
+		countryInput.addEventListener('input', function () {
+			warningDiv.hidden = countryInput.value.trim().toLowerCase() === originalCountry.trim().toLowerCase();
+		});
+	})();
+
+	(function () {
+		var form = document.querySelector('form');
+		if (!form) return;
+
+		var isDirty = false;
+		var submitted = false;
+
+		form.addEventListener('change', function () {
+			isDirty = true;
+		});
+
+		form.addEventListener('submit', function () {
+			submitted = true;
+		});
+
+		form.addEventListener('reset', function () {
+			isDirty = false;
+		});
+
+		window.addEventListener('beforeunload', function (e) {
+			if (isDirty && !submitted) {
+				e.preventDefault();
+				e.returnValue = '';
+			}
+		});
 	})();
 </script>
