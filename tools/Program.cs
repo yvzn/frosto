@@ -244,7 +244,7 @@ async Task BackfillAsync(string connStr, string azureMapsKey)
 		try
 		{
 			await tableClient.UpdateEntityAsync(entity, entity.ETag);
-			Console.WriteLine($"Updated {entity.PartitionKey}|{entity.RowKey}: hemisphere={entity.hemisphere}, utc_offset_minutes={entity.utc_offset_minutes}");
+			Console.WriteLine($"Updated {entity.PartitionKey}|{entity.RowKey}: hemisphere={entity.hemisphere}, utc_offset_minutes={entity.utc_offset_minutes}, count={updated + 1}");
 			updated++;
 		}
 		catch (Exception ex)
