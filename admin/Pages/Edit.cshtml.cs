@@ -8,6 +8,7 @@ namespace admin.Pages;
 
 public class EditModel(
 	LocationService locationService,
+	GeographicalDataService geographicalDataService,
 	IConfiguration configuration,
 	ILogger<EditModel> logger) : PageModel
 {
@@ -31,8 +32,8 @@ public class EditModel(
 	public async Task OnGetAsync(string id)
 	{
 		ValidLocation = await _locationService.GetValidLocationAsync(id, HttpContext.RequestAborted) ?? new();
-		CountryList = GeographicalDataService.GetCountryList();
-		TimezoneList = GeographicalDataService.GetCommonTimezones();
+		CountryList = await geographicalDataService.GetCountryListAsync(HttpContext.RequestAborted);
+		TimezoneList = await geographicalDataService.GetCommonTimezonesAsync(HttpContext.RequestAborted);
 	}
 
 	public async Task<IActionResult> OnPostAsync()

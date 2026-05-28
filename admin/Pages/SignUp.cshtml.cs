@@ -12,6 +12,7 @@ namespace admin.Pages;
 public class SignUpModel(
 	LocationService locationService,
 	GeocodingService geocodingService,
+	GeographicalDataService geographicalDataService,
 	SignUpService signUpService,
 	IConfiguration configuration,
 	ILogger<SignUpModel> logger) : PageModel
@@ -96,8 +97,8 @@ public class SignUpModel(
 			ValidLocationExists = existingLocation?.Id;
 		}
 
-		CountryList = GeographicalDataService.GetCountryList();
-		TimezoneList = GeographicalDataService.GetCommonTimezones();
+		CountryList = await geographicalDataService.GetCountryListAsync(cancellationToken);
+		TimezoneList = await geographicalDataService.GetCommonTimezonesAsync(cancellationToken);
 		GeocodingResults = GetGeocodingResults(ValidLocation);
 	}
 
