@@ -84,6 +84,16 @@
 		</div>
 		<div class="row gx-3">
 			<div class="form-group col-md-6 mb-3">
+				<label asp-for="ValidLocation.temperatureUnit" class="form-label"></label>
+				<select asp-for="ValidLocation.temperatureUnit" class="form-select">
+					<option value="">Celsius (default)</option>
+					<option value="F">Fahrenheit</option>
+				</select>
+				<span asp-validation-for="ValidLocation.temperatureUnit" class="text-danger"></span>
+			</div>
+		</div>
+		<div class="row gx-3">
+			<div class="form-group col-md-6 mb-3">
 				<label asp-for="ValidLocation.timezone" class="form-label"></label>
 				<input asp-for="ValidLocation.timezone" class="form-control" list="timezone-names" />
 				<span asp-validation-for="ValidLocation.timezone" class="text-danger"></span>

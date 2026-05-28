@@ -16,6 +16,7 @@ public class LocationEntity : ITableEntity, weather.ILocation
 	public string? channel { get; set; }
 	public string? zipCode { get; set; }
 	public string? lang { get; set; }
+	public string? temperatureUnit { get; set; }
 	public double? minThreshold { get; set; }
 	public double? minTemperatureAdjustment { get; set; }
 	public string? weatherApiUrl { get; set; }

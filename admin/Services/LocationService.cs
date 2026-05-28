@@ -45,6 +45,7 @@ public partial class LocationService(IAzureClientFactory<TableClient> azureClien
 		validLocationEntity.lang = validLocation.lang?.Trim().ToLower();
 		validLocationEntity.timezone = validLocation.timezone?.Trim();
 		validLocationEntity.offset = Normalize(validLocation.offset);
+		validLocationEntity.temperatureUnit = NormalizeTemperatureUnit(validLocation.temperatureUnit);
 		validLocationEntity.PartitionKey = Capitalize(validLocation.country);
 		validLocationEntity.RowKey = validLocation.RowKey;
 
@@ -79,6 +80,7 @@ public partial class LocationService(IAzureClientFactory<TableClient> azureClien
 		validLocationEntity.timezone = validLocation.timezone?.Trim();
 		validLocationEntity.offset = Normalize(validLocation.offset);
 		validLocationEntity.PartitionKey = newPartitionKey;
+		validLocationEntity.temperatureUnit = NormalizeTemperatureUnit(validLocation.temperatureUnit);
 		validLocationEntity.RowKey = validLocation.RowKey;
 
 		validLocationEntity.utc_offset_minutes = DeriveUtcOffsetMinutes(validLocation.timezone, validLocation.offset);
@@ -305,6 +307,7 @@ public partial class LocationService(IAzureClientFactory<TableClient> azureClien
 			offset = locationEntity.offset ?? "",
 			utc_offset_minutes = locationEntity.utc_offset_minutes,
 			hemisphere = locationEntity.hemisphere,
+			temperatureUnit = locationEntity.temperatureUnit ?? "",
 			PartitionKey = locationEntity.PartitionKey ?? "",
 			RowKey = locationEntity.RowKey ?? "",
 			Timestamp = locationEntity.Timestamp,
@@ -322,6 +325,9 @@ public partial class LocationService(IAzureClientFactory<TableClient> azureClien
 			.Where(e => e.Length > 0 && seen.Add(e));
 		return string.Join(',', unique);
 	}
+	
+	private static string? NormalizeTemperatureUnit(string? s)
+		=> "F".Equals(s?.Trim(), StringComparison.OrdinalIgnoreCase) ? "F" : null;
 
 	[GeneratedRegex(@"^([\+\-])([0-9]|[01][0-9]|2[0-3]):?([0-9]|[0-5][0-9])?$")]
 	private static partial Regex TimezoneOffsetRegex();

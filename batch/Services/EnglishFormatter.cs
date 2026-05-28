@@ -11,8 +11,17 @@ internal static class EnglishFormatter
 {
 	internal static readonly CultureInfo EnglishCultureInfo = CultureInfo.CreateSpecificCulture("en-US");
 
+	internal static bool IsFahrenheit(LocationEntity location)
+		=> "F".Equals(location.temperatureUnit, StringComparison.OrdinalIgnoreCase);
+
+	internal static decimal ToDisplayTemperature(decimal celsius, bool fahrenheit)
+		=> fahrenheit ? Math.Round(celsius * 9m / 5m + 32m, 1) : celsius;
+
 	public static string FormatSubject(List<weather.Forecast> forecasts, LocationEntity location)
 	{
+		var fahrenheit = IsFahrenheit(location);
+		var unit = fahrenheit ? "F" : "C";
+
 		var header = "Temperatures close to zero forecast for the coming days";
 
 		var forecastsBelow0 = forecasts.Where(f => f.Minimum < 0).ToArray();
@@ -21,9 +30,10 @@ internal static class EnglishFormatter
 			var first = forecastsBelow0.OrderBy(f => f.Date).First();
 			header = string.Format(
 				EnglishCultureInfo,
-				"Freezing temperatures forecast for {0:dddd, MMMM d}: {1}°",
+				"Freezing temperatures forecast for {0:dddd, MMMM d}: {1}°{2}",
 				first.Date,
-				first.Minimum
+				ToDisplayTemperature(first.Minimum, fahrenheit),
+				unit
 			);
 		}
 
@@ -33,12 +43,16 @@ internal static class EnglishFormatter
 		if (forecastsBelowThreshold.Length != 0)
 		{
 			var first = forecastsBelowThreshold.OrderBy(f => f.Date).First();
+			var thresholdDisplay = fahrenheit
+				? ToDisplayTemperature(Convert.ToDecimal(location.minThreshold!.Value), fahrenheit)
+				: (object?)location.minThreshold;
 			header = string.Format(
 				EnglishCultureInfo,
-				"Temperatures below {0}° forecast for {1:dddd, MMMM d}: {2}°",
-				location.minThreshold,
+				"Temperatures below {0}°{1} forecast for {2:dddd, MMMM d}: {3}°{1}",
+				thresholdDisplay,
+				unit,
 				first.Date,
-				first.Minimum
+				ToDisplayTemperature(first.Minimum, fahrenheit)
 			);
 		}
 
@@ -50,7 +64,7 @@ internal static class EnglishHtmlFormatter
 {
 	private static readonly string tableHeaderTemplate = "<table><thead><tr><th>date<th>minimum<th>maximum<th></thead><tbody>";
 
-	private static readonly string tableRowTemplate = "<tr><td>{0:dddd, MMMM d}<td>{1}° {2}<td>{3}°<td>{4}</tr>";
+	private static readonly string tableRowTemplate = "<tr><td>{0:dddd, MMMM d}<td>{1}°{2} {3}<td>{4}°{2}<td>{5}</tr>";
 
 	private static readonly string tableFooterTemplate = "</tbody></table>";
 
@@ -82,6 +96,9 @@ reply ""STOP"" to this message.
 
 	public static string FormatBody(List<weather.Forecast> forecasts, LocationEntity location)
 	{
+		var fahrenheit = EnglishFormatter.IsFahrenheit(location);
+		var unit = fahrenheit ? "F" : "C";
+
 		var table = new StringBuilder();
 		table.Append(tableHeaderTemplate);
 		table.Append(Environment.NewLine);
@@ -89,13 +106,16 @@ reply ""STOP"" to this message.
 
 		foreach (var forecast in forecasts.OrderBy(f => f.Date))
 		{
+			var displayMin = EnglishFormatter.ToDisplayTemperature(forecast.Minimum, fahrenheit);
+			var displayMax = EnglishFormatter.ToDisplayTemperature(forecast.Maximum, fahrenheit);
 			table.Append(string.Format(
 				EnglishFormatter.EnglishCultureInfo,
 				tableRowTemplate,
 				forecast.Date,
-				forecast.Minimum,
+				displayMin,
+				unit,
 				forecast.Minimum < 0 ? '❄' : ' ',
-				forecast.Maximum,
+				displayMax,
 				forecast.Minimum < previousMinimum ? "dropping" : " "
 			));
 			table.Append(Environment.NewLine);
@@ -136,7 +156,7 @@ reply ""STOP"" to this message.
 
 internal static class EnglishTextFormatter
 {
-	private static readonly string tableRowTemplate = "{0,-15:ddd MMM dd}   {1,-6:N1}{2,-1}   {3,-6:N1}   {4}";
+	private static readonly string tableRowTemplate = "{0,-15:ddd MMM dd}   {1,-8:N1}{2,-2}   {3,-8:N1}{4,-2}   {5}";
 
 	private static readonly string textTemplate =
 	@"Hello,
@@ -156,24 +176,30 @@ Weather data is provided by Open-Meteo.com -- Weather data by Open-Meteo.com";
 
 	public static string FormatBody(List<weather.Forecast> forecasts, LocationEntity location)
 	{
+		var fahrenheit = EnglishFormatter.IsFahrenheit(location);
+		var unit = fahrenheit ? "°F" : "°C";
+
 		var table = new StringBuilder();
 		table.Append(string.Format(
 			EnglishFormatter.EnglishCultureInfo,
 			tableRowTemplate,
-			"date", "min", "", "max", ""
+			"date", "min", unit, "max", unit, ""
  		));
 		table.Append(Environment.NewLine);
 		var previousMinimum = decimal.MinValue;
 
 		foreach (var forecast in forecasts.OrderBy(f => f.Date))
 		{
+			var displayMin = EnglishFormatter.ToDisplayTemperature(forecast.Minimum, fahrenheit);
+			var displayMax = EnglishFormatter.ToDisplayTemperature(forecast.Maximum, fahrenheit);
 			table.Append(string.Format(
 				EnglishFormatter.EnglishCultureInfo,
 				tableRowTemplate,
 				forecast.Date,
-				forecast.Minimum,
+				displayMin,
 				forecast.Minimum < 0 ? '❄' : ' ',
-				forecast.Maximum,
+				displayMax,
+				' ',
 				forecast.Minimum < previousMinimum ? "dropping" : " "
 			));
 			table.Append(Environment.NewLine);

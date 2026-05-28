@@ -19,6 +19,7 @@ interface WeatherForecastResponse {
 		city: string;
 		country: string;
 		temperatureThreshold: number;
+		temperatureUnit?: string;
 	};
 	forecasts: ForecastEntry[];
 }
@@ -34,13 +35,17 @@ const { t, d, locale } = useI18n({
 				error: 'An error occurred while loading the forecast.',
 				retry: 'Retry',
 				refresh: 'Refresh',
-				thresholdLabel: 'Alert threshold (°C)',
+				thresholdLabel: 'Alert threshold',
 				tableDate: 'Date',
-				tableMinTemp: 'Min (°C)',
-				tableMaxTemp: 'Max (°C)',
+				tableMinTemp: 'Min',
+				tableMaxTemp: 'Max',
 				tableFrost: 'Alert forecasted',
-				calendarEventTitle: 'Temperatures below {threshold}°C forecasted in {city}, {country}',
-				calendarEventBody: 'Temperature forecast for {city}, {country}: Min {min}°C, Max {max}°C.',
+				calendarEventTitle: 'Temperatures below {threshold}°{unit} forecasted in {city}, {country}',
+				calendarEventBody: 'Temperature forecast for {city}, {country}: Min {min}°{unit}, Max {max}°{unit}.',
+				unitCelsius: '°C',
+				unitFahrenheit: '°F',
+				switchToCelsius: 'Switch to Celsius',
+				switchToFahrenheit: 'Switch to Fahrenheit',
 			},
 			footer: {
 				credits: 'Credits',
@@ -60,14 +65,18 @@ const { t, d, locale } = useI18n({
 				error: 'Une erreur est survenue lors du chargement des prévisions.',
 				retry: 'Réessayer',
 				refresh: 'Actualiser',
-				thresholdLabel: "Seuil d'alerte (°C)",
+				thresholdLabel: "Seuil d'alerte",
 				tableDate: 'Date',
-				tableMinTemp: 'Min (°C)',
-				tableMaxTemp: 'Max (°C)',
+				tableMinTemp: 'Min',
+				tableMaxTemp: 'Max',
 				tableFrost: 'Alerte prévue',
-				calendarEventTitle: 'Températures en dessous de {threshold}°C prévues — {city}, {country}',
+				calendarEventTitle: 'Températures en dessous de {threshold}°{unit} prévues — {city}, {country}',
 				calendarEventBody:
-					'Prévisions de température pour {city}, {country} : Min {min}°C, Max {max}°C.',
+					'Prévisions de température pour {city}, {country} : Min {min}°{unit}, Max {max}°{unit}.',
+				unitCelsius: '°C',
+				unitFahrenheit: '°F',
+				switchToCelsius: 'Passer en Celsius',
+				switchToFahrenheit: 'Passer en Fahrenheit',
 			},
 			footer: {
 				credits: 'Crédits',
@@ -103,10 +112,49 @@ const loading = ref(false);
 const error = ref(false);
 const data = ref<WeatherForecastResponse | null>(null);
 const threshold = ref(0);
+const useFahrenheit = ref(false);
 
-const THRESHOLD_MIN = -20;
-const THRESHOLD_MAX = 20;
-const THRESHOLD_STEP = 0.5;
+const THRESHOLD_MIN_C = -20;
+const THRESHOLD_MAX_C = 20;
+const THRESHOLD_STEP_C = 0.5;
+
+const THRESHOLD_MIN_F = -4;
+const THRESHOLD_MAX_F = 68;
+const THRESHOLD_STEP_F = 1;
+
+function celsiusToFahrenheit(c: number): number {
+	return Math.round((c * 9) / 5 + 32);
+}
+
+function fahrenheitToCelsius(f: number): number {
+	return Math.round(((f - 32) * 5) / 9);
+}
+
+const thresholdMin = computed(() => (useFahrenheit.value ? THRESHOLD_MIN_F : THRESHOLD_MIN_C));
+const thresholdMax = computed(() => (useFahrenheit.value ? THRESHOLD_MAX_F : THRESHOLD_MAX_C));
+const thresholdStep = computed(() => (useFahrenheit.value ? THRESHOLD_STEP_F : THRESHOLD_STEP_C));
+
+const unitLabel = computed(() =>
+	useFahrenheit.value ? t('weatherForecast.unitFahrenheit') : t('weatherForecast.unitCelsius'),
+);
+
+function displayTemp(celsius: number): number {
+	return useFahrenheit.value ? celsiusToFahrenheit(celsius) : celsius;
+}
+
+function thresholdInCelsius(): number {
+	return useFahrenheit.value ? fahrenheitToCelsius(threshold.value) : threshold.value;
+}
+
+function toggleUnit() {
+	if (useFahrenheit.value) {
+		threshold.value = fahrenheitToCelsius(threshold.value);
+		useFahrenheit.value = false;
+	} else {
+		threshold.value = celsiusToFahrenheit(threshold.value);
+		useFahrenheit.value = true;
+	}
+}
 
 async function fetchForecast() {
 	loading.value = true;
@@ -133,7 +181,13 @@ async function fetchForecast() {
 
 		const json = (await response.json()) as WeatherForecastResponse;
 		data.value = json;
-		threshold.value = json.location.temperatureThreshold;
+
+		const serverUseFahrenheit =
+			json.location.temperatureUnit === 'F' || json.location.temperatureUnit === 'f';
+		useFahrenheit.value = serverUseFahrenheit;
+
+		const thresholdC = json.location.temperatureThreshold;
+		threshold.value = serverUseFahrenheit ? celsiusToFahrenheit(thresholdC) : thresholdC;
 	} catch {
 		error.value = true;
 	} finally {
@@ -166,14 +220,21 @@ const donateUrl = computed(() => {
 function buildCalendarEvent(forecast: ForecastEntry): CalendarEvent {
 	const city = data.value?.location.city ?? '';
 	const country = data.value?.location.country ?? '';
+	const unit = useFahrenheit.value ? 'F' : 'C';
 
 	return {
-		title: t('weatherForecast.calendarEventTitle', { city, country }),
+		title: t('weatherForecast.calendarEventTitle', {
+			threshold: threshold.value,
+			unit,
+			city,
+			country,
+		}),
 		description: t('weatherForecast.calendarEventBody', {
 			city,
 			country,
-			min: forecast.minimum,
-			max: forecast.maximum,
+			min: displayTemp(forecast.minimum),
+			max: displayTemp(forecast.maximum),
+			unit,
 		}),
 		date: forecast.date,
 	};
@@ -259,7 +320,7 @@ onMounted(fetchForecast);
 							</h3>
 
 							<div
-								v-if="forecast.minimum < threshold"
+								v-if="forecast.minimum < thresholdInCelsius()"
 								class="badge text-bg-info align-self-start fw-medium py-sm-2"
 								:title="t('weatherForecast.tableFrost')"
 							>
@@ -267,7 +328,7 @@ onMounted(fetchForecast);
 							</div>
 
 							<div
-								v-if="forecast.minimum < threshold"
+								v-if="forecast.minimum < thresholdInCelsius()"
 								class="d-none d-md-block flex-grow-1 text-end"
 							>
 								<AddToCalendarButton :event="buildCalendarEvent(forecast)" />
@@ -277,28 +338,28 @@ onMounted(fetchForecast);
 						<div class="row row-cols-1 row-cols-sm-2 g-3">
 							<div class="col">
 								<TemperatureCard
-									:label="t('weatherForecast.tableMinTemp')"
-									:value="forecast.minimum"
+									:label="`${t('weatherForecast.tableMinTemp')} (${unitLabel})`"
+									:value="displayTemp(forecast.minimum)"
 									:isDropping="
 										isTemperatureDropping(forecast.minimum, data.forecasts[index - 1]?.minimum)
 									"
-									:isBelowThreshold="forecast.minimum < threshold"
+									:isBelowThreshold="forecast.minimum < thresholdInCelsius()"
 								/>
 							</div>
 							<div class="col">
 								<TemperatureCard
-									:label="t('weatherForecast.tableMaxTemp')"
-									:value="forecast.maximum"
+									:label="`${t('weatherForecast.tableMaxTemp')} (${unitLabel})`"
+									:value="displayTemp(forecast.maximum)"
 									:isDropping="
 										isTemperatureDropping(forecast.maximum, data.forecasts[index - 1]?.maximum)
 									"
-									:isBelowThreshold="forecast.maximum < threshold"
+									:isBelowThreshold="forecast.maximum < thresholdInCelsius()"
 								/>
 							</div>
 						</div>
 
 						<div
-							v-if="forecast.minimum < threshold"
+							v-if="forecast.minimum < thresholdInCelsius()"
 							class="d-flex justify-content-end d-md-none mt-3"
 						>
 							<AddToCalendarButton :event="buildCalendarEvent(forecast)" />
@@ -308,17 +369,27 @@ onMounted(fetchForecast);
 			</div>
 
 			<div class="mb-4 col-12 col-md-6">
-				<label for="threshold-slider" class="form-label">
-					{{ t('weatherForecast.thresholdLabel') }}: {{ threshold }}&deg;
-				</label>
+				<div class="d-flex align-items-center gap-2 mb-1">
+					<label for="threshold-slider" class="form-label mb-0">
+						{{ t('weatherForecast.thresholdLabel') }}: {{ threshold }}&deg;{{ useFahrenheit ? 'F' : 'C' }}
+					</label>
+					<button
+						class="btn btn-sm btn-outline-secondary"
+						type="button"
+						@click="toggleUnit"
+						:title="useFahrenheit ? t('weatherForecast.switchToCelsius') : t('weatherForecast.switchToFahrenheit')"
+					>
+						{{ useFahrenheit ? '°C' : '°F' }}
+					</button>
+				</div>
 				<input
 					id="threshold-slider"
 					v-model.number="threshold"
 					type="range"
 					class="form-range"
-					:min="THRESHOLD_MIN"
-					:max="THRESHOLD_MAX"
-					:step="THRESHOLD_STEP"
+					:min="thresholdMin"
+					:max="thresholdMax"
+					:step="thresholdStep"
 				/>
 			</div>
 		</template>
