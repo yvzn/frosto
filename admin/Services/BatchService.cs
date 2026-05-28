@@ -65,7 +65,7 @@ public class BatchService(
 			var dayIndex = (int)(StableHash(location.Id) % (uint)periodInDays);
 
 			uint jitterHash = StableHash(location.Id + ":slot");
-			int jitterMinutes = (int)(jitterHash % 180);
+			int jitterMinutes = (int)(jitterHash % 120);
 			int targetLocalMinutes = 5 * 60 + jitterMinutes;
 			int targetUtcMinutes = targetLocalMinutes - (location.UtcOffsetMinutes ?? 0);
 			targetUtcMinutes = ((targetUtcMinutes % 1440) + 1440) % 1440;
@@ -74,19 +74,25 @@ public class BatchService(
 			int? bestSlot = null;
 			double bestScore = double.NegativeInfinity;
 
-			for (int offset = -18; offset <= 18; offset++)
+			for (int radius = 0; radius <= 12; radius++)
 			{
-				int slot = ((targetSlotIndex + offset) % SlotsPerDay + SlotsPerDay) % SlotsPerDay;
-
-				if (bucketLoads[dayIndex][slot] >= capacityLimit * capacityGuardMultiplier)
-					continue;
-
-				double loadScore = 1.0 - ((double)bucketLoads[dayIndex][slot] / capacityLimit);
-
-				if (loadScore > bestScore)
+				// Try offset 0 first, then -radius and +radius, expanding outward.
+				// Ties in loadScore go to the closest slot (first encountered).
+				int[] offsets = radius == 0 ? [0] : [-radius, radius];
+				foreach (int offset in offsets)
 				{
-					bestScore = loadScore;
-					bestSlot = slot;
+					int slot = ((targetSlotIndex + offset) % SlotsPerDay + SlotsPerDay) % SlotsPerDay;
+
+					if (bucketLoads[dayIndex][slot] >= capacityLimit * capacityGuardMultiplier)
+						continue;
+
+					double loadScore = 1.0 - ((double)bucketLoads[dayIndex][slot] / capacityLimit);
+
+					if (loadScore > bestScore)
+					{
+						bestScore = loadScore;
+						bestSlot = slot;
+					}
 				}
 			}
 
