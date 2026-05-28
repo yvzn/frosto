@@ -48,8 +48,8 @@ public class RecordMonitoring(IAzureClientFactory<TableClient> azureClientFactor
 				daysUntilNextFrost = data.daysUntilNextFrost,
 			};
 
-			async ValueTask upsert(CancellationToken cancellationToken) => await monitoringTableClient.AddEntityAsync(entity, cancellationToken: cancellationToken);
-			await RetryStrategy.For.DataAccess.ExecuteAsync(upsert);
+			async ValueTask add(CancellationToken cancellationToken) => await monitoringTableClient.AddEntityAsync(entity, cancellationToken: cancellationToken);
+			await RetryStrategy.For.DataAccess.ExecuteAsync(add);
 
 			return new OkResult();
 		}

@@ -26,6 +26,7 @@ public class MonitoringService(IAzureClientFactory<TableClient> azureClientFacto
 					geometry = new
 					{
 						type = "Point",
+						// GeoJSON uses [longitude, latitude] order (opposite of stored "latitude,longitude")
 						coordinates = new[] { longitude, latitude },
 					},
 					properties = new
@@ -49,13 +50,32 @@ public class MonitoringService(IAzureClientFactory<TableClient> azureClientFacto
 		var cutoffDate = DateTimeOffset.UtcNow.AddDays(-olderThanDays);
 		var deleted = 0;
 
+		// Collect entities to delete, grouped by PartitionKey for batch operations
+		var byPartition = new Dictionary<string, List<MonitoringEntity>>();
+
 		await foreach (var entity in _monitoringTableClient.QueryAsync<MonitoringEntity>(
 			e => e.Timestamp < cutoffDate,
 			select: ["PartitionKey", "RowKey"],
 			cancellationToken: cancellationToken))
 		{
-			await _monitoringTableClient.DeleteEntityAsync(entity.PartitionKey, entity.RowKey, cancellationToken: cancellationToken);
-			deleted++;
+			var pk = entity.PartitionKey ?? string.Empty;
+			if (!byPartition.TryGetValue(pk, out var list))
+			{
+				list = [];
+				byPartition[pk] = list;
+			}
+			list.Add(entity);
+		}
+
+		foreach (var (_, entities) in byPartition)
+		{
+			// Azure Table Storage batch limit is 100 operations per transaction
+			foreach (var batch in entities.Chunk(100))
+			{
+				var actions = batch.Select(e => new TableTransactionAction(TableTransactionActionType.Delete, e)).ToList();
+				await _monitoringTableClient.SubmitTransactionAsync(actions, cancellationToken);
+				deleted += batch.Length;
+			}
 		}
 
 		return deleted;
