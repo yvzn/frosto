@@ -51,25 +51,25 @@ public class LocationLoop2(IHttpClientFactory httpClientFactory, IAzureClientFac
 			return new BadRequestResult();
 		}
 
-		var dayOfCycleParam = req.Query["dayOfCycle"];
-		if (!int.TryParse(dayOfCycleParam, out var dayOfCycle))
+		var dayIndexParam = req.Query["dayIndex"];
+		if (!int.TryParse(dayIndexParam, out var dayIndex))
 		{
 			return new BadRequestResult();
 		}
 
-		logger.LogInformation("Processing slot {SlotIndex} day {DayOfCycle}", slotIndex, dayOfCycle);
+		logger.LogInformation("Processing slot {SlotIndex} day {DayOfCycle}", slotIndex, dayIndex);
 
-		await LoopOverBatchAsync(slotIndex, dayOfCycle, DateTime.UtcNow);
+		await LoopOverBatchAsync(slotIndex, dayIndex, DateTime.UtcNow);
 		return new OkResult();
 	}
 #endif
 
-	private async Task LoopOverBatchAsync(int slotIndex, int dayOfCycle, DateTime utcNow)
+	private async Task LoopOverBatchAsync(int slotIndex, int dayIndex, DateTime utcNow)
 	{
 		int locationIndex = 0;
 
 		await foreach (var batchEntry in locationBatchTableClient.QueryAsync<LocationBatchEntity>(
-			e => e.slot_index == slotIndex && e.day_index == dayOfCycle))
+			e => e.slot_index == slotIndex && e.day_index == dayIndex))
 		{
 			if (batchEntry.PartitionKey is null || batchEntry.RowKey is null)
 			{
@@ -82,7 +82,7 @@ public class LocationLoop2(IHttpClientFactory httpClientFactory, IAzureClientFac
 
 		if (locationIndex == 0)
 		{
-			logger.LogInformation("No locations found for slot {SlotIndex} day {DayOfCycle}", slotIndex, dayOfCycle);
+			logger.LogInformation("No locations found for slot {SlotIndex} day {DayOfCycle}", slotIndex, dayIndex);
 		}
 	}
 

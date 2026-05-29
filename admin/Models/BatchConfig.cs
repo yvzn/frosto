@@ -11,5 +11,5 @@ public class BatchConfig
 
 	[Required]
 	[DisplayName("Capacity guard multiplier")]
-	public double capacityGuardMultiplier { get; set; } = 1.2;
+	public double capacityGuardMultiplier { get; set; } = 3;
 }

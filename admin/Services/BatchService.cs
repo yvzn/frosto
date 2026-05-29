@@ -74,25 +74,21 @@ public class BatchService(
 			int? bestSlot = null;
 			double bestScore = double.NegativeInfinity;
 
-			for (int radius = 0; radius <= 12; radius++)
+			// Try offset 0 first, then from -6 to +6, expanding outward, then from -6 to -12
+			int[] offsets = [0, -1, +1, -2, +2, -3, +3, -4, +4, -5, +5, -6, +6, -7, -8, -9, -10, -11, -12];
+			foreach (int offset in offsets)
 			{
-				// Try offset 0 first, then -radius and +radius, expanding outward.
-				// Ties in loadScore go to the closest slot (first encountered).
-				int[] offsets = radius == 0 ? [0] : [-radius, radius];
-				foreach (int offset in offsets)
+				int slot = ((targetSlotIndex + offset) % SlotsPerDay + SlotsPerDay) % SlotsPerDay;
+
+				if (bucketLoads[dayIndex][slot] >= capacityLimit * capacityGuardMultiplier)
+					continue;
+
+				double loadScore = 1.0 - ((double)bucketLoads[dayIndex][slot] / capacityLimit);
+
+				if (loadScore > bestScore)
 				{
-					int slot = ((targetSlotIndex + offset) % SlotsPerDay + SlotsPerDay) % SlotsPerDay;
-
-					if (bucketLoads[dayIndex][slot] >= capacityLimit * capacityGuardMultiplier)
-						continue;
-
-					double loadScore = 1.0 - ((double)bucketLoads[dayIndex][slot] / capacityLimit);
-
-					if (loadScore > bestScore)
-					{
-						bestScore = loadScore;
-						bestSlot = slot;
-					}
+					bestScore = loadScore;
+					bestSlot = slot;
 				}
 			}
 

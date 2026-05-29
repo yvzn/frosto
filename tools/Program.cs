@@ -87,13 +87,13 @@ async Task ReviewBatchAsync(string connStr)
 
 	// Hourly histogram: group the 3 slots per hour (slots 3n, 3n+1, 3n+2)
 	Console.WriteLine("  Hourly counts (UTC) -- each row = 1 hour (3 slots of 20 min):");
-	Console.WriteLine("  Hour  :00  :20  :40  | Bar");
+	Console.WriteLine("  Hour    :00  :20  :40  | Bar");
 	for (int hour = 0; hour < 24; hour++)
 	{
 		int s0 = slotCounts[hour * 3];
 		int s1 = slotCounts[hour * 3 + 1];
 		int s2 = slotCounts[hour * 3 + 2];
-		string bar = new string('#', s0 + s1 + s2);
+		string bar = new('#', (int)Math.Ceiling((s0 + s1 + s2) / 5.0));
 		Console.WriteLine($"  {hour:D2}:xx   {s0,3}  {s1,3}  {s2,3}  | {bar}");
 	}
 	Console.WriteLine();
@@ -138,8 +138,8 @@ async Task ReviewBatchAsync(string connStr)
 		int slotUtcMinutes = entry.slot_index * SlotMinutes;
 		int localMinutes = ((slotUtcMinutes + utcOffset) % 1440 + 1440) % 1440;
 
-		// Target window: 05:00 (300 min) to 08:00 (480 min)
-		if (localMinutes >= 300 && localMinutes < 480)
+		// Target window: 04:00 (240 min) to 07:00 (420 min)
+		if (localMinutes >= 240 && localMinutes < 420)
 		{
 			inWindow++;
 		}
@@ -149,7 +149,7 @@ async Task ReviewBatchAsync(string connStr)
 		}
 	}
 
-	Console.WriteLine("--- Timezone Alignment (target local time: 05:00-08:00) ---");
+	Console.WriteLine("--- Timezone Alignment (target local time: 04:00-07:00) ---");
 	Console.WriteLine($"  In window : {inWindow} / {total} ({100.0 * inWindow / total:F1}%)");
 	Console.WriteLine($"  Outside   : {outsideWindow.Count} / {total} ({100.0 * outsideWindow.Count / total:F1}%)");
 	if (missingOffset > 0)
@@ -157,6 +157,24 @@ async Task ReviewBatchAsync(string connStr)
 
 	if (outsideWindow.Count > 0)
 	{
+		// Breakdown by distance from nearest window boundary (circular)
+		var outsideBreakdown = new int[5]; // ≤1h, ≤2h, ≤3h, ≤4h, >4h
+		foreach (var (_, _, _, localMins) in outsideWindow)
+		{
+			int dist = localMins < 300
+				? 300 - localMins
+				: localMins <= 1110
+					? localMins - 480
+					: 1740 - localMins;
+			int bucket = dist <= 60 ? 0 : dist <= 120 ? 1 : dist <= 180 ? 2 : dist <= 240 ? 3 : 4;
+			outsideBreakdown[bucket]++;
+		}
+
+		Console.WriteLine("  Distance from window (nearest boundary):");
+		string[] distLabels = ["≤1h", "≤2h", "≤3h", "≤4h", ">4h"];
+		for (int i = 0; i < 5; i++)
+			Console.WriteLine($"    {distLabels[i],4}: {outsideBreakdown[i],5} ({100.0 * outsideBreakdown[i] / total:F1}%)");
+
 		int preview = Math.Min(10, outsideWindow.Count);
 		Console.WriteLine($"  First {preview} locations outside the window:");
 		foreach (var (city, country, slotIdx, localMins) in outsideWindow.Take(preview))
