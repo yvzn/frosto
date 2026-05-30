@@ -25,7 +25,7 @@ public class BatchModel : PageModel
 		}
 
 		await _batchService.DeleteAllBatches(HttpContext.RequestAborted);
-		var assigned = await _batchService.CreateBatches(BatchConfig.periodInDays, BatchConfig.capacityGuardMultiplier, HttpContext.RequestAborted);
-		return RedirectToPage("./Index", new { m = $"{assigned} locations assigned to batches" });
+		await _batchService.CreateBatches(BatchConfig.periodInDays, BatchConfig.capacityGuardMultiplier, HttpContext.RequestAborted);
+		return RedirectToPage("./BatchResult");
 	}
 }

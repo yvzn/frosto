@@ -1,0 +1,214 @@
+@page
+@using System.Text.Json
+@model admin.Pages.BatchResultModel
+@{
+	ViewData["Title"] = "Batch Assignment Results";
+	var slotLabels = Enumerable.Range(0, 72)
+		.Select(i => $"{i / 3:D2}:{(i % 3) * 20:D2}")
+		.ToArray();
+	var slotData = JsonSerializer.Serialize(Model.Stats.SlotCounts);
+	var slotLabelJson = JsonSerializer.Serialize(slotLabels);
+
+	var dayKeys = Model.Stats.DayCounts.OrderBy(kv => kv.Key).Select(kv => kv.Key).ToArray();
+	var dayValues = Model.Stats.DayCounts.OrderBy(kv => kv.Key).Select(kv => kv.Value).ToArray();
+	var dayLabelJson = JsonSerializer.Serialize(dayKeys.Select(k => $"Day {k}").ToArray());
+	var dayDataJson = JsonSerializer.Serialize(dayValues);
+}
+
+@section Head {
+	<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.min.js"
+		integrity="sha256-oNyBQC8RkeSgGJMKPzFAMvw3VxJjCMiIJlHf9uqWjjg=" crossorigin="anonymous"></script>
+}
+
+<div class="text-center mb-4">
+	<h1 class="display-4">Batch Assignment Results</h1>
+	<a asp-page="./Batch" class="btn btn-outline-secondary">← Back to configuration</a>
+</div>
+
+<div class="row mb-4">
+	<div class="col-md-4">
+		<div class="card text-center">
+			<div class="card-body">
+				<h5 class="card-title">Total assignments</h5>
+				<p class="card-text display-6">@Model.Stats.Total</p>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-4">
+		<div class="card text-center">
+			<div class="card-body">
+				<h5 class="card-title">In local 05:00–08:00 window</h5>
+				<p class="card-text display-6">@Model.Stats.InWindowPercent.ToString("F1")%</p>
+				<p class="card-text text-muted">@Model.Stats.InTimeWindow / @Model.Stats.Total locations</p>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-4">
+		<div class="card text-center">
+			<div class="card-body">
+				<h5 class="card-title">Days in cycle</h5>
+				<p class="card-text display-6">@Model.Stats.DayCounts.Count</p>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="row mb-5">
+	<div class="col-12">
+		<h2>Slot distribution <small class="text-muted fs-6">(72 slots × 20 min, starting 00:00 UTC)</small></h2>
+		<p class="text-muted">
+			Min: @Model.Stats.SlotMin &nbsp;|&nbsp;
+			Max: @Model.Stats.SlotMax &nbsp;|&nbsp;
+			Avg: @Model.Stats.SlotAvg.ToString("F2") &nbsp;|&nbsp;
+			Std dev: @Model.Stats.SlotStdDev.ToString("F2")
+		</p>
+		<canvas id="slotChart" height="80"></canvas>
+	</div>
+</div>
+
+<div class="row mb-5">
+	<div class="col-12">
+		<h2>Day distribution</h2>
+		@if (Model.Stats.DayCounts.Count > 0)
+		{
+			var dayAvg = (double)Model.Stats.Total / Model.Stats.DayCounts.Count;
+			var dayStdDev = Math.Sqrt(Model.Stats.DayCounts.Values.Average(c => (c - dayAvg) * (c - dayAvg)));
+			<p class="text-muted">
+				Avg: @dayAvg.ToString("F2") &nbsp;|&nbsp;
+				Std dev: @dayStdDev.ToString("F2")
+			</p>
+		}
+		<canvas id="dayChart" height="60"></canvas>
+	</div>
+</div>
+
+<div class="row mb-5">
+	<div class="col-12">
+		<h2>Timezone alignment <small class="text-muted fs-6">(target: 05:00–08:00 local)</small></h2>
+		@if (Model.Stats.MissingOffset > 0)
+		{
+			<div class="alert alert-warning">
+				@Model.Stats.MissingOffset location(s) are missing <code>utc_offset_minutes</code> and were treated as UTC+0.
+			</div>
+		}
+		@if (Model.Stats.OutOfWindow.Count > 0)
+		{
+			<details>
+				<summary class="mb-2">@Model.Stats.OutOfWindow.Count location(s) outside the window (click to expand)</summary>
+				<table class="table table-sm table-bordered mt-2">
+					<thead>
+						<tr>
+							<th>City</th>
+							<th>Country</th>
+							<th>Slot</th>
+							<th>UTC time</th>
+							<th>Local time</th>
+						</tr>
+					</thead>
+					<tbody>
+						@foreach (var loc in Model.Stats.OutOfWindow)
+						{
+							int utcMins = loc.SlotIndex * 20;
+							<tr>
+								<td>@loc.City</td>
+								<td>@loc.Country</td>
+								<td>@loc.SlotIndex</td>
+								<td>@($"{utcMins / 60:D2}:{utcMins % 60:D2}")</td>
+								<td>@($"{loc.LocalMinutes / 60:D2}:{loc.LocalMinutes % 60:D2}")</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</details>
+		}
+		else if (Model.Stats.Total > 0)
+		{
+			<div class="alert alert-success">All assigned locations are within the 05:00–08:00 local window.</div>
+		}
+	</div>
+</div>
+
+<div class="row mb-5">
+	<div class="col-12">
+		<h2>Random sample</h2>
+		<table class="table table-sm table-bordered">
+			<thead>
+				<tr>
+					<th>City</th>
+					<th>Country</th>
+					<th>Hemisphere</th>
+					<th>Day</th>
+					<th>Slot</th>
+					<th>UTC range</th>
+					<th>Local range</th>
+					<th>UTC offset</th>
+				</tr>
+			</thead>
+			<tbody>
+				@foreach (var s in Model.Stats.RandomSamples)
+				{
+					int startUtc = s.SlotIndex * 20;
+					int endUtc = startUtc + 20;
+					int startLocal = ((startUtc + s.UtcOffsetMinutes) % 1440 + 1440) % 1440;
+					int endLocal = ((endUtc + s.UtcOffsetMinutes) % 1440 + 1440) % 1440;
+					string offsetSign = s.UtcOffsetMinutes >= 0 ? "+" : "-";
+					int offsetAbs = Math.Abs(s.UtcOffsetMinutes);
+					<tr>
+						<td>@s.City</td>
+						<td>@s.Country</td>
+						<td>@s.Hemisphere</td>
+						<td>@s.DayIndex</td>
+						<td>@s.SlotIndex</td>
+						<td>@($"{startUtc / 60:D2}:{startUtc % 60:D2}–{endUtc / 60:D2}:{endUtc % 60:D2}")</td>
+						<td>@($"{startLocal / 60:D2}:{startLocal % 60:D2}–{endLocal / 60:D2}:{endLocal % 60:D2}")</td>
+						<td>UTC@(offsetSign)@(offsetAbs / 60):@($"{offsetAbs % 60:D2}")</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+	</div>
+</div>
+
+@section Scripts {
+	<script>
+		const slotLabels = @Html.Raw(slotLabelJson);
+		const slotData = @Html.Raw(slotData);
+		new Chart(document.getElementById('slotChart'), {
+			type: 'bar',
+			data: {
+				labels: slotLabels,
+				datasets: [{
+					label: 'Locations per slot',
+					data: slotData,
+					backgroundColor: 'rgba(13, 110, 253, 0.6)',
+					borderColor: 'rgba(13, 110, 253, 1)',
+					borderWidth: 1
+				}]
+			},
+			options: {
+				plugins: { legend: { display: false } },
+				scales: { y: { beginAtZero: true } }
+			}
+		});
+
+		const dayLabels = @Html.Raw(dayLabelJson);
+		const dayData = @Html.Raw(dayDataJson);
+		new Chart(document.getElementById('dayChart'), {
+			type: 'bar',
+			data: {
+				labels: dayLabels,
+				datasets: [{
+					label: 'Locations per day',
+					data: dayData,
+					backgroundColor: 'rgba(25, 135, 84, 0.6)',
+					borderColor: 'rgba(25, 135, 84, 1)',
+					borderWidth: 1
+				}]
+			},
+			options: {
+				plugins: { legend: { display: false } },
+				scales: { y: { beginAtZero: true } }
+			}
+		});
+	</script>
+}

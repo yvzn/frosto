@@ -66,7 +66,7 @@ public class BatchService(
 
 			uint jitterHash = StableHash(location.Id + ":slot");
 			int jitterMinutes = (int)(jitterHash % 120);
-			int targetLocalMinutes = 5 * 60 + jitterMinutes;
+			int targetLocalMinutes = 7 * 60 - jitterMinutes;
 			int targetUtcMinutes = targetLocalMinutes - (location.UtcOffsetMinutes ?? 0);
 			targetUtcMinutes = ((targetUtcMinutes % 1440) + 1440) % 1440;
 			int targetSlotIndex = targetUtcMinutes / 20;
@@ -74,8 +74,8 @@ public class BatchService(
 			int? bestSlot = null;
 			double bestScore = double.NegativeInfinity;
 
-			// Try offset 0 first, then from -6 to +6, expanding outward, then from -6 to -12
-			int[] offsets = [0, -1, +1, -2, +2, -3, +3, -4, +4, -5, +5, -6, +6, -7, -8, -9, -10, -11, -12];
+			// Try offset 0 first, then prefer earlier slots (negative offsets) over later ones
+			int[] offsets = [0, -1, +1, -2, +2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12];
 			foreach (int offset in offsets)
 			{
 				int slot = ((targetSlotIndex + offset) % SlotsPerDay + SlotsPerDay) % SlotsPerDay;
@@ -144,6 +144,82 @@ public class BatchService(
 			ids.Add((entity.PartitionKey, entity.RowKey).ToId());
 		}
 		return ids;
+	}
+
+	internal async Task<BatchStats> GetBatchStatsAsync(CancellationToken cancellationToken)
+	{
+		const int slotsPerDay = 72;
+		const int slotMinutes = 20;
+		const int sampleSize = 5;
+
+		// Load location info keyed by "PartitionKey|RowKey"
+		var locationLookup = new Dictionary<string, (string? City, string? Country, string? Hemisphere, int? UtcOffset)>();
+		await foreach (var entity in _validLocationTableClient.QueryAsync<LocationEntity>(
+			select: ["PartitionKey", "RowKey", "city", "country", "hemisphere", "utc_offset_minutes"],
+			cancellationToken: cancellationToken))
+		{
+			locationLookup[(entity.PartitionKey, entity.RowKey).ToId()] =
+				(entity.city, entity.country, entity.hemisphere, entity.utc_offset_minutes);
+		}
+
+		// Load all batch assignments
+		var batchEntries = new List<LocationBatchEntity>();
+		await foreach (var entry in _locationBatchTableClient.QueryAsync<LocationBatchEntity>(
+			cancellationToken: cancellationToken))
+		{
+			batchEntries.Add(entry);
+		}
+
+		var stats = new BatchStats { Total = batchEntries.Count };
+
+		foreach (var e in batchEntries)
+		{
+			if (e.slot_index >= 0 && e.slot_index < slotsPerDay)
+				stats.SlotCounts[e.slot_index]++;
+
+			stats.DayCounts[e.day_index] = stats.DayCounts.GetValueOrDefault(e.day_index) + 1;
+		}
+
+		foreach (var entry in batchEntries)
+		{
+			locationLookup.TryGetValue((entry.PartitionKey, entry.RowKey).ToId(), out var loc);
+
+			if (loc.UtcOffset is null)
+				stats.MissingOffset++;
+
+			int utcOffset = loc.UtcOffset ?? 0;
+			int slotUtcMinutes = entry.slot_index * slotMinutes;
+			int localMinutes = ((slotUtcMinutes + utcOffset) % 1440 + 1440) % 1440;
+
+			if (localMinutes >= 300 && localMinutes < 480)
+			{
+				stats.InTimeWindow++;
+			}
+			else
+			{
+				stats.OutOfWindow.Add(new OutOfWindowLocation(
+					loc.City ?? "(unknown)",
+					loc.Country ?? entry.PartitionKey ?? "",
+					entry.slot_index,
+					localMinutes));
+			}
+		}
+
+		// Random sample
+		var rng = new Random();
+		foreach (var entry in batchEntries.OrderBy(_ => rng.Next()).Take(sampleSize))
+		{
+			locationLookup.TryGetValue((entry.PartitionKey, entry.RowKey).ToId(), out var loc);
+			stats.RandomSamples.Add(new BatchSampleLocation(
+				loc.City ?? "(unknown)",
+				loc.Country ?? entry.PartitionKey ?? "",
+				loc.Hemisphere ?? "?",
+				entry.day_index,
+				entry.slot_index,
+				loc.UtcOffset ?? 0));
+		}
+
+		return stats;
 	}
 
 	internal static uint StableHash(string locationId)
