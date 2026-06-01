@@ -36,7 +36,7 @@
 	<div class="col-md-4">
 		<div class="card text-center">
 			<div class="card-body">
-				<h5 class="card-title">In local 05:00–08:00 window</h5>
+				<h5 class="card-title">In local 04:00–07:00 window</h5>
 				<p class="card-text display-6">@Model.Stats.InWindowPercent.ToString("F1")%</p>
 				<p class="card-text text-muted">@Model.Stats.InTimeWindow / @Model.Stats.Total locations</p>
 			</div>
@@ -83,7 +83,7 @@
 
 <div class="row mb-5">
 	<div class="col-12">
-		<h2>Timezone alignment <small class="text-muted fs-6">(target: 05:00–08:00 local)</small></h2>
+		<h2>Timezone alignment <small class="text-muted fs-6">(target: 04:00–07:00 local)</small></h2>
 		@if (Model.Stats.MissingOffset > 0)
 		{
 			<div class="alert alert-warning">
@@ -122,7 +122,7 @@
 		}
 		else if (Model.Stats.Total > 0)
 		{
-			<div class="alert alert-success">All assigned locations are within the 05:00–08:00 local window.</div>
+			<div class="alert alert-success">All assigned locations are within the 04:00–07:00 local window.</div>
 		}
 	</div>
 </div>

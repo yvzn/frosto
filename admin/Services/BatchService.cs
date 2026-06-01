@@ -191,7 +191,8 @@ public class BatchService(
 			int slotUtcMinutes = entry.slot_index * slotMinutes;
 			int localMinutes = ((slotUtcMinutes + utcOffset) % 1440 + 1440) % 1440;
 
-			if (localMinutes >= 300 && localMinutes < 480)
+			// Check if local time is between 4:00 and 7:00
+			if (localMinutes >= 240 && localMinutes < 420)
 			{
 				stats.InTimeWindow++;
 			}
