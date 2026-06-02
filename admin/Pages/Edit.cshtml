@@ -273,6 +273,15 @@
 			form.addEventListener('reset', function () {
 				setTimeout(renderChips, 0);
 			});
+			form.addEventListener('submit', function (e) {
+				var pending = newEmailInput.value.trim();
+				if (!pending) return;
+				e.preventDefault();
+				addEmail();
+				if (!newEmailInput.value.trim()) {
+					form.requestSubmit();
+				}
+			});
 		}
 
 		deduplicateEmails();
