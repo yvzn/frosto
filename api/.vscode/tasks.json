@@ -56,6 +56,17 @@
       "problemMatcher": "$msCompile"
     },
     {
+      "label": "run (functions)",
+      "command": "dotnet",
+      "args": [
+        "run",
+        "--no-build"
+      ],
+      "type": "process",
+      "dependsOn": "build (functions)",
+      "problemMatcher": "$func-dotnet-watch"
+    },
+    {
       "type": "func",
       "dependsOn": "build (functions)",
       "options": {

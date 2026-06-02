@@ -25,7 +25,7 @@ var host = new HostBuilder()
 		{
 			clientBuilder.AddTableServiceClient(AppSettings.AlertsConnectionString);
 
-			string[] tableNames = ["validlocation", "batch"];
+			string[] tableNames = ["validlocation", "batch", "locationbatch"];
 			foreach (var tableName in tableNames)
 			{
 				clientBuilder

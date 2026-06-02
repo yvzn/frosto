@@ -16,6 +16,8 @@ public class LocationEntity : ITableEntity
 	public string? lang { get; set; }
 	public string? timezone { get; set; }
 	public string? offset { get; set; }
+	public int? utc_offset_minutes { get; set; }
+	public string? hemisphere { get; set; }
 
 	public string? PartitionKey { get; set; }
 	public string? RowKey { get; set; }
