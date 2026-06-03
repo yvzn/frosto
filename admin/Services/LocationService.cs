@@ -61,14 +61,16 @@ public partial class LocationService(IAzureClientFactory<TableClient> azureClien
 		ArgumentNullException.ThrowIfNull(validLocation);
 
 		var (partitionKey, rowKey) = validLocation.Id.ToKeys();
+		var newPartitionKey = Capitalize(validLocation.country);
 
 		var entity = await _validLocationTableClient.GetEntityAsync<LocationEntity>(partitionKey, rowKey, cancellationToken: cancellationToken);
 		var validLocationEntity = entity.Value;
+		var originalETag = validLocationEntity.ETag;
 
 		validLocationEntity.city = validLocation.city.Trim();
 		validLocationEntity.country = Capitalize(validLocation.country);
 		validLocationEntity.coordinates = validLocation.coordinates.Replace(" ", "");
-		validLocationEntity.users = validLocation.users.Trim();
+		validLocationEntity.users = DeduplicateUsers(validLocation.users.Trim());
 		validLocationEntity.uat = validLocation.uat ? true : validLocationEntity.uat.HasValue ? false : null;
 		validLocationEntity.disabled = validLocation.disabled ? "true" : string.IsNullOrWhiteSpace(validLocationEntity.disabled) ? null : "false";
 		validLocationEntity.channel = string.IsNullOrWhiteSpace(validLocation.channel) ? default : validLocation.channel.Trim().ToLower();
@@ -76,13 +78,24 @@ public partial class LocationService(IAzureClientFactory<TableClient> azureClien
 		validLocationEntity.lang = validLocation.lang?.Trim().ToLower();
 		validLocationEntity.timezone = validLocation.timezone?.Trim();
 		validLocationEntity.offset = Normalize(validLocation.offset);
-		validLocationEntity.PartitionKey = Capitalize(validLocation.country);
+		validLocationEntity.PartitionKey = newPartitionKey;
 		validLocationEntity.RowKey = validLocation.RowKey;
 
 		validLocationEntity.utc_offset_minutes = DeriveUtcOffsetMinutes(validLocation.timezone, validLocation.offset);
 		validLocationEntity.hemisphere = DeriveHemisphere(validLocation.coordinates);
 
-		await _validLocationTableClient.UpdateEntityAsync(validLocationEntity, validLocationEntity.ETag, cancellationToken: cancellationToken);
+		if (string.Equals(partitionKey, newPartitionKey, StringComparison.OrdinalIgnoreCase))
+		{
+			await _validLocationTableClient.UpdateEntityAsync(validLocationEntity, originalETag, cancellationToken: cancellationToken);
+		}
+		else
+		{
+			// When the partition key (country) changes, we must add a new entity and delete the old one.
+			// Azure Table Storage does not support cross-partition transactions, so this is not atomic:
+			// the new entity is added first to avoid data loss if the delete fails.
+			await _validLocationTableClient.AddEntityAsync(validLocationEntity, cancellationToken: cancellationToken);
+			await _validLocationTableClient.DeleteEntityAsync(partitionKey, rowKey, originalETag, cancellationToken: cancellationToken);
+		}
 
 		return true;
 	}
@@ -299,6 +312,16 @@ public partial class LocationService(IAzureClientFactory<TableClient> azureClien
 	}
 
 	private static string Capitalize(string s) => s.Trim()[0].ToString().ToUpper() + s.Trim()[1..].ToLower();
+
+	private static string DeduplicateUsers(string users)
+	{
+		if (string.IsNullOrWhiteSpace(users)) return users;
+		var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+		var unique = users.Split(',', StringSplitOptions.RemoveEmptyEntries)
+			.Select(e => e.Trim())
+			.Where(e => e.Length > 0 && seen.Add(e));
+		return string.Join(',', unique);
+	}
 
 	[GeneratedRegex(@"^([\+\-])([0-9]|[01][0-9]|2[0-3]):?([0-9]|[0-5][0-9])?$")]
 	private static partial Regex TimezoneOffsetRegex();
