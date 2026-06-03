@@ -170,3 +170,14 @@ Each sub-project has its own `azure-pipelines.yml`. Pipelines trigger on pushes 
 - `dkim_private.pem` in `batch/` and `admin/` contains a placeholder (not real key); real key is injected by CI secure file task.
 - The `weather-forecast/` library is shared — changes there affect both `api/` and `batch/`.
 - C# nullable reference types are enabled (`<Nullable>enable</Nullable>`) across all projects.
+
+---
+
+## Keeping These Instructions Up to Date
+
+When completing a task, check whether any of the following changed as a direct result of your work. If so, update the relevant instruction files in `.github/copilot-instructions.md` and/or `.github/instructions/**/*.instructions.md` in the same PR:
+
+- **Runtime or SDK version** — e.g. `TargetFramework` bumped in a `.csproj`, Node.js `engines` field changed in `package.json`, SDK version in `global.json` updated, major dependency version upgrade (Vite, Vue, .NET, etc.)
+- **Project or directory structure** — e.g. a new sub-project directory added, a source folder renamed or reorganised, a new significant config file introduced
+
+Do **not** update instruction files for routine code changes (new features, bug fixes, refactors) that leave the runtime versions and project structure unchanged.
