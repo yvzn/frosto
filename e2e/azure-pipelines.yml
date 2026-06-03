@@ -8,6 +8,9 @@ schedules:
     - main
   always: true
 
+# no pull-request triggers, as we don't want to run e2e tests on every PR, but only on main branch and on schedule
+pr: none
+
 pool:
   vmImage: ubuntu-latest
 
