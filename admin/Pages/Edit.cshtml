@@ -278,8 +278,8 @@
 				if (!pending) return;
 				e.preventDefault();
 				addEmail();
-				if (!newEmailInput.value.trim()) {
-					form.requestSubmit();
+				if (!newEmailInput.value.trim() && form.reportValidity()) {
+					form.submit();
 				}
 			});
 		}
