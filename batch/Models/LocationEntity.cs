@@ -21,6 +21,8 @@ public class LocationEntity : weather.ILocation, ITableEntity
 	public double? minTemperatureAdjustment { get; set; }
 	public string? weatherApiUrl { get; set; }
 	public bool? appEnabled { get; set; }
+	public int? utc_offset_minutes { get; set; }
+	public string? hemisphere { get; set; }
 	public string? PartitionKey { get; set; }
 	public string? RowKey { get; set; }
 	public DateTimeOffset? Timestamp { get; set; }

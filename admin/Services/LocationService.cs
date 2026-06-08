@@ -48,6 +48,9 @@ public partial class LocationService(IAzureClientFactory<TableClient> azureClien
 		validLocationEntity.PartitionKey = Capitalize(validLocation.country);
 		validLocationEntity.RowKey = validLocation.RowKey;
 
+		validLocationEntity.utc_offset_minutes = DeriveUtcOffsetMinutes(validLocation.timezone, validLocation.offset);
+		validLocationEntity.hemisphere = DeriveHemisphere(validLocation.coordinates);
+
 		await _validLocationTableClient.AddEntityAsync(validLocationEntity, cancellationToken: cancellationToken);
 
 		return true;
@@ -58,14 +61,16 @@ public partial class LocationService(IAzureClientFactory<TableClient> azureClien
 		ArgumentNullException.ThrowIfNull(validLocation);
 
 		var (partitionKey, rowKey) = validLocation.Id.ToKeys();
+		var newPartitionKey = Capitalize(validLocation.country);
 
 		var entity = await _validLocationTableClient.GetEntityAsync<LocationEntity>(partitionKey, rowKey, cancellationToken: cancellationToken);
 		var validLocationEntity = entity.Value;
+		var originalETag = validLocationEntity.ETag;
 
 		validLocationEntity.city = validLocation.city.Trim();
 		validLocationEntity.country = Capitalize(validLocation.country);
 		validLocationEntity.coordinates = validLocation.coordinates.Replace(" ", "");
-		validLocationEntity.users = validLocation.users.Trim();
+		validLocationEntity.users = DeduplicateUsers(validLocation.users.Trim());
 		validLocationEntity.uat = validLocation.uat ? true : validLocationEntity.uat.HasValue ? false : null;
 		validLocationEntity.disabled = validLocation.disabled ? "true" : string.IsNullOrWhiteSpace(validLocationEntity.disabled) ? null : "false";
 		validLocationEntity.channel = string.IsNullOrWhiteSpace(validLocation.channel) ? default : validLocation.channel.Trim().ToLower();
@@ -73,10 +78,24 @@ public partial class LocationService(IAzureClientFactory<TableClient> azureClien
 		validLocationEntity.lang = validLocation.lang?.Trim().ToLower();
 		validLocationEntity.timezone = validLocation.timezone?.Trim();
 		validLocationEntity.offset = Normalize(validLocation.offset);
-		validLocationEntity.PartitionKey = Capitalize(validLocation.country);
+		validLocationEntity.PartitionKey = newPartitionKey;
 		validLocationEntity.RowKey = validLocation.RowKey;
 
-		await _validLocationTableClient.UpdateEntityAsync(validLocationEntity, validLocationEntity.ETag, cancellationToken: cancellationToken);
+		validLocationEntity.utc_offset_minutes = DeriveUtcOffsetMinutes(validLocation.timezone, validLocation.offset);
+		validLocationEntity.hemisphere = DeriveHemisphere(validLocation.coordinates);
+
+		if (string.Equals(partitionKey, newPartitionKey, StringComparison.OrdinalIgnoreCase))
+		{
+			await _validLocationTableClient.UpdateEntityAsync(validLocationEntity, originalETag, cancellationToken: cancellationToken);
+		}
+		else
+		{
+			// When the partition key (country) changes, we must add a new entity and delete the old one.
+			// Azure Table Storage does not support cross-partition transactions, so this is not atomic:
+			// the new entity is added first to avoid data loss if the delete fails.
+			await _validLocationTableClient.AddEntityAsync(validLocationEntity, cancellationToken: cancellationToken);
+			await _validLocationTableClient.DeleteEntityAsync(partitionKey, rowKey, originalETag, cancellationToken: cancellationToken);
+		}
 
 		return true;
 	}
@@ -284,6 +303,8 @@ public partial class LocationService(IAzureClientFactory<TableClient> azureClien
 			lang = locationEntity.lang ?? "",
 			timezone = locationEntity.timezone ?? "",
 			offset = locationEntity.offset ?? "",
+			utc_offset_minutes = locationEntity.utc_offset_minutes,
+			hemisphere = locationEntity.hemisphere,
 			PartitionKey = locationEntity.PartitionKey ?? "",
 			RowKey = locationEntity.RowKey ?? "",
 			Timestamp = locationEntity.Timestamp,
@@ -291,6 +312,16 @@ public partial class LocationService(IAzureClientFactory<TableClient> azureClien
 	}
 
 	private static string Capitalize(string s) => s.Trim()[0].ToString().ToUpper() + s.Trim()[1..].ToLower();
+
+	private static string DeduplicateUsers(string users)
+	{
+		if (string.IsNullOrWhiteSpace(users)) return users;
+		var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+		var unique = users.Split(',', StringSplitOptions.RemoveEmptyEntries)
+			.Select(e => e.Trim())
+			.Where(e => e.Length > 0 && seen.Add(e));
+		return string.Join(',', unique);
+	}
 
 	[GeneratedRegex(@"^([\+\-])([0-9]|[01][0-9]|2[0-3]):?([0-9]|[0-5][0-9])?$")]
 	private static partial Regex TimezoneOffsetRegex();
@@ -317,6 +348,54 @@ public partial class LocationService(IAzureClientFactory<TableClient> azureClien
 			: "00";
 
 		return $"{sign}{hours}:{minutes}";
+	}
+
+	internal static int? DeriveUtcOffsetMinutes(string? timezone, string? offset)
+	{
+		// Try IANA timezone id first
+		if (!string.IsNullOrWhiteSpace(timezone))
+		{
+			try
+			{
+				var tz = TimeZoneInfo.FindSystemTimeZoneById(timezone.Trim());
+				var span = tz.GetUtcOffset(DateTimeOffset.UtcNow);
+				return (int)span.TotalMinutes;
+			}
+			catch (TimeZoneNotFoundException) { }
+			catch (InvalidTimeZoneException) { }
+		}
+
+		// Fall back to offset string (e.g. "+02:00", "-05:30", "−08:00")
+		if (!string.IsNullOrWhiteSpace(offset))
+		{
+			var trimmed = offset.Trim();
+			var sign = trimmed.StartsWith('-') || trimmed.StartsWith('−') ? -1 : 1;
+			var parts = trimmed.TrimStart('+', '-', '−').Split(':');
+			if (parts.Length >= 1 && int.TryParse(parts[0], out int hours))
+			{
+				int mins = 0;
+				if (parts.Length >= 2) int.TryParse(parts[1], out mins);
+				return sign * (hours * 60 + mins);
+			}
+		}
+
+		return null;
+	}
+
+	internal static string? DeriveHemisphere(string? coordinates)
+	{
+		if (string.IsNullOrWhiteSpace(coordinates))
+		{
+			return null;
+		}
+
+		var parts = coordinates.Trim().Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+		if (parts.Length >= 1 && double.TryParse(parts[0], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double latitude))
+		{
+			return latitude >= 0 ? "N" : "S";
+		}
+
+		return null;
 	}
 }
 

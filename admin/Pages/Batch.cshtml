@@ -14,9 +14,9 @@
 		</div>
 
 		<div class="form-group mb-3">
-			<label asp-for="BatchConfig.batchCountPerDay" class="form-label"></label>
-			<input asp-for="BatchConfig.batchCountPerDay" class="form-control" required />
-			<span asp-validation-for="BatchConfig.batchCountPerDay" class="text-danger"></span>
+			<label asp-for="BatchConfig.capacityGuardMultiplier" class="form-label"></label>
+			<input asp-for="BatchConfig.capacityGuardMultiplier" class="form-control" required step="0.1" />
+			<span asp-validation-for="BatchConfig.capacityGuardMultiplier" class="text-danger"></span>
 		</div>
 
 		<button type="submit" class="btn btn-primary">Create Batches</button>

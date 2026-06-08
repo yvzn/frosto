@@ -6,10 +6,10 @@ namespace admin.Models;
 public class BatchConfig
 {
 	[Required]
-	[DisplayName("Periodicity in days")]
+	[DisplayName("Cycle length in days (N)")]
 	public int periodInDays { get; set; } = 2;
 
 	[Required]
-	[DisplayName("Batches per day")]
-	public int batchCountPerDay { get; set; } = 36;
+	[DisplayName("Capacity guard multiplier")]
+	public double capacityGuardMultiplier { get; set; } = 3;
 }

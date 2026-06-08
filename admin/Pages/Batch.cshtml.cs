@@ -25,7 +25,7 @@ public class BatchModel : PageModel
 		}
 
 		await _batchService.DeleteAllBatches(HttpContext.RequestAborted);
-		var batchCount = await _batchService.CreateBatches(BatchConfig.periodInDays, BatchConfig.batchCountPerDay, HttpContext.RequestAborted);
-		return RedirectToPage("./Index", new { m = $"{batchCount} batches created" });
+		await _batchService.CreateBatches(BatchConfig.periodInDays, BatchConfig.capacityGuardMultiplier, HttpContext.RequestAborted);
+		return RedirectToPage("./BatchResult");
 	}
 }
