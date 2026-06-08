@@ -1,0 +1,29 @@
+@page
+@model admin.Pages.MonitoringCleanupModel
+@{
+	ViewData["Title"] = "Monitoring Cleanup";
+}
+
+<div class="text-center">
+	<h1 class="display-3">Monitoring Cleanup</h1>
+</div>
+
+<div class="row">
+	<form method="post" class="col-lg-6 p-5 mb-5 border rounded-3 bg-light">
+		<h2 class="text-muted mb-3">Delete old monitoring records</h2>
+		<div class="form-group mb-3">
+			<label asp-for="OlderThanDays" class="form-label">Delete records older than</label>
+			<div class="input-group">
+				<input asp-for="OlderThanDays" class="form-control" type="number" min="1" required />
+				<span class="input-group-text">days</span>
+			</div>
+			<span asp-validation-for="OlderThanDays" class="text-danger"></span>
+		</div>
+
+		<button type="submit" class="btn btn-danger">Delete Records</button>
+	</form>
+
+	<div hidden>
+		@Html.ValidationSummary()
+	</div>
+</div>

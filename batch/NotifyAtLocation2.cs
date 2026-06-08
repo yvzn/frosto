@@ -97,6 +97,8 @@ public class NotifyAtLocation2(IHttpClientFactory httpClientFactory, IAzureClien
 		}
 
 		await ScheduleNotificationAsync(notification, channel);
+
+		_ = ScheduleMonitoringAsync(forecastsBelowThreshold, location);
 	}
 
 	private async Task<List<weather.Forecast>> GetWeatherForecastsAsync(LocationEntity location)
@@ -194,6 +196,36 @@ public class NotifyAtLocation2(IHttpClientFactory httpClientFactory, IAzureClien
 		};
 
 		return notification;
+	}
+
+	private async Task ScheduleMonitoringAsync(List<weather.Forecast> forecasts, LocationEntity location)
+	{
+		try
+		{
+			var today = DateOnly.FromDateTime(DateTime.UtcNow);
+			var firstFrost = forecasts.OrderBy(f => f.Date).First();
+			var daysUntilNextFrost = firstFrost.Date.DayNumber - today.DayNumber;
+
+			var data = new MonitoringData
+			{
+				coordinates = location.coordinates,
+				daysUntilNextFrost = daysUntilNextFrost,
+			};
+
+			var requestUri = new InternalRequestUri("RecordMonitoring");
+
+			async ValueTask<HttpResponseMessage> request(CancellationToken cancellationToken) => await httpClient.PostAsJsonAsync(requestUri.AbsoluteUri, data, cancellationToken);
+			var response = await RetryStrategy.For.InternalHttp.ExecuteAsync(request);
+
+			if (!response.IsSuccessStatusCode)
+			{
+				logger.LogWarning("Failed to record monitoring for {Coordinates}: HTTP {StatusCode}", location.coordinates, response.StatusCode);
+			}
+		}
+		catch (Exception ex)
+		{
+			logger.LogWarning(ex, "Failed to record monitoring for {Coordinates}", location.coordinates);
+		}
 	}
 
 	private async Task ScheduleNotificationAsync(Notification notification, string channel)

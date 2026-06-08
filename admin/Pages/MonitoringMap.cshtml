@@ -1,0 +1,93 @@
+@page
+@model admin.Pages.MonitoringMapModel
+@{
+	ViewData["Title"] = "Monitoring Map";
+}
+
+@section Head
+{
+	<link rel="stylesheet" href="https://atlas.microsoft.com/sdk/javascript/mapcontrol/2/atlas.min.css" type="text/css">
+	<script src="https://atlas.microsoft.com/sdk/javascript/mapcontrol/2/atlas.min.js"></script>
+}
+
+<div class="text-center">
+	<h1 class="display-3">Monitoring Map</h1>
+</div>
+
+<div class="row mb-3">
+	<form method="get" class="col-lg-4 d-flex align-items-end gap-2">
+		<div class="form-group flex-grow-1">
+			<label asp-for="Days" class="form-label">Show alerts from the last</label>
+			<div class="input-group">
+				<input asp-for="Days" class="form-control" type="number" min="1" max="365" />
+				<span class="input-group-text">days</span>
+			</div>
+		</div>
+		<button type="submit" class="btn btn-primary">Apply</button>
+	</form>
+</div>
+
+<div class="row">
+	<div id="monitoringMap" class="col-12" style="height: 75vh"></div>
+</div>
+
+@section Scripts
+{
+	<script>
+		function InitMap() {
+			var map = new atlas.Map('monitoringMap', {
+				center: [2.44, 47.54],
+				zoom: 4,
+				language: 'fr-FR',
+				authOptions: {
+					authType: 'subscriptionKey',
+					subscriptionKey: '@Model.AzureMapsSubscriptionKey'
+				}
+			})
+
+			var source = new atlas.source.DataSource()
+			var layer = new atlas.layer.BubbleLayer(source, null, {
+				color: '#fb8500',
+				radius: 6,
+				strokeColor: '#F0F0DB',
+				strokeWidth: 2
+			})
+
+			map.events.add('ready', () => {
+				map.sources.add(source)
+
+				source.importDataFromUrl('/api/monitoring/recent?days=@Model.Days')
+
+				map.layers.add(layer)
+			})
+
+			var popup = new atlas.Popup({
+				pixelOffset: [0, -18],
+				closeButton: false,
+				fillColor: 'rgba(0,0,0,0.8)',
+			})
+
+			map.events.add('mouseover', layer, function (e) {
+				if (e.shapes && e.shapes.length > 0) {
+					var content, coordinate
+					var properties = e.shapes[0].getProperties()
+					content = `<div style="padding:10px;color:white">Days until frost: ${properties.daysUntilNextFrost ?? '-'}<br>Date: ${properties.date ?? '-'}</div>`
+					coordinate = e.shapes[0].getCoordinates()
+
+					popup.setOptions({
+						content: content,
+						position: coordinate
+					})
+
+					popup.open(map)
+				}
+			})
+
+			map.events.add('mouseleave', layer, function () {
+				popup.close()
+			})
+		}
+
+		addEventListener('load', InitMap)
+	</script>
+}
