@@ -3,7 +3,7 @@
 	"version": "1.0.0",
 	"private": "true",
 	"scripts": {
-		"dev": "azurite --location ./azurite"
+		"dev": "azurite --location ./azurite --debug ./azurite/debug.log --skipApiVersionCheck"
 	},
 	"author": "Yvan Razafindramanana",
 	"license": "MIT",
