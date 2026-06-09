@@ -1,0 +1,42 @@
+{
+	"admin": {
+		"path": "../admin",
+		"build": "dotnet build",
+		"run": "dotnet run",
+		"url": "http://localhost:5176/",
+		"health": "http://localhost:5176/"
+	},
+	"api": {
+		"path": "../api",
+		"build": "dotnet build",
+		"run": "func host start",
+		"url": "http://localhost:7071/",
+		"health": "http://localhost:7071/api/health"
+	},
+	"app": {
+		"path": "../app",
+		"build": "npm install",
+		"run": "npx vite --port 5174",
+		"url": "http://localhost:5174",
+		"health": "http://localhost:5174"
+	},
+	"batch": {
+		"path": "../batch",
+		"build": "dotnet build",
+		"run": "func host start --port 7072",
+		"url": "http://localhost:7072/",
+		"health": "http://localhost:7072/api/health"
+	},
+	"site": {
+		"path": "../site",
+		"build": "npm install",
+		"run": "npm start",
+		"url": "http://localhost:5173/",
+		"health": "http://localhost:5173/"
+	},
+	"db": {
+		"path": "../db",
+		"build": "npm install",
+		"run": "npm run dev"
+	}
+}
