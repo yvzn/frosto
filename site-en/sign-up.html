@@ -42,8 +42,7 @@
 						aria-label="Your contact details" method="post" enctype="application/x-www-form-urlencoded">
 						<div class="form-floating mb-3">
 							<input type="email" class="form-control" id="email" name="email"
-								placeholder="first.last@example.com" required="required"
-								autocomplete="email" />
+								placeholder="first.last@example.com" required="required" autocomplete="email" />
 							<label for="email">Email address</label>
 						</div>
 						<div class="form-floating mb-3">
@@ -52,8 +51,8 @@
 							<label for="city">City</label>
 						</div>
 						<div class="form-floating mb-3">
-							<input type="text" class="form-control" id="zipCode" name="zipCode"
-								placeholder="SW1A 1AA" autocomplete="postal-code" />
+							<input type="text" class="form-control" id="zipCode" name="zipCode" placeholder="SW1A 1AA"
+								autocomplete="postal-code" />
 							<label for="zipCode">Postal code</label>
 						</div>
 						<div class="form-floating mb-3">
@@ -61,26 +60,25 @@
 								placeholder="United Kingdom" required="required" autocomplete="country-name" />
 							<label for="country">Country</label>
 						</div>
-						<div class="checkbox mb-3">
-							<label for="userConsent">
-								<input type="checkbox" id="userConsent" name="userConsent" value="true"
-									required="required" />
-								<small>I agree that my personal contact details are used
-									as part of this service.</small></label>
-						</div>
-						<fieldset class="mb-3">
-							<legend class="small">Temperature unit</legend>
-							<div class="form-check form-check-inline">
-								<input class="form-check-input" type="radio" name="temperatureUnit" id="temperatureUnitC"
-									value="C" checked="checked" />
-								<label class="form-check-label" for="temperatureUnitC">Celsius (°C)</label>
+						<fieldset class="mb-3 d-flex">
+							<legend class="fs-6 d-inline-block w-auto me-3 mb-0">Temperature unit:</legend>
+							<div class="form-check form-check-inline ms-auto me-0">
+								<input class="form-check-input" type="radio" name="temperatureUnit"
+									id="temperatureUnitC" value="C" checked="checked" />
+								<label class="form-check-label" for="temperatureUnitC">Celsius <span aria-hidden="true">(°C)</span></label>
 							</div>
-							<div class="form-check form-check-inline">
-								<input class="form-check-input" type="radio" name="temperatureUnit" id="temperatureUnitF"
-									value="F" />
-								<label class="form-check-label" for="temperatureUnitF">Fahrenheit (°F)</label>
+							<div class="form-check form-check-inline ms-3 me-0">
+								<input class="form-check-input" type="radio" name="temperatureUnit"
+									id="temperatureUnitF" value="F" />
+								<label class="form-check-label" for="temperatureUnitF">Fahrenheit <span aria-hidden="true">(°F)</span></label>
 							</div>
 						</fieldset>
+						<div class="form-check mb-3">
+							<input class="form-check-input" type="checkbox" id="userConsent" name="userConsent"
+								value="true" required="required" />
+							<label class="form-check-label" for="userConsent">I agree that my personal contact details
+								are used as part of this service.</label>
+						</div>
 						<input type="hidden" id="lang" name="lang" value="en" />
 						<button class="w-100 btn btn-lg btn-primary" type="submit" aria-live="polite">Sign up</button>
 					</form>
