@@ -327,7 +327,7 @@ public partial class LocationService(IAzureClientFactory<TableClient> azureClien
 	}
 	
 	private static string? NormalizeTemperatureUnit(string? s)
-		=> "F".Equals(s?.Trim(), StringComparison.OrdinalIgnoreCase) ? "F" : null;
+		=> "F".Equals(s?.Trim(), StringComparison.OrdinalIgnoreCase) ? "F" : "C";
 
 	[GeneratedRegex(@"^([\+\-])([0-9]|[01][0-9]|2[0-3]):?([0-9]|[0-5][0-9])?$")]
 	private static partial Regex TimezoneOffsetRegex();
