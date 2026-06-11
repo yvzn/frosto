@@ -80,7 +80,9 @@ internal static class EnglishHtmlFormatter
 
 <p>To stop receiving these messages,
 <|unsubscribe_link|>
-reply ""STOP"" to this message.
+reply ""STOP"" to this e-mail.
+
+<p>To change the temperature unit, reply with ""CELSIUS"" or ""FAHRENHEIT"" to this e-mail.
 
 <hr>
 
@@ -168,7 +170,9 @@ The temperature forecast for the coming days ({0}, {1}):
 Best regards,
 Yvan from FrostAlert.net
 
-To unsubscribe, reply ""STOP"" to this message.
+To change the temperature unit, reply with ""CELSIUS"" or ""FAHRENHEIT"" to this e-mail.
+
+To stop receiving these messages, reply ""STOP"" to this e-mail.
 
 __________
 
