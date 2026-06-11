@@ -2,7 +2,7 @@
 	"admin": {
 		"path": "../admin",
 		"build": "dotnet build",
-		"run": "dotnet run",
+		"run": "dotnet watch run",
 		"url": "http://localhost:5176/",
 		"health": "http://localhost:5176/"
 	},
@@ -13,12 +13,19 @@
 		"url": "http://localhost:7071/",
 		"health": "http://localhost:7071/api/health"
 	},
+	"support": {
+		"path": "../support",
+		"build": "dotnet build",
+		"run": "func host start --port 7073",
+		"url": "http://localhost:7073/",
+		"health": "http://localhost:7073/api/health"
+	},
 	"app": {
 		"path": "../app",
 		"build": "npm install",
-		"run": "npx vite --port 5174",
-		"url": "http://localhost:5174",
-		"health": "http://localhost:5174"
+		"run": "npx vite --port 5175",
+		"url": "http://localhost:5175",
+		"health": "http://localhost:5175"
 	},
 	"batch": {
 		"path": "../batch",
@@ -30,9 +37,16 @@
 	"site": {
 		"path": "../site",
 		"build": "npm install",
-		"run": "npm start",
+		"run": "npm run dev",
 		"url": "http://localhost:5173/",
 		"health": "http://localhost:5173/"
+	},
+	"site-en": {
+		"path": "../site-en",
+		"build": "npm install",
+		"run": "npx vite --port 5174",
+		"url": "http://localhost:5174/",
+		"health": "http://localhost:5174/"
 	},
 	"db": {
 		"path": "../db",
