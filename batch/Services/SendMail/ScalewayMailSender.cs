@@ -28,7 +28,11 @@ internal class ScalewayMailSender(
 		}
 
 		var unsubscribeUrl = Unsubscribe.BuildUnsubscribeUrl(unsubscribeToken, notification);
-		var unsubscribeLink = FrenchHtmlFormatter.FormatUnsubscribeLink(unsubscribeUrl);
+		var unsubscribeLink = notification.lang switch
+		{
+			"en" => EnglishHtmlFormatter.FormatUnsubscribeLink(unsubscribeUrl),
+			_ => FrenchHtmlFormatter.FormatUnsubscribeLink(unsubscribeUrl),
+		};
 
 		var message = new ScalewayApiEmailRequest
 		{
