@@ -41,7 +41,8 @@ const { t, d, locale } = useI18n({
 				tableMaxTemp: 'Max',
 				tableFrost: 'Alert forecasted',
 				calendarEventTitle: 'Temperatures below {threshold}°{unit} forecasted in {city}, {country}',
-				calendarEventBody: 'Temperature forecast for {city}, {country}: Min {min}°{unit}, Max {max}°{unit}.',
+				calendarEventBody:
+					'Temperature forecast for {city}, {country}: Min {min}°{unit}, Max {max}°{unit}.',
 				unitCelsius: '°C',
 				unitFahrenheit: '°F',
 				switchToCelsius: 'Switch to Celsius',
@@ -70,7 +71,8 @@ const { t, d, locale } = useI18n({
 				tableMinTemp: 'Min',
 				tableMaxTemp: 'Max',
 				tableFrost: 'Alerte prévue',
-				calendarEventTitle: 'Températures en dessous de {threshold}°{unit} prévues — {city}, {country}',
+				calendarEventTitle:
+					'Températures en dessous de {threshold}°{unit} prévues — {city}, {country}',
 				calendarEventBody:
 					'Prévisions de température pour {city}, {country} : Min {min}°{unit}, Max {max}°{unit}.',
 				unitCelsius: '°C',
@@ -140,7 +142,9 @@ const unitLabel = computed(() =>
 
 const threshold = computed({
 	get() {
-		return useFahrenheit.value ? celsiusToFahrenheit(thresholdCelsius.value) : thresholdCelsius.value;
+		return useFahrenheit.value
+			? celsiusToFahrenheit(thresholdCelsius.value)
+			: thresholdCelsius.value;
 	},
 	set(val: number) {
 		thresholdCelsius.value = useFahrenheit.value ? fahrenheitToCelsius(val) : val;
@@ -369,13 +373,19 @@ onMounted(fetchForecast);
 			<div class="mb-4 col-12 col-md-6">
 				<div class="d-flex align-items-center gap-2 mb-1">
 					<label for="threshold-slider" class="form-label mb-0">
-						{{ t('weatherForecast.thresholdLabel') }}: {{ threshold }}&deg;{{ useFahrenheit ? 'F' : 'C' }}
+						{{ t('weatherForecast.thresholdLabel') }}: {{ threshold }}&deg;{{
+							useFahrenheit ? 'F' : 'C'
+						}}
 					</label>
 					<button
 						class="btn btn-sm btn-outline-secondary"
 						type="button"
 						@click="toggleUnit"
-						:title="useFahrenheit ? t('weatherForecast.switchToCelsius') : t('weatherForecast.switchToFahrenheit')"
+						:title="
+							useFahrenheit
+								? t('weatherForecast.switchToCelsius')
+								: t('weatherForecast.switchToFahrenheit')
+						"
 					>
 						{{ useFahrenheit ? '°C' : '°F' }}
 					</button>
