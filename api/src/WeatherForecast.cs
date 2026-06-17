@@ -118,6 +118,7 @@ public class WeatherForecast
 					temperatureThreshold = location.Value.minThreshold.HasValue is true
 						? Convert.ToDecimal(location.Value.minThreshold.Value)
 						: weather.Forecast.defaultTemperatureThreshold,
+					temperatureUnit = location.Value.temperatureUnit,
 				},
 				forecasts
 			});

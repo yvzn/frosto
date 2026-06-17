@@ -16,4 +16,5 @@ public class LocationEntity : EntityBase
 	public string? offset { get; set; }
 	public int? utc_offset_minutes { get; set; }
 	public string? hemisphere { get; set; }
+	public string? temperatureUnit { get; set; }
 }

@@ -19,6 +19,7 @@ public class SignUpService(IAzureClientFactory<TableClient> azureClientFactory)
 				city = signUpEntity.city ?? "",
 				country = signUpEntity.country ?? "",
 				lang = signUpEntity.lang ?? "",
+				temperatureUnit = signUpEntity.temperatureUnit,
 				PartitionKey = signUpEntity.PartitionKey ?? "",
 				RowKey = signUpEntity.RowKey ?? "",
 				Timestamp = signUpEntity.Timestamp,

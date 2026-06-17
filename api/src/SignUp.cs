@@ -82,6 +82,7 @@ public class SignUp
 			country = requestParams["country"],
 			users = requestParams["email"],
 			lang = requestParams["lang"],
+			temperatureUnit = ParseTemperatureUnit(requestParams["temperatureUnit"]),
 		};
 
 	private static UserEntity ParseUserEntity(NameValueCollection requestParams)
@@ -102,5 +103,9 @@ public class SignUp
 			city = requestParams["city"],
 			country = requestParams["country"],
 			lang = requestParams["lang"],
+			temperatureUnit = ParseTemperatureUnit(requestParams["temperatureUnit"]),
 		};
+
+	private static string? ParseTemperatureUnit(string? value)
+		=> "F".Equals(value, StringComparison.OrdinalIgnoreCase) ? "F" : null;
 }

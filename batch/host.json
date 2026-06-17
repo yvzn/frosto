@@ -11,7 +11,7 @@
 		"applicationInsights": {
 			"samplingSettings": {
 				"isEnabled": true,
-				"excludedTypes": "Request;Exception"
+				"excludedTypes": "Request"
 			},
 			"enableLiveMetrics": false,
 			"enableDependencyTracking": true,
