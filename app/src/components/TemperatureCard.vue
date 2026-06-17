@@ -37,7 +37,8 @@ const props = defineProps<{
 			class="badge rounded-pill text-bg-secondary bg-opacity-10"
 			:title="t('isDropping')"
 		>
-			📉
+			<span aria-hidden="true">📉</span>
+			<span class="visually-hidden">{{ t('isDropping') }}</span>
 		</div>
 	</div>
 </template>
