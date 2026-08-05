@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="../weather-forecast/weather-forecast.csproj" />
+  <Project Path="batch.csproj" />
+</Solution>

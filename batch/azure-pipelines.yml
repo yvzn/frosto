@@ -18,18 +18,23 @@ jobs:
   - task: UseDotNet@2
     inputs:
       packageType: 'sdk'
-      version: '9.0.101'
+      version: '10.0.x'
       installationPath: '$(Agent.ToolsDirectory)/dotnet'
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'build'
+      projects: 'batch/*.csproj'
+      arguments: '--configuration Release --arch x64 --os linux --no-self-contained'
   - task: DotNetCoreCLI@2
     inputs:
       command: 'publish'
       publishWebProjects: false
       projects: 'batch/*.csproj'
       nobuild: true
-      arguments: '--configuration Release'
+      arguments: '--configuration Release --arch x64 --os linux --no-self-contained'
   - task: PublishPipelineArtifact@1
     inputs:
-      targetPath: 'batch/bin/Release/net9.0/publish.zip'
+      targetPath: 'batch/bin/Release/net10.0/linux-x64/publish.zip'
       publishLocation: 'pipeline'
       artifact: 'batch'
 
@@ -66,10 +71,10 @@ jobs:
             archiveType: 'zip'
             archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
             replaceExistingArchive: true
-        - task: AzureFunctionApp@1
+        - task: AzureFunctionApp@2
           inputs:
-            azureSubscription: '$(azureSubscription)'
+            connectedServiceNameARM: '$(azureSubscription)'
             appType: 'functionAppLinux'
+            isFlexConsumption: true
             appName: '$(batchAppName)'
             package: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
-            runtimeStack: 'DOTNET-ISOLATED|9.0'
