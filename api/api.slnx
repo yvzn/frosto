@@ -1,0 +1,9 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="../weather-forecast/weather-forecast.csproj" />
+  <Project Path="api.csproj" />
+</Solution>
