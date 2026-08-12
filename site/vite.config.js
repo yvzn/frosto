@@ -20,7 +20,7 @@ const config = defineConfig(() => {
 			emptyOutDir: true,
 			rollupOptions: {
 				input: pages.reduce((inputs, page) => {
-					inputs[page] = resolve(__dirname, `${page}.html`);
+					inputs[page] = resolve(import.meta.dirname, `${page}.html`);
 					return inputs;
 				}, {})
 			}
