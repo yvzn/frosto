@@ -19,6 +19,14 @@
 			<span asp-validation-for="BatchConfig.capacityGuardMultiplier" class="text-danger"></span>
 		</div>
 
+		<div class="form-check mb-3">
+			<input asp-for="RebuildAllBatches" class="form-check-input" />
+			<label asp-for="RebuildAllBatches" class="form-check-label">Rebuild all batches</label>
+			<div class="form-text">
+				Leave checked when settings or existing locations changed. Uncheck only when adding new valid locations with the same settings; existing assignments will be preserved.
+			</div>
+		</div>
+
 		<button type="submit" class="btn btn-primary">Create Batches</button>
 	</form>
 

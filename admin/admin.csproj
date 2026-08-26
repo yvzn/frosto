@@ -7,12 +7,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Azure.Data.Tables" Version="12.11.0" />
+		<PackageReference Include="Azure.Data.Tables" Version="12.12.0" />
 		<PackageReference Include="Azure.Maps.Search" Version="2.0.0-beta.5" />
 		<PackageReference Include="Azure.Maps.TimeZones" Version="1.0.0-beta.1" />
 		<PackageReference Include="MailKit" Version="4.17.0" />
-		<PackageReference Include="Microsoft.Extensions.Azure" Version="1.14.0" />
-		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.18.0" />
+		<PackageReference Include="Microsoft.Extensions.Azure" Version="1.14.1" />
+		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.22.0" />
 	</ItemGroup>
 
 	<ItemGroup>

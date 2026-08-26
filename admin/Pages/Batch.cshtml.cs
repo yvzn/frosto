@@ -17,6 +17,9 @@ public class BatchModel : PageModel
 	[BindProperty]
 	public BatchConfig BatchConfig { get; set; } = new();
 
+	[BindProperty]
+	public bool RebuildAllBatches { get; set; } = true;
+
 	public async Task<IActionResult> OnPostAsync()
 	{
 		if (!ModelState.IsValid)
@@ -24,7 +27,11 @@ public class BatchModel : PageModel
 			return Page();
 		}
 
-		await _batchService.DeleteAllBatches(HttpContext.RequestAborted);
+		if (RebuildAllBatches)
+		{
+			await _batchService.DeleteAllBatches(HttpContext.RequestAborted);
+		}
+
 		await _batchService.CreateBatches(BatchConfig.periodInDays, BatchConfig.capacityGuardMultiplier, HttpContext.RequestAborted);
 		return RedirectToPage("./BatchResult");
 	}
