@@ -87,7 +87,7 @@ reply ""STOP"" to this e-mail.
 <hr>
 
 <p>Weather data is provided by <em>Open-Meteo.com</em> &mdash;
-<a href=""https://open-meteo.com/"" target=""_blank"" rel=""noopener noreferrer"">Weather data by Open-Meteo.com</a>";
+<a href=""{4}"" target=""_blank"" rel=""noopener noreferrer"">Weather data by Open-Meteo.com</a>";
 
 	private static readonly string applicationInviteTemplate =
 	@"
@@ -143,7 +143,8 @@ reply ""STOP"" to this e-mail.
 				location.city,
 				location.country,
 				table.ToString(),
-				applicationInvite
+				applicationInvite,
+				$"{AppSettings.SiteEnUrl}open-meteo.html"
 			);
 	}
 
