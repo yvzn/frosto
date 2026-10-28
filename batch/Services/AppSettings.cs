@@ -10,15 +10,6 @@ internal static class AppSettings
 	private static readonly string sendMailApiUrl = TryGetEnvironmentVariable("SEND_MAIL_API_URL");
 	public static string SendMailApiUrl => sendMailApiUrl;
 
-	private static readonly string tipiMailApiUrl = TryGetEnvironmentVariable("TIPI_MAIL_API_URL");
-	public static string TipiMailApiUrl => tipiMailApiUrl;
-
-	private static readonly string tipiMailApiUser = TryGetEnvironmentVariable("TIPI_MAIL_API_USER");
-	public static string TipiMailApiUser => tipiMailApiUser;
-
-	private static readonly string tipiMailApiKey = TryGetEnvironmentVariable("TIPI_MAIL_API_KEY");
-	public static string TipiMailApiKey => tipiMailApiKey;
-
 	private static readonly string smtpUrl = TryGetEnvironmentVariable("SMTP_URL");
 	public static string SmtpUrl => smtpUrl;
 	private static readonly string smtpLogin = TryGetEnvironmentVariable("SMTP_LOGIN");

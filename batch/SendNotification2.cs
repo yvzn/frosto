@@ -14,18 +14,16 @@ using Microsoft.Extensions.DependencyInjection;
 namespace batch;
 
 public class SendNotification2(
-	[FromKeyedServices("tipimail")] IMailSender tipiMailSender,
 	[FromKeyedServices("smtp")] IMailSender smtpMailSender,
 	[FromKeyedServices("api")] IMailSender apiMailSender,
 	[FromKeyedServices("scaleway")] IMailSender scalewayMailSender,
 	[FromKeyedServices("default")] IMailSender defaultMailSender,
 	ILogger<SendNotification2> logger)
 {
-	internal static ISet<string> channels = new HashSet<string>() { "default", "api", "tipimail", "smtp", "scaleway" };
+	internal static ISet<string> channels = new HashSet<string>() { "default", "api", "smtp", "scaleway" };
 
 	private readonly Dictionary<string, IMailSender> mailSenders = new()
 	{
-		{ "tipimail", tipiMailSender },
 		{ "smtp", smtpMailSender },
 		{ "api", apiMailSender },
 		{ "scaleway", scalewayMailSender },
@@ -121,5 +119,4 @@ public class SendNotification2(
 	private IMailSender BuildMailSender(string channel)
 		=> mailSenders.TryGetValue(channel, out var mailSender) ? mailSender : mailSenders["default"];
 }
-
 

@@ -37,7 +37,6 @@ var host = new HostBuilder()
 		});
 
 		services.AddSingleton<Unsubscribe>();
-		services.AddKeyedScoped<IMailSender, TipiMailSender>("tipimail");
 		services.AddKeyedScoped<IMailSender, SmtpMailSender>("smtp");
 		services.AddKeyedScoped<IMailSender, ApiMailSender>("api");
 		services.AddKeyedScoped<IMailSender, ScalewayMailSender>("scaleway");
