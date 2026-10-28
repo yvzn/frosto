@@ -34,6 +34,12 @@ internal class ScalewayMailSender(
 			_ => FrenchHtmlFormatter.FormatUnsubscribeLink(unsubscribeUrl),
 		};
 
+		var textUnsubscribeLink = notification.lang switch
+		{
+			"en" => EnglishTextFormatter.FormatUnsubscribeLink(unsubscribeUrl),
+			_ => TextFormatter.FormatUnsubscribeLink(unsubscribeUrl),
+		};
+
 		var message = new ScalewayApiEmailRequest
 		{
 			from = new()
@@ -44,7 +50,7 @@ internal class ScalewayMailSender(
 			to = [new ScalewayApiIdentity { name = notification.to, email = notification.to }],
 			subject = notification.subject,
 			project_id = AppSettings.ScalewayProjectId,
-			text = notification.raw,
+			text = notification.raw?.Replace(FrenchHtmlFormatter.unsubscribeLinkPlaceholder, textUnsubscribeLink),
 			html = notification.body?.Replace(FrenchHtmlFormatter.unsubscribeLinkPlaceholder, unsubscribeLink),
 			attachments = [],
 			additional_headers = [.. BuildScalewayHeaders(unsubscribeToken, notification)]
