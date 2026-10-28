@@ -89,7 +89,19 @@ public class LocationLoop2(IHttpClientFactory httpClientFactory, IAzureClientFac
 
 	private async Task<bool> ScheduleLocationAsync(string partitionKey, string rowKey, int locationIndex, DateTime utcNow)
 	{
-		async ValueTask<Azure.NullableResponse<LocationEntity>> query(CancellationToken cancellationToken) => await validLocationTableClient.GetEntityIfExistsAsync<LocationEntity>(partitionKey, rowKey, cancellationToken: cancellationToken);
+		async ValueTask<Azure.NullableResponse<LocationEntity>> query(CancellationToken cancellationToken)
+		{
+			try
+			{
+				return await validLocationTableClient.GetEntityIfExistsAsync<LocationEntity>(partitionKey, rowKey, cancellationToken: cancellationToken);
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "Error reading location {LocationPartitionKey} {LocationRowKey}", partitionKey, rowKey);
+				throw;
+			}
+		}
+
 		var locationEntity = await RetryStrategy.For.DataAccess.Execute(query);
 
 		Func<Azure.NullableResponse<LocationEntity>, bool> locationFilter = location => location.HasValue && location.Value?.disabled != true;

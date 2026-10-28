@@ -6,4 +6,4 @@ GET {{apiUrl}}/api/healthz
 
 ###
 
-GET {{apiUrl}}/api/BatchCronDebug?slotIndex=10&dayOfCycle=1
+GET {{apiUrl}}/api/BatchCronDebug?slotIndex=12&dayIndex=0
