@@ -48,7 +48,7 @@ internal static class FrenchFormatter
 
 internal static class FrenchHtmlFormatter
 {
-	private const string preheader = "Gel annoncé : prenez vos précautions.";
+	private const string preheader = "Minimales et maximales jour par jour, pour éviter toute mauvaise surprise.";
 	private const string hiddenPreheaderTemplate = "<div style=\"display:none!important;visibility:hidden;opacity:0;color:transparent;height:0;width:0;max-height:0;max-width:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px\">{0}</div>";
 
 	private static readonly string tableHeaderTemplate = "<table><thead><tr><th>date<th>minimum<th>maximum<th></thead><tbody>";
@@ -145,7 +145,7 @@ répondez ""STOP"" à ce message.
 
 internal static class TextFormatter
 {
-	private const string preheader = "Gel annoncé : prenez vos précautions.";
+	private const string preheader = "Minimales et maximales jour par jour, pour éviter toute mauvaise surprise.";
 
 	private static readonly string tableRowTemplate = "{0,-12:ddd dd MMM}   {1,-6:N1}{2,-1}   {3,-6:N1}   {4}";
 

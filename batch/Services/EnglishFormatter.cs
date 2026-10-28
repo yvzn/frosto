@@ -62,7 +62,7 @@ internal static class EnglishFormatter
 
 internal static class EnglishHtmlFormatter
 {
-	private const string preheader = "Frost is forecast: take precautions.";
+	private const string preheader = "Day-by-day lows and highs, so nothing catches you off guard.";
 	private const string hiddenPreheaderTemplate = "<div style=\"display:none!important;visibility:hidden;opacity:0;color:transparent;height:0;width:0;max-height:0;max-width:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px\">{0}</div>";
 
 	private static readonly string tableHeaderTemplate = "<table><thead><tr><th>date<th>minimum<th>maximum<th></thead><tbody>";
@@ -165,7 +165,7 @@ reply ""STOP"" to this e-mail.
 
 internal static class EnglishTextFormatter
 {
-	private const string preheader = "Frost is forecast: take precautions.";
+	private const string preheader = "Day-by-day lows and highs, so nothing catches you off guard.";
 
 	private static readonly string tableRowTemplate = "{0,-15:ddd MMM dd}   {1,-8:N1}{2,-2}   {3,-8:N1}{4,-2}   {5}";
 
