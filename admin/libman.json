@@ -1,0 +1,58 @@
+{
+  "version": "3.0",
+  "defaultProvider": "unpkg",
+  "libraries": [
+    {
+      "library": "bootstrap@5.3.8",
+      "destination": "wwwroot/lib/bootstrap/",
+      "files": [
+        "dist/css/bootstrap.min.css",
+        "dist/js/bootstrap.min.js"
+      ]
+    },
+    {
+      "library": "jquery@3.7.1",
+      "destination": "wwwroot/lib/jquery/",
+      "files": [
+        "dist/jquery.min.js"
+      ]
+    },
+    {
+      "library": "@popperjs/core@2.11.8",
+      "destination": "wwwroot/lib/popperjs/",
+      "files": [
+        "dist/umd/popper.min.js"
+      ]
+    },
+    {
+      "library": "chart.js@4.5.1",
+      "destination": "wwwroot/lib/chart.js/",
+      "files": [
+        "dist/chart.umd.min.js"
+      ]
+    },
+    {
+      "library": "azure-maps-control@2.3.7",
+      "destination": "wwwroot/lib/azure-maps-control/",
+      "files": [
+        "dist/atlas.min.css",
+        "dist/atlas.min.js"
+      ]
+    },
+    {
+      "library": "jquery-validation@1.21.0",
+      "destination": "wwwroot/lib/jquery-validation/",
+      "files": [
+        "dist/jquery.validate.min.js"
+      ]
+    },
+    {
+      "library": "jquery-validation-unobtrusive@4.0.0",
+      "destination": "wwwroot/lib/jquery-validation-unobtrusive/",
+      "files": [
+        "dist/jquery.validate.unobtrusive.min.js"
+      ]
+    }
+
+  ]
+}

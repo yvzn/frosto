@@ -6,8 +6,7 @@
       "version": "7.0.5",
       "commands": [
         "dotnet-aspnet-codegenerator"
-      ],
-      "rollForward": false
+      ]
     },
     "microsoft.web.librarymanager.cli": {
       "version": "3.0.114",
