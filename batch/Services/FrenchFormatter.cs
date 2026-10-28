@@ -71,7 +71,7 @@ répondez ""STOP"" à ce message.
 <hr>
 
 <p>Les données météo sont fournies par <em>Open-Meteo.com</em> &mdash;
-<a href=""https://open-meteo.com/"" target=""_blank"" rel=""noopener noreferrer"">Weather data by Open-Meteo.com</a>";
+<a href=""{4}"" target=""_blank"" rel=""noopener noreferrer"">Weather data by Open-Meteo.com</a>";
 
 	private static readonly string applicationInviteTemplate =
 	@"
@@ -123,7 +123,8 @@ répondez ""STOP"" à ce message.
 				location.city,
 				location.country,
 				table.ToString(),
-				applicationInvite
+				applicationInvite,
+				$"{AppSettings.SiteFrUrl}open-meteo.html"
 			);
 	}
 

@@ -12,6 +12,7 @@ var pages = [
 	'check-subscription-complete',
 	'unsubscribe',
 	'unsubscribe-complete',
+	'open-meteo',
 ]
 
 const config = defineConfig(() => {
