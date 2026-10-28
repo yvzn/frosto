@@ -150,11 +150,15 @@ Les prévisions de température des prochains jours ({0}, {1}):
 Cordialement,
 Yvan de Alertegelee.fr
 
-Pour vous désinscrire, répondez ""STOP"" à ce message.
+Pour vous désinscrire, <|unsubscribe_link|>
+répondez ""STOP"" à ce message.
 
 __________
 
 Les données météo sont fournies par Open-Meteo.com -- Weather data by Open-Meteo.com";
+
+	public static string FormatUnsubscribeLink(string unsubscribeUrl)
+		=> $"rendez-vous sur {unsubscribeUrl} ou";
 
 	public static string FormatBody(List<weather.Forecast> forecasts, LocationEntity location)
 	{

@@ -57,9 +57,15 @@ internal class SmtpMailSender(
 			_ => FrenchHtmlFormatter.FormatUnsubscribeLink(unsubscribeUrl),
 		};
 
+		var textUnsubscribeLink = notification.lang switch
+		{
+			"en" => EnglishTextFormatter.FormatUnsubscribeLink(unsubscribeUrl),
+			_ => TextFormatter.FormatUnsubscribeLink(unsubscribeUrl),
+		};
+
 		var builder = new BodyBuilder
 		{
-			TextBody = notification.raw,
+			TextBody = notification.raw?.Replace(FrenchHtmlFormatter.unsubscribeLinkPlaceholder, textUnsubscribeLink),
 			HtmlBody = notification.body?.Replace(FrenchHtmlFormatter.unsubscribeLinkPlaceholder, unsubscribeLink)
 		};
 

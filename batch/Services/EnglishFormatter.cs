@@ -172,11 +172,15 @@ Yvan from FrostAlert.net
 
 To change the temperature unit, reply with ""CELSIUS"" or ""FAHRENHEIT"" to this e-mail.
 
-To stop receiving these messages, reply ""STOP"" to this e-mail.
+To stop receiving these messages, <|unsubscribe_link|>
+reply ""STOP"" to this e-mail.
 
 __________
 
 Weather data is provided by Open-Meteo.com -- Weather data by Open-Meteo.com";
+
+	public static string FormatUnsubscribeLink(string unsubscribeUrl)
+		=> $"visit {unsubscribeUrl} or";
 
 	public static string FormatBody(List<weather.Forecast> forecasts, LocationEntity location)
 	{
