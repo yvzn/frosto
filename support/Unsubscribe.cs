@@ -4,6 +4,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Azure;
 using Azure.Data.Tables;
 using support.Model;
+using System.Net;
 using System.Web;
 
 namespace support;
@@ -27,21 +28,37 @@ public class Unsubscribe
 	{
 		var queryParameters = await GetQueryParameters(request);
 
-		Uri redirectionUrl;
-
 		if (IsValid(queryParameters))
 		{
 			var unsubscribeEntity = ParseUnsubscribeEntity(queryParameters);
 			await unsubscribeEntities.AddEntityAsync(unsubscribeEntity);
 
 			var siteUrl = GetSiteUrl(queryParameters);
-			redirectionUrl = new Uri(siteUrl + "unsubscribe-complete.html");
-		}
-		else
-		{
-			redirectionUrl = BuildConfirmationUrl(queryParameters, "post_invalid");
+			var completeUrl = WebUtility.HtmlEncode(new Uri(siteUrl + "unsubscribe-complete.html").ToString());
+			var lang = queryParameters.FirstOrDefault("lang")!;
+			var continueText = lang == "en" ? "Continue" : "Continuer";
+
+			return new ContentResult
+			{
+				StatusCode = StatusCodes.Status200OK,
+				ContentType = "text/html",
+				Content = $"""
+					<!DOCTYPE html>
+					<html lang="{lang}">
+					<head>
+						<meta charset="utf-8">
+						<meta http-equiv="refresh" content="0; url={completeUrl}">
+						<title>Unsubscribe complete</title>
+					</head>
+					<body>
+						<p><a href="{completeUrl}">{continueText}</a></p>
+					</body>
+					</html>
+					"""
+			};
 		}
 
+		var redirectionUrl = BuildConfirmationUrl(queryParameters, "post_invalid");
 		request.HttpContext.Response.Headers.Append("Location", redirectionUrl.ToString());
 		return new StatusCodeResult(StatusCodes.Status303SeeOther);
 	}
