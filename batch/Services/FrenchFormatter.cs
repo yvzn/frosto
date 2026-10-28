@@ -48,6 +48,9 @@ internal static class FrenchFormatter
 
 internal static class FrenchHtmlFormatter
 {
+	private const string preheader = "Gel annoncé : prenez vos précautions.";
+	private const string hiddenPreheaderTemplate = "<div style=\"display:none!important;visibility:hidden;opacity:0;color:transparent;height:0;width:0;max-height:0;max-width:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px\">{0}</div>";
+
 	private static readonly string tableHeaderTemplate = "<table><thead><tr><th>date<th>minimum<th>maximum<th></thead><tbody>";
 
 	private static readonly string tableRowTemplate = "<tr><td>{0:dddd d MMMM}<td>{1}° {2}<td>{3}°<td>{4}</tr>";
@@ -119,6 +122,10 @@ répondez ""STOP"" à ce message.
 
 		return string.Format(
 				FrenchFormatter.FrenchCultureInfo,
+				hiddenPreheaderTemplate,
+				preheader
+			) + string.Format(
+				FrenchFormatter.FrenchCultureInfo,
 				messageTemplate,
 				location.city,
 				location.country,
@@ -138,6 +145,8 @@ répondez ""STOP"" à ce message.
 
 internal static class TextFormatter
 {
+	private const string preheader = "Gel annoncé : prenez vos précautions.";
+
 	private static readonly string tableRowTemplate = "{0,-12:ddd dd MMM}   {1,-6:N1}{2,-1}   {3,-6:N1}   {4}";
 
 	private static readonly string textTemplate =
@@ -195,7 +204,7 @@ Les données météo sont fournies par Open-Meteo.com -- Weather data by Open-Me
 			applicationInvite.Append($"{AppSettings.SiteFrUrl}app/weather-forecast/{location.PartitionKey}/{location.RowKey}");
 		}
 
-		return string.Format(
+		return preheader + Environment.NewLine + Environment.NewLine + string.Format(
 				FrenchFormatter.FrenchCultureInfo,
 				textTemplate,
 				location.city,

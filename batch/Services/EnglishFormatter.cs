@@ -62,6 +62,9 @@ internal static class EnglishFormatter
 
 internal static class EnglishHtmlFormatter
 {
+	private const string preheader = "Frost is forecast: take precautions.";
+	private const string hiddenPreheaderTemplate = "<div style=\"display:none!important;visibility:hidden;opacity:0;color:transparent;height:0;width:0;max-height:0;max-width:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px\">{0}</div>";
+
 	private static readonly string tableHeaderTemplate = "<table><thead><tr><th>date<th>minimum<th>maximum<th></thead><tbody>";
 
 	private static readonly string tableRowTemplate = "<tr><td>{0:dddd, MMMM d}<td>{1}°{2} {3}<td>{4}°{2}<td>{5}</tr>";
@@ -139,6 +142,10 @@ reply ""STOP"" to this e-mail.
 
 		return string.Format(
 				EnglishFormatter.EnglishCultureInfo,
+				hiddenPreheaderTemplate,
+				preheader
+			) + string.Format(
+				EnglishFormatter.EnglishCultureInfo,
 				messageTemplate,
 				location.city,
 				location.country,
@@ -158,6 +165,8 @@ reply ""STOP"" to this e-mail.
 
 internal static class EnglishTextFormatter
 {
+	private const string preheader = "Frost is forecast: take precautions.";
+
 	private static readonly string tableRowTemplate = "{0,-15:ddd MMM dd}   {1,-8:N1}{2,-2}   {3,-8:N1}{4,-2}   {5}";
 
 	private static readonly string textTemplate =
@@ -223,7 +232,7 @@ Weather data is provided by Open-Meteo.com -- Weather data by Open-Meteo.com";
 			applicationInvite.Append($"{AppSettings.SiteEnUrl}app/weather-forecast/{location.PartitionKey}/{location.RowKey}");
 		}
 
-		return string.Format(
+		return preheader + Environment.NewLine + Environment.NewLine + string.Format(
 				EnglishFormatter.EnglishCultureInfo,
 				textTemplate,
 				location.city,
