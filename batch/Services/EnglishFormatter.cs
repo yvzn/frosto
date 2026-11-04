@@ -62,9 +62,6 @@ internal static class EnglishFormatter
 
 internal static class EnglishHtmlFormatter
 {
-	private const string preheader = "Day-by-day lows and highs, so nothing catches you off guard.";
-	private const string hiddenPreheaderTemplate = "<div style=\"display:none!important;visibility:hidden;opacity:0;color:transparent;height:0;width:0;max-height:0;max-width:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px\">{0}</div>";
-
 	private static readonly string tableHeaderTemplate = "<table><thead><tr><th>date<th>minimum<th>maximum<th></thead><tbody>";
 
 	private static readonly string tableRowTemplate = "<tr><td>{0:dddd, MMMM d}<td>{1}°{2} {3}<td>{4}°{2}<td>{5}</tr>";
@@ -72,7 +69,9 @@ internal static class EnglishHtmlFormatter
 	private static readonly string tableFooterTemplate = "</tbody></table>";
 
 	private static readonly string messageTemplate =
-	@"<p>Hello,
+	@"<div style=""display:none!important;visibility:hidden;opacity:0;color:transparent;height:0;width:0;max-height:0;max-width:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px"">Day-by-day lows and highs, so nothing catches you off guard.</div>
+
+<p>Hello,
 
 <p>The temperature forecast for the coming days ({0}, {1}):
 
@@ -141,10 +140,6 @@ reply ""STOP"" to this e-mail.
 		}
 
 		return string.Format(
-				EnglishFormatter.EnglishCultureInfo,
-				hiddenPreheaderTemplate,
-				preheader
-			) + string.Format(
 				EnglishFormatter.EnglishCultureInfo,
 				messageTemplate,
 				location.city,

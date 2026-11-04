@@ -48,9 +48,6 @@ internal static class FrenchFormatter
 
 internal static class FrenchHtmlFormatter
 {
-	private const string preheader = "Minimales et maximales jour par jour, pour éviter toute mauvaise surprise.";
-	private const string hiddenPreheaderTemplate = "<div style=\"display:none!important;visibility:hidden;opacity:0;color:transparent;height:0;width:0;max-height:0;max-width:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px\">{0}</div>";
-
 	private static readonly string tableHeaderTemplate = "<table><thead><tr><th>date<th>minimum<th>maximum<th></thead><tbody>";
 
 	private static readonly string tableRowTemplate = "<tr><td>{0:dddd d MMMM}<td>{1}° {2}<td>{3}°<td>{4}</tr>";
@@ -58,7 +55,9 @@ internal static class FrenchHtmlFormatter
 	private static readonly string tableFooterTemplate = "</tbody></table>";
 
 	private static readonly string messageTemplate =
-	@"<p>Bonjour,
+	@"<div style=""display:none!important;visibility:hidden;opacity:0;color:transparent;height:0;width:0;max-height:0;max-width:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px"">Minimales et maximales jour par jour, pour éviter toute mauvaise surprise.</div>
+
+<p>Bonjour,
 
 <p>Les prévisions de température des prochains jours ({0}, {1}):
 
@@ -121,10 +120,6 @@ répondez ""STOP"" à ce message.
 		}
 
 		return string.Format(
-				FrenchFormatter.FrenchCultureInfo,
-				hiddenPreheaderTemplate,
-				preheader
-			) + string.Format(
 				FrenchFormatter.FrenchCultureInfo,
 				messageTemplate,
 				location.city,
