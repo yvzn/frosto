@@ -15,7 +15,7 @@ internal class ScalewayMailSender(
 	IHttpClientFactory httpClientFactory,
 	ILogger<ScalewayMailSender> logger) : SingleRecipientMailSender
 {
-	private static readonly string ReplyTo = "eXZhbkBhbGVydGVnZWxlZS5mcg==";
+	private static readonly string DefaultAddress = "eXZhbkBhbGVydGVnZWxlZS5mcg==";
 
 	private readonly HttpClient httpClient = httpClientFactory.CreateClient("default");
 
@@ -79,15 +79,10 @@ internal class ScalewayMailSender(
 
 	private static IEnumerable<ScalewayApiHeader> BuildScalewayHeaders(string unsubscribeToken, SingleRecipientNotification notification)
 	{
-		var replyTo = Encoding.UTF8.GetString(Convert.FromBase64String(ReplyTo));
+		var senderEmail = notification.from?.address
+			?? Encoding.UTF8.GetString(Convert.FromBase64String(DefaultAddress));
 
-		yield return new()
-		{
-			key = "Reply-To",
-			value = replyTo
-		};
-
-		var listUnsubscribeHeaders = Unsubscribe.GetListUnsubscribeHeaders(replyTo, unsubscribeToken, notification);
+		var listUnsubscribeHeaders = Unsubscribe.GetListUnsubscribeHeaders(senderEmail, unsubscribeToken, notification);
 		foreach (var header in listUnsubscribeHeaders)
 		{
 			yield return new()
