@@ -69,7 +69,9 @@ internal static class EnglishHtmlFormatter
 	private static readonly string tableFooterTemplate = "</tbody></table>";
 
 	private static readonly string messageTemplate =
-	@"<p>Hello,
+	@"<div style=""display:none!important;visibility:hidden;opacity:0;color:transparent;height:0;width:0;max-height:0;max-width:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px"">Day-by-day lows and highs, so nothing catches you off guard.</div>
+
+<p>Hello,
 
 <p>The temperature forecast for the coming days ({0}, {1}):
 
@@ -159,6 +161,8 @@ reply ""STOP"" to this e-mail.
 
 internal static class EnglishTextFormatter
 {
+	private const string preheader = "Day-by-day lows and highs, so nothing catches you off guard.";
+
 	private static readonly string tableRowTemplate = "{0,-15:ddd MMM dd}   {1,-8:N1}{2,-2}   {3,-8:N1}{4,-2}   {5}";
 
 	private static readonly string textTemplate =
@@ -224,7 +228,7 @@ Weather data is provided by Open-Meteo.com -- Weather data by Open-Meteo.com";
 			applicationInvite.Append($"{AppSettings.SiteEnUrl}app/weather-forecast/{location.PartitionKey}/{location.RowKey}");
 		}
 
-		return string.Format(
+		return preheader + Environment.NewLine + Environment.NewLine + string.Format(
 				EnglishFormatter.EnglishCultureInfo,
 				textTemplate,
 				location.city,

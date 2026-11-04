@@ -55,7 +55,9 @@ internal static class FrenchHtmlFormatter
 	private static readonly string tableFooterTemplate = "</tbody></table>";
 
 	private static readonly string messageTemplate =
-	@"<p>Bonjour,
+	@"<div style=""display:none!important;visibility:hidden;opacity:0;color:transparent;height:0;width:0;max-height:0;max-width:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px"">Minimales et maximales jour par jour, pour éviter toute mauvaise surprise.</div>
+
+<p>Bonjour,
 
 <p>Les prévisions de température des prochains jours ({0}, {1}):
 
@@ -139,6 +141,8 @@ répondez ""STOP"" à ce message.
 
 internal static class TextFormatter
 {
+	private const string preheader = "Minimales et maximales jour par jour, pour éviter toute mauvaise surprise.";
+
 	private static readonly string tableRowTemplate = "{0,-12:ddd dd MMM}   {1,-6:N1}{2,-1}   {3,-6:N1}   {4}";
 
 	private static readonly string textTemplate =
@@ -196,7 +200,7 @@ Les données météo sont fournies par Open-Meteo.com -- Weather data by Open-Me
 			applicationInvite.Append($"{AppSettings.SiteFrUrl}app/weather-forecast/{location.PartitionKey}/{location.RowKey}");
 		}
 
-		return string.Format(
+		return preheader + Environment.NewLine + Environment.NewLine + string.Format(
 				FrenchFormatter.FrenchCultureInfo,
 				textTemplate,
 				location.city,
