@@ -126,6 +126,18 @@
 		<div id="coordinates-map" class="w-100 border rounded-3 shadow-sm" style="height: 320px;"></div>
 	</section>
 
+	@if (!string.IsNullOrWhiteSpace(Model.ValidLocation.Id))
+	{
+		<div class="col-12 mb-5 border rounded-3 bg-light p-4">
+			<h2 class="text-muted mb-3">Weather forecast link</h2>
+			<div class="input-group mb-2">
+				<input type="text" class="form-control" value="@Model.WeatherForecastUrl" readonly aria-label="Weather forecast URL" />
+				<button type="button" class="btn btn-outline-secondary" data-copy-weather-url>Copy</button>
+			</div>
+			<div class="small text-muted">This uses the @(string.Equals(Model.ValidLocation.lang, "en", StringComparison.OrdinalIgnoreCase) ? "English" : "French") site.</div>
+		</div>
+	}
+
 	<div hidden>
 		@Html.ValidationSummary()
 	</div>
@@ -177,6 +189,21 @@
 		if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return;
 		initCoordinatesMap(latitude, longitude);
 	})();
+
+	(function () {
+		var copyButton = document.querySelector('[data-copy-weather-url]');
+		if (copyButton) {
+			copyButton.addEventListener('click', function () {
+				var input = copyButton.previousElementSibling;
+				if (!input) return;
+				input.focus();
+				input.select();
+				navigator.clipboard.writeText(input.value).catch(function () {
+					console.warn('Failed to copy weather forecast URL.');
+				});
+			});
+		}
+	}());
 
 	(function () {
 		var hiddenInput = document.getElementById('users-hidden');
