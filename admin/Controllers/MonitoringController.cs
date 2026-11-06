@@ -9,9 +9,9 @@ public class MonitoringController(MonitoringService monitoringService) : Control
 {
 	[HttpGet]
 	[Route("recent")]
-	public async Task<object> GetRecentMonitoringAsync([FromQuery(Name = "days")] int days = 30)
+	public async Task<object> GetRecentMonitoringAsync([FromQuery(Name = "days")] int days = 7)
 	{
-		if (days <= 0) days = 30;
+		if (days <= 0) days = 7;
 		return await monitoringService.GetRecentMonitoringGeoJSONAsync(days, HttpContext.RequestAborted);
 	}
 }

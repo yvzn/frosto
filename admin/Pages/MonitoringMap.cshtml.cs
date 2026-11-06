@@ -15,11 +15,11 @@ public class MonitoringMapModel : PageModel
 	public string AzureMapsSubscriptionKey { get; private set; } = "";
 
 	[BindProperty(SupportsGet = true)]
-	public int Days { get; set; } = 30;
+	public int Days { get; set; } = 7;
 
 	public void OnGet()
 	{
 		AzureMapsSubscriptionKey = _configuration.GetConnectionString("AzureMaps") ?? "";
-		if (Days <= 0) Days = 30;
+		if (Days <= 0) Days = 7;
 	}
 }

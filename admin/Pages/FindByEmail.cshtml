@@ -1,0 +1,74 @@
+@page
+@model admin.Pages.FindByEmailModel
+@{
+	ViewData["Title"] = "Find by email";
+}
+
+<div class="text-center">
+	<h1 class="display-4">Find by email</h1>
+</div>
+
+<div class="row justify-content-center mb-5">
+	<div class="col-lg-8">
+		<form method="get" class="border rounded-3 p-4 bg-light">
+			<div class="input-group">
+				<input asp-for="Email" class="form-control" type="email" placeholder="Search by email address" aria-label="Email address" />
+				<button type="submit" class="btn btn-primary">Search</button>
+			</div>
+			<span asp-validation-for="Email" class="text-danger d-block mt-2"></span>
+		</form>
+	</div>
+</div>
+
+@if (Model.EmailSubmitted)
+{
+	<div class="row justify-content-center">
+		<div class="col-lg-10">
+			@if (string.IsNullOrEmpty(Model.Email))
+			{
+				<div class="alert alert-warning" role="alert">Please enter an email address.</div>
+			}
+			else if (Model.MatchingLocations.Count == 0)
+			{
+				<div class="alert alert-info" role="alert">
+					No valid locations were found for <strong>@Model.Email</strong>.
+				</div>
+			}
+			else
+			{
+				<div class="table-responsive">
+					<table class="table table-striped align-middle">
+						<caption>@Model.MatchingLocations.Count item(s)</caption>
+						<thead>
+							<tr>
+								<th>City</th>
+								<th>Country</th>
+								<th>Language</th>
+								<th>Users</th>
+								<th></th>
+							</tr>
+						</thead>
+						<tbody>
+							@foreach (var location in Model.MatchingLocations)
+							{
+								<tr>
+									<td>@location.city</td>
+									<td>@location.country</td>
+									<td>@location.lang</td>
+									<td>@location.users</td>
+									<td>
+										<a asp-page="./Edit" asp-route-id="@location.Id">Edit</a>
+									</td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</div>
+			}
+		</div>
+	</div>
+}
+
+<div hidden>
+	@Html.ValidationSummary()
+</div>

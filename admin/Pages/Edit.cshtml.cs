@@ -25,6 +25,8 @@ public class EditModel(
 
 	public ICollection<string> TimezoneList { get; set; } = Array.Empty<string>();
 
+	public string WeatherForecastUrl => GetWeatherForecastUrl();
+
 	public string AzureMapsSubscriptionKey => _azureMapsSubscriptionKey;
 
 	private readonly string _azureMapsSubscriptionKey = configuration.GetConnectionString("AzureMaps") ?? string.Empty;
@@ -47,5 +49,24 @@ public class EditModel(
 		await _locationService.UpdateValidLocationAsync(ValidLocation, HttpContext.RequestAborted);
 
 		return RedirectToPage("./Index", new { m = $"Updated {ValidLocation?.city} ({ValidLocation?.RowKey})" });
+	}
+
+	private string GetWeatherForecastUrl()
+	{
+		if (string.IsNullOrWhiteSpace(ValidLocation.PartitionKey) || string.IsNullOrWhiteSpace(ValidLocation.RowKey))
+		{
+			return string.Empty;
+		}
+
+		var siteBaseUrl = "fr".Equals(ValidLocation.lang, StringComparison.OrdinalIgnoreCase)
+			? configuration["SiteFrUrl"]
+			: configuration["SiteEnUrl"];
+		var baseUrl = siteBaseUrl ?? string.Empty;
+		if (!baseUrl.EndsWith('/'))
+		{
+			baseUrl += "/";
+		}
+
+		return $"{baseUrl}app/weather-forecast/{Uri.EscapeDataString(ValidLocation.PartitionKey)}/{Uri.EscapeDataString(ValidLocation.RowKey)}";
 	}
 }
