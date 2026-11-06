@@ -15,6 +15,7 @@
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="../weather-forecast/weather-forecast.csproj" />
+		<ProjectReference Include="../entities/entities.csproj" />
 	</ItemGroup>
 	<ItemGroup>
 		<None Update="host.json">

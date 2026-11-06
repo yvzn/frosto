@@ -1,0 +1,30 @@
+{
+  "version": 2,
+  "dgSpecHash": "vqtJ1sAWL/8=",
+  "success": true,
+  "projectFilePath": "/home/runner/work/frosto/frosto/entities/entities.csproj",
+  "expectedPackageFiles": [
+    "/tmp/codeql-scratch-f7e5226b5e4052fe/dbs/csharp/working/packages/azure.core/1.62.0/azure.core.1.62.0.nupkg.sha512",
+    "/tmp/codeql-scratch-f7e5226b5e4052fe/dbs/csharp/working/packages/azure.data.tables/12.13.0/azure.data.tables.12.13.0.nupkg.sha512",
+    "/tmp/codeql-scratch-f7e5226b5e4052fe/dbs/csharp/working/packages/microsoft.bcl.asyncinterfaces/10.0.10/microsoft.bcl.asyncinterfaces.10.0.10.nupkg.sha512",
+    "/tmp/codeql-scratch-f7e5226b5e4052fe/dbs/csharp/working/packages/microsoft.extensions.configuration.abstractions/10.0.10/microsoft.extensions.configuration.abstractions.10.0.10.nupkg.sha512",
+    "/tmp/codeql-scratch-f7e5226b5e4052fe/dbs/csharp/working/packages/microsoft.extensions.dependencyinjection.abstractions/10.0.10/microsoft.extensions.dependencyinjection.abstractions.10.0.10.nupkg.sha512",
+    "/tmp/codeql-scratch-f7e5226b5e4052fe/dbs/csharp/working/packages/microsoft.extensions.diagnostics.abstractions/10.0.10/microsoft.extensions.diagnostics.abstractions.10.0.10.nupkg.sha512",
+    "/tmp/codeql-scratch-f7e5226b5e4052fe/dbs/csharp/working/packages/microsoft.extensions.fileproviders.abstractions/10.0.10/microsoft.extensions.fileproviders.abstractions.10.0.10.nupkg.sha512",
+    "/tmp/codeql-scratch-f7e5226b5e4052fe/dbs/csharp/working/packages/microsoft.extensions.hosting.abstractions/10.0.10/microsoft.extensions.hosting.abstractions.10.0.10.nupkg.sha512",
+    "/tmp/codeql-scratch-f7e5226b5e4052fe/dbs/csharp/working/packages/microsoft.extensions.logging.abstractions/10.0.10/microsoft.extensions.logging.abstractions.10.0.10.nupkg.sha512",
+    "/tmp/codeql-scratch-f7e5226b5e4052fe/dbs/csharp/working/packages/microsoft.extensions.options/10.0.10/microsoft.extensions.options.10.0.10.nupkg.sha512",
+    "/tmp/codeql-scratch-f7e5226b5e4052fe/dbs/csharp/working/packages/microsoft.extensions.primitives/10.0.10/microsoft.extensions.primitives.10.0.10.nupkg.sha512",
+    "/tmp/codeql-scratch-f7e5226b5e4052fe/dbs/csharp/working/packages/microsoft.identity.client/4.84.2/microsoft.identity.client.4.84.2.nupkg.sha512",
+    "/tmp/codeql-scratch-f7e5226b5e4052fe/dbs/csharp/working/packages/microsoft.identity.client.extensions.msal/4.84.2/microsoft.identity.client.extensions.msal.4.84.2.nupkg.sha512",
+    "/tmp/codeql-scratch-f7e5226b5e4052fe/dbs/csharp/working/packages/microsoft.identitymodel.abstractions/8.14.0/microsoft.identitymodel.abstractions.8.14.0.nupkg.sha512",
+    "/tmp/codeql-scratch-f7e5226b5e4052fe/dbs/csharp/working/packages/system.clientmodel/1.15.0/system.clientmodel.1.15.0.nupkg.sha512",
+    "/tmp/codeql-scratch-f7e5226b5e4052fe/dbs/csharp/working/packages/system.diagnostics.diagnosticsource/6.0.1/system.diagnostics.diagnosticsource.6.0.1.nupkg.sha512",
+    "/tmp/codeql-scratch-f7e5226b5e4052fe/dbs/csharp/working/packages/system.memory.data/10.0.10/system.memory.data.10.0.10.nupkg.sha512",
+    "/tmp/codeql-scratch-f7e5226b5e4052fe/dbs/csharp/working/packages/system.runtime.compilerservices.unsafe/6.0.0/system.runtime.compilerservices.unsafe.6.0.0.nupkg.sha512",
+    "/tmp/codeql-scratch-f7e5226b5e4052fe/dbs/csharp/working/packages/system.security.cryptography.protecteddata/4.5.0/system.security.cryptography.protecteddata.4.5.0.nupkg.sha512",
+    "/tmp/codeql-scratch-f7e5226b5e4052fe/dbs/csharp/working/packages/microsoft.netcore.app.ref/10.0.14/microsoft.netcore.app.ref.10.0.14.nupkg.sha512",
+    "/tmp/codeql-scratch-f7e5226b5e4052fe/dbs/csharp/working/packages/microsoft.aspnetcore.app.ref/10.0.14/microsoft.aspnetcore.app.ref.10.0.14.nupkg.sha512"
+  ],
+  "logs": []
+}
