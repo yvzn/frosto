@@ -193,12 +193,14 @@
 	(function () {
 		var copyButton = document.querySelector('[data-copy-weather-url]');
 		if (copyButton) {
+			var copyButtonDefaultContent = copyButton.textContent;
 			copyButton.addEventListener('click', function () {
 				var input = copyButton.previousElementSibling;
 				if (!input) return;
-				input.focus();
-				input.select();
-				navigator.clipboard.writeText(input.value).catch(function () {
+				navigator.clipboard.writeText(input.value).then(function () {
+					copyButton.textContent = 'Copied !';
+					setTimeout(function () { copyButton.textContent = copyButtonDefaultContent; }, 1500);
+				}).catch(function () {
 					console.warn('Failed to copy weather forecast URL.');
 				});
 			});
