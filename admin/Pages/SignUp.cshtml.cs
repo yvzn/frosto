@@ -20,6 +20,9 @@ public class SignUpModel(
 	[BindProperty]
 	public Location ValidLocation { get; set; } = new();
 
+	[BindProperty]
+	public bool ConfirmDuplicate { get; set; }
+
 	public string? ValidLocationExists { get; set; }
 
 	public SelectList ChannelOptions { get; set; } = new(ChannelService.GetChannelList());
@@ -70,6 +73,24 @@ public class SignUpModel(
 			return Page();
 		}
 
+		var existingLocation = await FindDuplicateLocationAsync(HttpContext.RequestAborted);
+		if (existingLocation is not null)
+		{
+			if (LocationDuplicateValidator.RequiresDuplicateConfirmation(ValidLocation, existingLocation.Id, ConfirmDuplicate))
+			{
+				ModelState.AddModelError(nameof(ValidLocation),
+					LocationDuplicateValidator.GetDuplicateMessage(ValidLocation, existingLocation.Id));
+				ValidLocationExists = existingLocation.Id;
+				await PopulateReferenceDataAsync(HttpContext.RequestAborted);
+				return Page();
+			}
+
+			logger.LogInformation(
+				"Confirmed duplicate sign-up for {City}, {Country} before creating valid location",
+				ValidLocation.city,
+				ValidLocation.country);
+		}
+
 		logger.LogInformation("Saving location {LocationId}", ValidLocation?.Id);
 		await locationService.CreateValidLocationAsync(ValidLocation, HttpContext.RequestAborted);
 		await signUpService.DeleteSignUpAsync(ValidLocation?.Id, HttpContext.RequestAborted);
@@ -84,16 +105,26 @@ public class SignUpModel(
 		return RedirectToPage("./Index", new { m = $"Sign-Up discarded {ValidLocation?.city} ({ValidLocation?.RowKey})" });
 	}
 
+	private async Task<Location?> FindDuplicateLocationAsync(CancellationToken cancellationToken)
+	{
+		if (string.IsNullOrWhiteSpace(ValidLocation?.city) || string.IsNullOrWhiteSpace(ValidLocation.country))
+		{
+			return null;
+		}
+
+		return await locationService.FindValidLocationAsync(
+			Capitalize(ValidLocation.city),
+			Capitalize(ValidLocation.country),
+			cancellationToken);
+	}
+
 	private async Task PopulateReferenceDataAsync(CancellationToken cancellationToken)
 	{
 		ValidLocationExists = null;
 
 		if (!string.IsNullOrWhiteSpace(ValidLocation?.city) && !string.IsNullOrWhiteSpace(ValidLocation.country))
 		{
-			var existingLocation = await locationService.FindValidLocationAsync(
-				Capitalize(ValidLocation.city),
-				Capitalize(ValidLocation.country),
-				cancellationToken);
+			var existingLocation = await FindDuplicateLocationAsync(cancellationToken);
 			ValidLocationExists = existingLocation?.Id;
 		}
 
