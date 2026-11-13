@@ -3,15 +3,24 @@ using Azure.Data.Tables;
 
 namespace Frosto.Entities;
 
+public interface ILocation
+{
+    string? coordinates { get; }
+    string? timezone { get; }
+    string? weatherApiUrl { get; }
+    double? minThreshold { get; }
+    double? minTemperatureAdjustment { get; }
+}
+
 public abstract class EntityBase : ITableEntity
 {
-    public string? PartitionKey { get; set; }
-    public string? RowKey { get; set; }
+    public string PartitionKey { get; set; } = string.Empty;
+    public string RowKey { get; set; } = string.Empty;
     public DateTimeOffset? Timestamp { get; set; }
     public ETag ETag { get; set; }
 }
 
-public class LocationEntity : weather.ILocation, ITableEntity
+public class LocationEntity : ILocation, ITableEntity
 {
     public string? city { get; set; }
     public string? country { get; set; }
@@ -31,8 +40,8 @@ public class LocationEntity : weather.ILocation, ITableEntity
     public int? utc_offset_minutes { get; set; }
     public string? hemisphere { get; set; }
     public string? zipCode { get; set; }
-    public string? PartitionKey { get; set; }
-    public string? RowKey { get; set; }
+    public string PartitionKey { get; set; } = string.Empty;
+    public string RowKey { get; set; } = string.Empty;
     public DateTimeOffset? Timestamp { get; set; }
     public ETag ETag { get; set; }
 }
@@ -41,8 +50,8 @@ public class LocationBatchEntity : ITableEntity
 {
     public int slot_index { get; set; }
     public int day_index { get; set; }
-    public string? PartitionKey { get; set; }
-    public string? RowKey { get; set; }
+    public string PartitionKey { get; set; } = string.Empty;
+    public string RowKey { get; set; } = string.Empty;
     public DateTimeOffset? Timestamp { get; set; }
     public ETag ETag { get; set; }
 }
@@ -51,8 +60,8 @@ public class MonitoringEntity : ITableEntity
 {
     public string? coordinates { get; set; }
     public int? daysUntilNextFrost { get; set; }
-    public string? PartitionKey { get; set; }
-    public string? RowKey { get; set; }
+    public string PartitionKey { get; set; } = string.Empty;
+    public string RowKey { get; set; } = string.Empty;
     public DateTimeOffset? Timestamp { get; set; }
     public ETag ETag { get; set; }
 }
@@ -60,8 +69,8 @@ public class MonitoringEntity : ITableEntity
 public class BatchEntity : ITableEntity
 {
     public string? locations { get; set; }
-    public string? PartitionKey { get; set; }
-    public string? RowKey { get; set; }
+    public string PartitionKey { get; set; } = string.Empty;
+    public string RowKey { get; set; } = string.Empty;
     public DateTimeOffset? Timestamp { get; set; }
     public ETag ETag { get; set; }
 }
