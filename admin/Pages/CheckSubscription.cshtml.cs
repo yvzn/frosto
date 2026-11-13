@@ -34,22 +34,26 @@ public class CheckSubscriptionModel(
 
 	private (string subject, string htmlBody, string textBody) GetEmailTemplate() =>
 		_emailTemplate ??= mailTemplates.For(SelectedRequestLang).SubscriptionConfirmation(
-			FoundLocations,
+			ActiveLocations,
 			ContactEmail,
 			addLinkToApp: "app".Equals(SelectedRequestSource, StringComparison.OrdinalIgnoreCase),
 			includeBodyTag: false);
 
-	public string EmailSubject => ShowResults && FoundLocations.Count > 0
+	public string EmailSubject => ShowResults && HasActiveLocations
 		? GetEmailTemplate().subject
 		: string.Empty;
 
-	public string EmailHtmlBodyContent => ShowResults && FoundLocations.Count > 0
+	public string EmailHtmlBodyContent => ShowResults && HasActiveLocations
 		? GetEmailTemplate().htmlBody
 		: string.Empty;
 
 	public IList<CheckSubscription> CheckSubscriptionRequests { get; private set; } = [];
 
 	public IList<Location> FoundLocations { get; private set; } = [];
+
+	public IList<Location> ActiveLocations => FoundLocations.Where(location => !location.disabled).ToList();
+
+	public bool HasActiveLocations => FoundLocations.Any(location => !location.disabled);
 
 	public string? SearchError { get; private set; }
 
@@ -134,8 +138,17 @@ public class CheckSubscriptionModel(
 		FoundLocations = await locationService.FindValidLocationsByUserAsync(SelectedRequest.email, HttpContext.RequestAborted);
 		ShowResults = true;
 
+		if (!HasActiveLocations)
+		{
+			if (FoundLocations.Count == 0)
+			{
+				SearchError = $"No active locations found for {SelectedRequest.email}. User is not subscribed to any service.";
+			}
+			return Page();
+		}
+
 		var (subject, htmlBody, textBody) = mailTemplates.For(SelectedRequestLang).SubscriptionConfirmation(
-			FoundLocations,
+			ActiveLocations,
 			ContactEmail,
 			addLinkToApp: "app".Equals(SelectedRequestSource, StringComparison.OrdinalIgnoreCase));
 
