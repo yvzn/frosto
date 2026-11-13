@@ -1,0 +1,19 @@
+{
+  "name": "alertegelee.fr",
+  "domain": "https://www.alertegelee.fr",
+  "lang": "fr",
+  "alternateDomain": "https://www.frostalert.net",
+  "canonicalHost": "https://www.alertegelee.fr",
+  "cspHosts": [
+    "https://alertegeleeapi.azurewebsites.net",
+    "https://alertegeleeapi2-b6c4cyccctepg9hv.westeurope-01.azurewebsites.net",
+    "https://frostalertsupport.azurewebsites.net"
+  ],
+  "env": {
+    "SIGNUP_URL": "",
+    "HEALTHCHECK_URL": "",
+    "SUPPORT_URL": "",
+    "CHECKSUBSCRIPTION_URL": "",
+    "UNSUBSCRIBE_URL": ""
+  }
+}

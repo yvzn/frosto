@@ -1,0 +1,24 @@
+{
+  "name": "frosto-site-11ty",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -k \"SITE=fr npx @11ty/eleventy --serve --watch --port 5180\" \"SITE=en npx @11ty/eleventy --serve --watch --port 5181\"",
+    "build": "node scripts/build-sites.mjs",
+    "check": "node scripts/parity-check.mjs"
+  },
+  "engines": {
+    "node": ">=20.19.0 || >=22.12.0"
+  },
+  "devDependencies": {
+    "@11ty/eleventy": "^3.0.0",
+    "concurrently": "^9.0.1",
+    "purgecss": "^8.0.0",
+    "rimraf": "^6.0.1",
+    "vite": "^8.2.4"
+  },
+  "dependencies": {
+    "bootstrap": "^5.2.1"
+  }
+}
