@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<link rel="icon" type="image/svg+xml" href="./asset/favicon.svg" />
+	<link rel="canonical" href="https://www.alertegelee.fr/unsubscribe.html" />
+	<title>Confirmation de désinscription - Alerte gelées</title>
+	<link rel="alternate" hreflang="fr" href="https://www.alertegelee.fr/unsubscribe.html" />
+	<link rel="alternate" hreflang="en" href="https://www.frostalert.net/unsubscribe.html" />
+	<meta name="robots" content="noindex" />
+</head>
+
+<body>
+	<header class="p-3 text-bg-dark shadow-sm">
+		<div class="container">
+			<nav class="navbar navbar-dark d-flex flex-wrap align-items-center justify-content-start">
+				<a href="/" aria-label="Page d'accueil"
+					class="navbar-brand d-flex align-items-center text-white text-decoration-none">Alerte
+					gelées</a>
+				<ul class="nav ms-auto justify-content-center">
+					<li><a href="https://www.frostalert.net/unsubscribe.html" class="nav-link px-2 text-white"
+							lang="en">English version</a></li>
+				</ul>
+			</nav>
+		</div>
+	</header>
+
+	<main>
+		<section class="py-5 container">
+			<div class="row py-lg-5">
+				<article class="col-lg-6 p-4 p-md-5">
+					<h1 class="fw-light mb-3">Confirmation de désinscription</h1>
+					<p class="lead text-muted col-lg-10">Veuillez confirmer vos coordonnées afin de ne plus recevoir d'alertes.</p>
+				</article>
+				<article class="col-md-10 mx-auto col-lg-6">
+					<form class="p-4 p-md-5 border rounded-3 bg-light" action="%VITE_UNSUBSCRIBE_URL%"
+						aria-label="Formulaire de confirmation de désinscription" method="post"
+						enctype="application/x-www-form-urlencoded">
+						<div class="form-floating mb-3">
+							<input type="email" class="form-control" id="email" name="email"
+								placeholder="prenom.nom@exemple.com" required="required"
+								autocomplete="email" />
+							<label for="email">Adresse e-mail</label>
+						</div>
+						<div class="form-floating mb-3" aria-hidden="true">
+							<input type="text" class="form-control" id="reason" name="reason"
+								placeholder="exemple : Trop de messages"
+								autocomplete="none" />
+							<label for="reason">Raison de la désinscription</label>
+						</div>
+						<input type="hidden" id="user" name="user" value="" />
+						<input type="hidden" id="id" name="id" value="" />
+						<input type="hidden" id="origin" name="origin" value="site" />
+						<input type="hidden" id="lang" name="lang" value="fr" />
+						<button class="w-100 btn btn-lg btn-primary" type="submit" aria-live="polite">Se désinscrire</button>
+					</form>
+				</article>
+			</div>
+		</section>
+		<section class="py-5 bg-light">
+			<div class="container pb-lg-5">
+				<p>AlerteGelee.fr traite les données collectées pour analyser les prévisions météo et envoyer des
+					alertes.</p>
+				<p>Pour en savoir plus sur la gestion de vos données personnelles et exercer vos droits, consultez
+					les <a class="link-dark" href="./legal.html">conditions générales d'utilisation du service</a>.
+				</p>
+			</div>
+		</section>
+	</main>
+
+	<script type="module" src="./unsubscribe.js"></script>
+</body>
+
+</html>
