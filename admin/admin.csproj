@@ -16,6 +16,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="../entities/entities.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<None Update="dkim_public.pem">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>

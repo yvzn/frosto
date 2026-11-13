@@ -4,7 +4,7 @@ namespace weather;
 
 public static class RequestUri
 {
-	public static Uri From(ILocation location, string defaultWeatherApiUrl)
+	public static Uri From(Frosto.Entities.ILocation location, string defaultWeatherApiUrl)
 	{
 		ArgumentNullException.ThrowIfNull(location.coordinates, nameof(location));
 

@@ -2,7 +2,7 @@ namespace weather;
 
 public class ForecastBuilder(
 	OpenMeteoApiResult? weatherApiResult,
-	ILocation? location,
+	Frosto.Entities.ILocation? location,
 	bool applyTemperatureThreshold = false)
 {
 	public List<Forecast>? Build()
