@@ -6,9 +6,9 @@
 
 **Frosto** (alertegelee.fr / frostalert.net) is a free, open-source frost-alert notification service. Users subscribe with their location; the system fetches weather forecasts and sends email notifications when sub-zero temperatures are forecast.
 
-**Repository size:** medium (~15 top-level directories, ~50 source files across all projects).  
-**Languages:** C# 47%, HTML 38%, Vue/TypeScript/JS 13%, PowerShell 1%.  
-**Deployment platform:** Microsoft Azure (Azure Functions, Azure Static Web Apps / SSH deploy, Azure Tables storage).  
+**Repository size:** medium (~15 top-level directories, ~50 source files across all projects).
+**Languages:** C# 47%, HTML 38%, Vue/TypeScript/JS 13%, PowerShell 1%.
+**Deployment platform:** Microsoft Azure (Azure Functions, Azure Static Web Apps / SSH deploy, Azure Tables storage).
 **CI/CD:** Azure Pipelines (one `azure-pipelines.yml` per sub-project; no GitHub Actions workflows exist in this repo).
 
 ---
@@ -31,6 +31,9 @@ frosto/
 │   └── azure-pipelines.yml
 ├── weather-forecast/     # Shared C# library (net9.0) — Open-Meteo API client, referenced by api & batch
 │   └── weather-forecast.csproj
+├── entities/             # Shared C# entity models
+│   ├── src/              # Production project and source
+│   └── tests/            # Separate entity test project
 ├── admin/                # ASP.NET Core web app (C# .NET 10) — admin tooling
 │   ├── admin.csproj      # Target: net10.0 (uses global.json pinning SDK 10.0.0)
 │   ├── admin.slnx
@@ -67,8 +70,8 @@ frosto/
 
 ### C# Projects (api, batch, admin)
 
-**Runtime:** .NET SDK  
-- `api/` and `batch/`: .NET 9 (`net9.0`) — requires .NET SDK 9.0.x  
+**Runtime:** .NET SDK
+- `api/` and `batch/`: .NET 9 (`net9.0`) — requires .NET SDK 9.0.x
 - `admin/`: .NET 10 (`net10.0`) — `admin/global.json` pins SDK to `10.0.0` (rollForward: latestMinor)
 
 **Commands (run from repo root or the sub-project directory):**
@@ -86,7 +89,7 @@ dotnet restore admin/admin.slnx
 dotnet build admin/admin.slnx --configuration Release
 ```
 
-**Local run (Azure Functions):** requires `local.settings.json` (gitignored) and Azurite for local storage emulation.  
+**Local run (Azure Functions):** requires `local.settings.json` (gitignored) and Azurite for local storage emulation.
 `local.settings.json` is never published (`CopyToPublishDirectory=Never`).
 
 **CI pipeline steps (Azure Pipelines):**
@@ -143,7 +146,7 @@ npx playwright test
 
 ## CI/CD Checks (Azure Pipelines)
 
-Each sub-project has its own `azure-pipelines.yml`. Pipelines trigger on pushes to `main` for changes in their respective path. There are **no GitHub Actions workflows**.
+Each sub-project has its own `azure-pipelines.yml`. The API, batch, admin, and support pipelines also trigger on changes to `entities/src`. There are **no GitHub Actions workflows**.
 
 | Sub-project | Pipeline file | Key validation |
 |-------------|--------------|----------------|
@@ -158,12 +161,12 @@ Each sub-project has its own `azure-pipelines.yml`. Pipelines trigger on pushes 
 1. For C# changes: `dotnet build <project>.sln --configuration Release`
 2. For `app/` changes: `cd app && npm ci && npm run build`
 3. For `site/` or `site-en/` changes: `cd site && npm ci && npm run build`
+4. For shared entity changes: `dotnet test entities/tests/entities-tests.csproj --configuration Release`
 
 ---
 
 ## Key Conventions
 
-- **Every code change must have a corresponding GitHub Issue.** Do not start implementation without one.
 - Issues labeled `sample` (prefixed `[SAMPLE 1]`, `[SAMPLE 2]`) are onboarding references — never close, implement, or modify them.
 - `batch/` has `TreatWarningsAsErrors=true` — fix all warnings before committing.
 - `local.settings.json` files are gitignored and must never be committed.

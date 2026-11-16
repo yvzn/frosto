@@ -16,6 +16,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../entities/entities.csproj" />
+    <ProjectReference Include="../src/entities.csproj" />
   </ItemGroup>
 </Project>
