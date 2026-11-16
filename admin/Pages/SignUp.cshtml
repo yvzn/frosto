@@ -123,7 +123,7 @@
 
 		@if (Model.ValidLocationExists is not null)
 		{
-			<div class="alert alert-warning mt-3" role="alert">
+			<div class="alert alert-warning mt-3" role="alert" id="confirm-duplicate">
 				<strong>Duplicate location found.</strong>
 				This sign-up matches an existing valid location for @Model.ValidLocation.city in @Model.ValidLocation.country.
 				Review the existing entry, then check the box below to confirm that you still want to create this sign-up.
@@ -215,6 +215,7 @@
 	</form>
 </div>
 
+@section Scripts {
 <script>
 	var cityInput = document.getElementById('valid-location-city');
 	var countryInput = document.getElementById('valid-location-country');
@@ -623,4 +624,12 @@
 			}
 		});
 	}
+
+	const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+	const confirmDuplicate = document.getElementById('confirm-duplicate');
+	if (confirmDuplicate) {
+		confirmDuplicate.scrollIntoView({ behavior: prefersReducedMotion ? 'instant' : 'smooth' });
+	}
 </script>
+}
