@@ -121,6 +121,19 @@
 		<input asp-for="ValidLocation.Id" />
 		<span asp-validation-for="ValidLocation.Id" class="text-danger"></span>
 
+		@if (Model.ValidLocationExists is not null)
+		{
+			<div class="alert alert-warning mt-3" role="alert" id="confirm-duplicate">
+				<strong>Duplicate location found.</strong>
+				This sign-up matches an existing valid location for @Model.ValidLocation.city in @Model.ValidLocation.country.
+				Review the existing entry, then check the box below to confirm that you still want to create this sign-up.
+			</div>
+			<div class="form-check mb-3">
+				<input asp-for="ConfirmDuplicate" class="form-check-input" />
+				<label asp-for="ConfirmDuplicate" class="form-check-label">I confirm I want to create this duplicate sign-up anyway.</label>
+			</div>
+		}
+
 		<div class="btn-toolbar justify-content-between">
 			<button type="submit" class="btn btn-primary">Sign-up</button>
 			<a asp-page="./SignUp" asp-route-id="@Model.ValidLocation.Id" target="_top"
@@ -202,6 +215,7 @@
 	</form>
 </div>
 
+@section Scripts {
 <script>
 	var cityInput = document.getElementById('valid-location-city');
 	var countryInput = document.getElementById('valid-location-country');
@@ -610,4 +624,12 @@
 			}
 		});
 	}
+
+	const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+	const confirmDuplicate = document.getElementById('confirm-duplicate');
+	if (confirmDuplicate) {
+		confirmDuplicate.scrollIntoView({ behavior: prefersReducedMotion ? 'instant' : 'smooth' });
+	}
 </script>
+}

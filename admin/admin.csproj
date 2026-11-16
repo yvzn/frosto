@@ -16,6 +16,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<Compile Remove="tests/**/*.cs" />
+		<None Remove="tests/**/*.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<None Update="dkim_public.pem">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
