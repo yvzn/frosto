@@ -75,7 +75,7 @@ public class SignUp
 	private static LocationEntity ParseLocationEntity(NameValueCollection requestParams)
 		=> new ()
 		{
-			PartitionKey = requestParams["country"],
+			PartitionKey = requestParams["country"]!,
 			RowKey = Guid.NewGuid().ToString(),
 			city = requestParams["city"],
 			zipCode = requestParams["zipCode"],
@@ -88,7 +88,7 @@ public class SignUp
 	private static UserEntity ParseUserEntity(NameValueCollection requestParams)
 		=> new ()
 		{
-			PartitionKey = default,
+			// PartitionKey set later
 			RowKey = Guid.NewGuid().ToString(),
 			email = requestParams["email"],
 			userConsent = requestParams["userConsent"],
@@ -98,8 +98,8 @@ public class SignUp
 	private static SignUpEntity ParseSignUpEntity(NameValueCollection requestParams)
 		=> new ()
 		{
-			PartitionKey = requestParams["country"],
-			RowKey = default,
+			PartitionKey = requestParams["country"]!,
+			// RowKey set later
 			city = requestParams["city"],
 			country = requestParams["country"],
 			lang = requestParams["lang"],

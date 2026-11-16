@@ -5,5 +5,6 @@
     <Platform Name="x86" />
   </Configurations>
   <Project Path="../weather-forecast/weather-forecast.csproj" />
+  <Project Path="../entities/entities.csproj" />
   <Project Path="api.csproj" />
 </Solution>

@@ -49,7 +49,7 @@ public class UserService(IAzureClientFactory<TableClient> azureClientFactory)
 		{
 			entity.email = Convert.ToHexString(SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(entity.email))).ToLowerInvariant();
 		}
-		entity.disabled = "true";
+		entity.disabled = true;
 		if (string.IsNullOrEmpty(entity.created))
 		{
 			entity.created = timestamp.ToString("O");
@@ -66,7 +66,7 @@ public class UserService(IAzureClientFactory<TableClient> azureClientFactory)
 		return new User
 		{
 			email = userEntity.email ?? string.Empty,
-			disabled = userEntity.disabled,
+			disabled = userEntity.disabled == true ? "true" : userEntity.disabled == false ? "false" : null,
 			created = userEntity.created,
 			PartitionKey = userEntity.PartitionKey ?? string.Empty,
 			RowKey = userEntity.RowKey ?? string.Empty,

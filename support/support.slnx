@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="../entities/entities.csproj" />
   <Project Path="support.csproj" />
 </Solution>
