@@ -1,0 +1,26 @@
+---
+permalink: public/sitemap.xml
+eleventyExcludeFromCollections: true
+---
+{#- Pages and dates: src/_data/sitemap.js. Alternates: both sites, by language; x-default on the home page only. -#}
+{%- set sites = [
+	{ lang: site.lang, domain: site.domain },
+	{ lang: site.alternateLang, domain: site.alternateDomain }
+] | sort(false, false, 'lang') -%}
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+{%- for entry in sitemap %}
+  <url>
+    <loc>{{ site.domain }}{{ entry.path }}</loc>
+    <lastmod>{{ entry.lastmod }}</lastmod>
+    <changefreq>{{ entry.changefreq }}</changefreq>
+    <priority>{{ entry.priority }}</priority>
+    {%- for alternate in sites %}
+    <xhtml:link rel="alternate" hreflang="{{ alternate.lang }}" href="{{ alternate.domain }}{{ entry.path }}"/>
+    {%- endfor %}
+    {%- if entry.path == '/' %}
+    <xhtml:link rel="alternate" hreflang="x-default" href="{{ site.xDefaultDomain }}/"/>
+    {%- endif %}
+  </url>
+{%- endfor %}
+</urlset>

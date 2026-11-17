@@ -6,7 +6,8 @@
 //   main.js, main.css shared assets (from src/assets/)
 //   <page>.js         page scripts (from src/scripts/<site>/, or src/assets/ when identical on both sites)
 //   asset/            images (from src/assets/asset/)
-//   public/           files Vite copies untouched to the output root (.htaccess, robots.txt, sitemap.xml)
+//   public/           files Vite copies untouched to the output root (from src/public/):
+//                     .htaccess (shared), robots.txt and sitemap.xml (rendered from site settings)
 
 import { existsSync, readdirSync } from 'node:fs';
 import path from 'node:path';
@@ -16,7 +17,7 @@ const site = currentSite();
 
 /**
  * MIGRATION FALLBACK (temporary, removed once every page is migrated):
- * any page, page script or public file not yet provided by site-11ty is copied as-is
+ * any page or page script not yet provided by site-11ty is copied as-is
  * from the legacy folder (site/ or site-en/), so the full site always builds and the
  * parity check always covers all pages.
  */
@@ -36,9 +37,6 @@ function legacyFallbacks() {
 		if (ext === '.html' && !templated.has(name)) copies[path.join(legacyDir, file)] = file;
 		if (ext === '.js' && file !== 'vite.config.js' && !shared.has(file)) copies[path.join(legacyDir, file)] = file;
 	}
-	if (!existsSync(path.join('src', 'static', site))) {
-		copies[path.join(legacyDir, 'public')] = 'public';
-	}
 	return copies;
 }
 
@@ -55,6 +53,7 @@ export default function (eleventyConfig) {
 
 	// Shared assets and this site's page scripts, next to the pages (pages load them as ./<name>.js).
 	eleventyConfig.addPassthroughCopy({ 'src/assets': '.' });
+	eleventyConfig.addPassthroughCopy({ 'src/public/.htaccess': 'public/.htaccess' });
 	if (existsSync(path.join('src', 'scripts', site))) {
 		eleventyConfig.addPassthroughCopy({ [`src/scripts/${site}`]: '.' });
 	}
