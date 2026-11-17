@@ -1,1 +1,0 @@
-import"./main-z3_WAwiV.js";document.getElementById(`ademl`).innerHTML=`<a class="btn btn-primary my-2" href="mailto:yvan%40alertegelee.fr">Contactez-nous</a>`;
