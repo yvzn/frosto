@@ -10,7 +10,7 @@
 //
 // Fetched: every page of src/content/<site>/, robots.txt, sitemap.xml and every same-origin script,
 // stylesheet, image and link they reference. Compared: HTTP status, the headers of lib/live.mjs (HEADERS),
-// and the file contents with the parity check rules (whitespace, attribute order and asset hashes ignored).
+// and the file contents (lib/compare.mjs: whitespace, attribute order and asset hashes ignored).
 // Also recorded: the status of /.htaccess and of a missing page.
 
 import { existsSync, readdirSync } from 'node:fs';

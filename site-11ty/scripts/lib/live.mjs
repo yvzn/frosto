@@ -3,13 +3,13 @@
 // A snapshot is a folder:
 //   files/            every page and asset fetched, at its URL path (same layout as dist/<site>/)
 //   responses.json    per URL path: HTTP status and the headers that matter (see HEADERS)
-// so that the file contents can be compared with the parity check (scripts/lib/parity.mjs):
+// so that the file contents can be compared with lib/compare.mjs:
 // same normalization of whitespace, attribute order and asset hashes.
 
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { parse } from 'parse5';
-import { compareOutputs, stripHash } from './parity.mjs';
+import { compareOutputs, stripHash } from './compare.mjs';
 
 /** Response headers compared between snapshots. Others (date, etag, server…) vary from one request to the next. */
 export const HEADERS = [

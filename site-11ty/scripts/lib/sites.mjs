@@ -2,17 +2,15 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const PROJECT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
-export const REPO_ROOT = path.resolve(PROJECT_ROOT, '..');
 
 /**
  * Build settings per site. Site content settings (domain, lang...) live in src/_data/sites/.
- * legacyDir: legacy Vite project, relative to the repository root.
- * devPort: Vite dev server port (legacy sites use Vite's default 5173).
+ * devPort: Vite dev server port (serves .11ty/<site>/).
  * previewPort: Vite preview server port (serves dist/<site>/).
  */
 export const SITES = {
-	fr: { legacyDir: 'site', devPort: 5180, previewPort: 4180 },
-	en: { legacyDir: 'site-en', devPort: 5181, previewPort: 4181 },
+	fr: { devPort: 5180, previewPort: 4180 },
+	en: { devPort: 5181, previewPort: 4181 },
 };
 
 /** Eleventy writes here; Vite then uses it as its root. */
@@ -31,23 +29,6 @@ export function currentSite() {
 		throw new Error(`Set SITE to one of: ${Object.keys(SITES).join(', ')} (got "${site ?? ''}")`);
 	}
 	return site;
-}
-
-/**
- * Dummy form/API endpoints used for BOTH the baseline build and the new build,
- * so the parity check compares like with like.
- * Each site gets its own host so a page pointing at the other site's endpoint is caught.
- * The `.invalid` TLD is reserved (RFC 2606) and never resolves.
- */
-export function dummyEndpoints(site) {
-	const host = `https://${site}.parity.invalid`;
-	return {
-		VITE_SIGNUP_URL: `${host}/signup`,
-		VITE_HEALTHCHECK_URL: `${host}/healthcheck`,
-		VITE_SUPPORT_URL: `${host}/support`,
-		VITE_CHECKSUBSCRIPTION_URL: `${host}/check-subscription`,
-		VITE_UNSUBSCRIBE_URL: `${host}/unsubscribe`,
-	};
 }
 
 export function parseSiteArgs(argv) {

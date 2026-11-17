@@ -1,4 +1,4 @@
-// Tests of the live snapshot and check (lib/live.mjs), against a fake host serving baseline/fr/ from disk.
+// Tests of the live snapshot and check (lib/live.mjs), against a fake host serving scripts/fixtures/site/ from disk.
 
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync, rmSync } from 'node:fs';
@@ -7,7 +7,7 @@ import { after, test } from 'node:test';
 import { compareSnapshots, findReferences, takeSnapshot } from './lib/live.mjs';
 import { PROJECT_ROOT } from './lib/sites.mjs';
 
-const SITE = path.join(PROJECT_ROOT, 'baseline', 'fr');
+const SITE = path.join(PROJECT_ROOT, 'scripts', 'fixtures', 'site');
 const TMP = path.join(PROJECT_ROOT, '.tmp', 'live-test');
 const BASE = 'https://www.alertegelee.fr';
 const SEEDS = ['/', '/sign-up.html', '/contact.html', '/robots.txt', '/sitemap.xml'];
@@ -17,7 +17,7 @@ const FAVICON = `/assets/${readdirSync(path.join(SITE, 'assets')).find((f) => f.
 
 const TYPES = { html: 'text/html', js: 'text/javascript', css: 'text/css', svg: 'image/svg+xml', txt: 'text/plain', xml: 'application/xml' };
 
-/** A host serving baseline/fr/, with hooks to alter one response. */
+/** A host serving the fixture site, with hooks to alter one response. */
 function fakeHost({ headers = {}, missing = [], replace = null } = {}) {
 	return async (url) => {
 		const p = new URL(url).pathname;

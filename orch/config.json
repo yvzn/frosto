@@ -35,18 +35,11 @@
 		"health": "http://localhost:7072/api/health"
 	},
 	"site": {
-		"path": "../site",
-		"build": "npm install",
+		"path": "../site-11ty",
+		"build": "npm ci",
 		"run": "npm run dev",
-		"url": "http://localhost:5173/",
-		"health": "http://localhost:5173/"
-	},
-	"site-en": {
-		"path": "../site-en",
-		"build": "npm install",
-		"run": "npx vite --port 5174",
-		"url": "http://localhost:5174/",
-		"health": "http://localhost:5174/"
+		"url": "http://localhost:5180/",
+		"health": "http://localhost:5180/"
 	},
 	"db": {
 		"path": "../db",

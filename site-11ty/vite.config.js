@@ -1,8 +1,7 @@
 // Vite builds the Eleventy output of ONE site (SITE=fr|en): .11ty/<site>/ -> dist/<site>/.
-// Same settings as the legacy site/vite.config.js, except that the page list is
-// discovered from Eleventy's output instead of being maintained by hand.
+// The page list is discovered from Eleventy's output: every .html file is an entry point.
 //
-// Form endpoints: Vite is the ONLY place that substitutes them, as in the legacy sites:
+// Form endpoints: Vite is the ONLY place that substitutes them:
 // %VITE_SIGNUP_URL% in HTML and import.meta.env.VITE_SIGNUP_URL in JS.
 // Values come from env/<site>/.env (empty in the repo), overridden by environment variables.
 //
