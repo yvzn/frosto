@@ -8,10 +8,11 @@ export const REPO_ROOT = path.resolve(PROJECT_ROOT, '..');
  * Build settings per site. Site content settings (domain, lang...) live in src/_data/sites/.
  * legacyDir: legacy Vite project, relative to the repository root.
  * devPort: Vite dev server port (legacy sites use Vite's default 5173).
+ * previewPort: Vite preview server port (serves dist/<site>/).
  */
 export const SITES = {
-	fr: { legacyDir: 'site', devPort: 5180 },
-	en: { legacyDir: 'site-en', devPort: 5181 },
+	fr: { legacyDir: 'site', devPort: 5180, previewPort: 4180 },
+	en: { legacyDir: 'site-en', devPort: 5181, previewPort: 4181 },
 };
 
 /** Eleventy writes here; Vite then uses it as its root. */

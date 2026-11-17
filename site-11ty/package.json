@@ -5,6 +5,7 @@
 	"type": "module",
 	"scripts": {
 		"dev": "node scripts/dev.mjs",
+		"preview": "node scripts/preview.mjs",
 		"build": "node scripts/build.mjs",
 		"build:parity": "node scripts/build.mjs --dummy-endpoints",
 		"check": "node scripts/parity-check.mjs",

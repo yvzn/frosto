@@ -8,38 +8,17 @@
 //
 // Editing a template re-renders the HTML (Vite reloads the page); editing src/assets/
 // copies the file again (Vite hot-reloads CSS/JS).
+// Responses carry the production headers, with the endpoint origins added to the CSP connect-src
+// (see vite.config.js).
 
-import { spawn } from 'node:child_process';
 import { rmSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { PROJECT_ROOT, currentSite, eleventyOutDir, parseSiteArgs } from './lib/sites.mjs';
+import { runPerSite } from './lib/per-site.mjs';
+import { PROJECT_ROOT, currentSite, eleventyOutDir } from './lib/sites.mjs';
 
 if (!process.env.SITE) {
-	// One process per site: the Eleventy and Vite configs read SITE when they load.
-	const children = parseSiteArgs(process.argv.slice(2)).map((site) => {
-		const child = spawn(process.execPath, [fileURLToPath(import.meta.url)], {
-			cwd: PROJECT_ROOT,
-			env: { ...process.env, SITE: site, FORCE_COLOR: '1' },
-			stdio: ['inherit', 'pipe', 'pipe'],
-		});
-		for (const stream of ['stdout', 'stderr']) {
-			let buffer = '';
-			child[stream].on('data', (chunk) => {
-				buffer += chunk;
-				const lines = buffer.split('\n');
-				buffer = lines.pop();
-				for (const line of lines) process[stream].write(`[${site}] ${line}\n`);
-			});
-		}
-		child.on('exit', (code) => {
-			console.error(`[${site}] stopped (exit ${code})`);
-			for (const other of children) other.kill();
-			process.exitCode = code ?? 1;
-		});
-		return child;
-	});
-	process.on('SIGINT', () => children.forEach((c) => c.kill()));
+	runPerSite(fileURLToPath(import.meta.url), process.argv.slice(2));
 } else {
 	const site = currentSite();
 	process.chdir(PROJECT_ROOT);
