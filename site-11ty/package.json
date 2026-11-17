@@ -1,0 +1,15 @@
+{
+	"name": "frosto-site-11ty",
+	"version": "1.0.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"baseline": "node scripts/build-baseline.mjs",
+		"baseline:verify": "node scripts/build-baseline.mjs --verify",
+		"check": "node scripts/parity-check.mjs",
+		"test": "node --test scripts/parity.test.mjs"
+	},
+	"devDependencies": {
+		"parse5": "8.1.1"
+	}
+}

@@ -1,0 +1,1 @@
+import"./main-z3_WAwiV.js";var e=[`user`,`email`,`id`,`reason`,`origin`],t=new URLSearchParams(window.location.search);for(let r of e)if(t.has(r)){var n=document.getElementById(r);n&&(n.value=t.get(r))}(function(){var e=document.getElementsByTagName(`input`)[1].parentElement.style;e.position=`absolute`,e.width=`1px`,e.height=`1px`,e.overflow=`hidden`})();
