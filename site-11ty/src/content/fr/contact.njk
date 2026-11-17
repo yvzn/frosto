@@ -1,0 +1,34 @@
+---
+title: Nous contacter - Alerte gelées
+description: Contacter le service alerte gel météo
+homeLabel: Revenir à l'accueil
+script: contact
+---
+{% extends "layouts/base.njk" %}
+
+{% block head %}
+	<meta property="og:type" content="website" />
+	<meta property="og:title" content="{{ title }}" />
+	<meta property="og:description" content="Des questions sur les alertes gel près de vous ? Contactez-nous." />
+	<meta property="og:url" content="{{ site.domain }}{{ pagePath }}" />
+	<meta name="twitter:card" content="summary" />
+{%- endblock %}
+
+{#- No <main> on this page, as on the legacy site. #}
+{% block main %}
+	<section class="container py-5">
+		<div class="row flex-lg-row-reverse align-items-center py-lg-5">
+			<article class="col-10 col-sm-8 col-lg-6 p-4 p-md-5">
+				<img src="./asset/undraw_messenger_re_8bky.svg" class="d-block mx-lg-auto img-fluid"
+					alt="Une personne postant une enveloppe avec un message électronique" width="300" height="287" />
+			</article>
+			<article class="col-lg-6 p-4 p-md-5">
+				<h1 class="fw-light">Nous contacter</h1>
+				<p class="lead text-muted">Pour toute question (ou juste pour discuter), envoyez un courrier
+					électronique via le bouton suivant : </p>
+				<p class="text-muted"><span id="ademl">[Veuillez activer Javascript pour nous contacter]</span></p>
+				<p><a href="./index.html" class="d-inline-block my-4">Revenir à l'accueil</a></p>
+			</article>
+		</div>
+	</section>
+{%- endblock %}

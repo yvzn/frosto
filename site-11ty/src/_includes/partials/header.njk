@@ -1,0 +1,13 @@
+{#- Header with the site name and the link to the same page on the other site. -#}
+<header class="p-3 text-bg-dark shadow-sm">
+		<div class="container">
+			<nav class="navbar navbar-dark d-flex flex-wrap align-items-center justify-content-start">
+				<a href="/" aria-label="{{ homeLabel }}"
+					class="navbar-brand d-flex align-items-center text-white text-decoration-none">{{ site.name }}</a>
+				<ul class="nav ms-auto justify-content-center">
+					<li><a href="{{ site.alternateDomain }}{{ pagePath }}" class="nav-link px-2 text-white"
+							lang="{{ site.alternateLang }}">{{ site.alternateLabel }}</a></li>
+				</ul>
+			</nav>
+		</div>
+	</header>
