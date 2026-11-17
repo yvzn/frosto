@@ -2,6 +2,7 @@
 //   1. Eleventy  src/            -> .11ty/<site>/
 //   2. Vite      .11ty/<site>/   -> dist/<site>/   (bundles JS and Bootstrap CSS, hashes file names)
 //   3. PurgeCSS  dist/<site>/assets/*.css          (same as the legacy "postbuild" script)
+//   4. Check     no plain email address in dist/<site>/ (see lib/email-guard.mjs)
 //
 //   node scripts/build.mjs                       both sites
 //   node scripts/build.mjs --site fr             one site
@@ -47,5 +48,13 @@ const purged = await new PurgeCSS().purge({
 	css: [`${dist}/assets/*.css`],
 });
 for (const { file, css } of purged) writeFileSync(file, css);
+
+// 4. The contact address must stay obfuscated (see lib/email-guard.mjs).
+const { findPlainEmails } = await import('./lib/email-guard.mjs');
+const emails = findPlainEmails(distDir(site));
+if (emails.length) {
+	console.error(`✗ ${site}: plain email address in the output, obfuscation lost:\n  ${emails.join('\n  ')}`);
+	process.exit(1);
+}
 
 console.log(`✓ ${site}: built dist/${site}/ in ${((Date.now() - started) / 1000).toFixed(1)}s`);

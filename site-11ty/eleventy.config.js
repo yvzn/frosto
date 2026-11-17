@@ -4,6 +4,7 @@
 // .11ty/<site>/ mirrors the layout of the legacy Vite projects:
 //   *.html            pages (from src/content/<site>/)
 //   main.js, main.css shared assets (from src/assets/)
+//   <page>.js         page scripts (from src/scripts/<site>/, or src/assets/ when identical on both sites)
 //   asset/            images (from src/assets/asset/)
 //   public/           files Vite copies untouched to the output root (.htaccess, robots.txt, sitemap.xml)
 
@@ -23,7 +24,11 @@ function legacyFallbacks() {
 	const legacyDir = path.join(REPO_ROOT, SITES[site].legacyDir);
 	const contentDir = path.join('src', 'content', site);
 	const templated = new Set(existsSync(contentDir) ? readdirSync(contentDir).map((f) => path.parse(f).name) : []);
-	const shared = new Set(readdirSync(path.join('src', 'assets')));
+	const scriptsDir = path.join('src', 'scripts', site);
+	const shared = new Set([
+		...readdirSync(path.join('src', 'assets')),
+		...(existsSync(scriptsDir) ? readdirSync(scriptsDir) : []),
+	]);
 
 	const copies = {};
 	for (const file of readdirSync(legacyDir)) {
@@ -41,13 +46,18 @@ export default function (eleventyConfig) {
 	eleventyConfig.setInputDirectory('src');
 	eleventyConfig.setOutputDirectory(path.relative('.', eleventyOutDir(site)));
 
-	// Only this site's pages are templates; the other site's folder and the assets are not.
+	// Only this site's pages are templates; the other site's folder, the assets and the scripts are not.
 	for (const other of Object.keys(SITES).filter((s) => s !== site)) {
 		eleventyConfig.ignores.add(`src/content/${other}/**`);
 	}
 	eleventyConfig.ignores.add('src/assets/**');
+	eleventyConfig.ignores.add('src/scripts/**');
 
+	// Shared assets and this site's page scripts, next to the pages (pages load them as ./<name>.js).
 	eleventyConfig.addPassthroughCopy({ 'src/assets': '.' });
+	if (existsSync(path.join('src', 'scripts', site))) {
+		eleventyConfig.addPassthroughCopy({ [`src/scripts/${site}`]: '.' });
+	}
 
 	const fallbacks = legacyFallbacks();
 	if (Object.keys(fallbacks).length) {
