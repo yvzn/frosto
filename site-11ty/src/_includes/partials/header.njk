@@ -3,7 +3,7 @@
 		<div class="container">
 			<nav class="navbar navbar-dark d-flex flex-wrap align-items-center justify-content-start">
 				<a href="/" aria-label="{{ homeLabel }}"
-					class="navbar-brand d-flex align-items-center text-white text-decoration-none">{{ site.name }}</a>
+					class="navbar-brand d-flex align-items-center text-white text-decoration-none">{{ brand if brand else site.name }}</a>
 				<ul class="nav ms-auto justify-content-center">
 					<li><a href="{{ site.alternateDomain }}{{ pagePath }}" class="nav-link px-2 text-white"
 							lang="{{ site.alternateLang }}">{{ site.alternateLabel }}</a></li>
