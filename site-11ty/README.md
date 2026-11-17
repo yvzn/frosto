@@ -3,9 +3,9 @@
 Work in progress: this folder will replace `site/` (alertegelee.fr) and `site-en/` (frostalert.net)
 with a single Eleventy project. Until cutover, the legacy folders stay untouched and remain the source of truth.
 
-Current state: **checkpoint 5 — server files.** The French site is built entirely from `site-11ty`, and
-`.htaccess`, `robots.txt` and `sitemap.xml` are generated for both sites. English pages and scripts still
-come from `site-en/` (see [Migration fallback](#migration-fallback)). Both outputs match the legacy sites.
+Current state: **checkpoint 6 — both sites.** Both sites are built entirely from `site-11ty`: no file is read
+from `site/` or `site-en/` any more, except by the baseline scripts. Both outputs match the legacy sites.
+Next: deploy pipeline, staging check, cutover.
 
 Node version: see `.nvmrc`.
 
@@ -42,7 +42,8 @@ and Vite reloads the page.
 |---|---|
 | `src/content/<site>/*.njk` | one file per page; `sign-up.njk` is published as `/sign-up.html` (`src/content/content.11tydata.js`) |
 | `src/_includes/layouts/base.njk` | page skeleton: `<head>` built from front matter, header, page script |
-| `src/_includes/partials/` | header (with the language switch), simple header, footer, form consent checkbox |
+| `src/_includes/partials/` | header (with the language switch), simple header, form consent checkbox |
+| `src/_includes/partials/<site>/footer.njk` | home page footer, different on each site |
 | `src/_data/site.js`, `src/_data/sites/<site>.js` | site settings and shared labels, available in templates as `{{ site.lang }}`, `{{ site.domain }}`… |
 | `src/assets/` | shared `main.js`, `main.css`, `unsubscribe.js`, `asset/` images (identical on both sites) |
 | `src/scripts/<site>/` | page scripts with translated strings, loaded as `./<page>.js` |
@@ -62,6 +63,7 @@ A page extends the layout and fills two blocks: `head` (extra tags such as Open 
 title: Inscription - Alerte gelées     # full <title>, the site name is not appended
 description: Inscrivez-vous…           # optional <meta name="description">
 homeLabel: Revenir à l'accueil         # aria-label of the home link in the header
+brand: Frost alert                     # optional, header site name, default site.name
 script: sign-up                        # page script, default main
 noindex: true                          # default false
 canonical: false                       # default true: canonical + hreflang links
@@ -115,18 +117,15 @@ Keep `.map(String)`: without it, rolldown 1.2.16+ folds the parts into a plain s
 `alertegelees.fr` (with an "s") in `sign-up-complete.js` is not a typo: it is the sending domain set up for
 DKIM and SPF.
 
-## Migration fallback
+## Legacy quirks kept on purpose
 
-Until all pages are migrated, `eleventy.config.js` copies from `site/` or `site-en/` every page and page
-script that `site-11ty` does not provide yet. The build log lists them:
+Zero-diff means a few oddities of the legacy pages are reproduced as-is. Fix them after cutover, each with
+its own baseline update:
 
-```
-[11ty:en] from legacy site-en/: check-subscription-complete.html, check-subscription.html, …
-```
-
-To migrate a page, add `src/content/<site>/<page>.njk` (or a script to `src/scripts/<site>/`):
-the legacy copy is then dropped automatically.
-The fallback is removed once the list is empty for both sites.
+- EN `donate.html`: header reads "Frost alert" instead of "Frost Alerts" (`brand` in its front matter).
+- EN `unsubscribe-complete.html`: image alt text copied from `check-subscription-complete.html`.
+- Home-link `aria-label`, head tags order and some wording vary from page to page.
+- FR and EN `sign-up.html` use different markup for the consent checkbox.
 
 ## Parity check
 

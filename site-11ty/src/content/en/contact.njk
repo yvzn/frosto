@@ -1,0 +1,34 @@
+---
+title: Contact Frost Alerts
+description: Contact Frost Alerts — the free frost alert app. Ask about frost alerts near me, frost alerts for my area.
+homeLabel: Home page
+script: contact
+---
+{% extends "layouts/base.njk" %}
+
+{% block head %}
+	<meta property="og:type" content="website" />
+	<meta property="og:title" content="{{ title }}" />
+	<meta property="og:description" content="Questions about frost alerts near you? Get in touch." />
+	<meta property="og:url" content="{{ site.domain }}{{ pagePath }}" />
+	<meta name="twitter:card" content="summary" />
+{%- endblock %}
+
+{#- No <main> on this page, as on the legacy site. #}
+{% block main %}
+	<section class="container py-5">
+		<div class="row flex-lg-row-reverse align-items-center py-lg-5">
+			<article class="col-10 col-sm-8 col-lg-6 p-4 p-md-5">
+				<img src="./asset/undraw_messenger_re_8bky.svg" class="d-block mx-lg-auto img-fluid"
+					alt="A person posting an envelope with an electronic message" width="300" height="287" />
+			</article>
+			<article class="col-lg-6 p-4 p-md-5">
+				<h1 class="fw-light">Contact us</h1>
+				<p class="lead text-muted">For any question (or just to chat), send an email via the following button:
+				</p>
+				<p class="text-muted"><span id="ademl">[Please enable Javascript to contact us]</span></p>
+				<p><a href="./index.html" class="d-inline-block my-4">Back to home</a></p>
+			</article>
+		</div>
+	</section>
+{%- endblock %}

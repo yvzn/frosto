@@ -1,0 +1,46 @@
+---
+title: Check My Subscription — Free Frost Alert App
+description: Check if you are subscribed to frost alerts. Verify your subscription status for personalized frost alerts.
+noindex: true
+homeLabel: Home page
+script: check-subscription
+---
+{% extends "layouts/base.njk" %}
+
+{% block main %}
+
+	<main>
+		<section class="py-5 container">
+			<div class="row py-lg-5">
+				<article class="col-lg-6 p-4 p-md-5">
+					<h1 class="fw-light mb-3">Check My Subscription</h1>
+					<p class="lead text-muted col-lg-10">Enter your email address to verify if you are subscribed to
+						our frost alert service.</p>
+					<p class="text-muted col-lg-10">We'll check our records and confirm your subscription status.</p>
+				</article>
+				<article class="col-md-10 mx-auto col-lg-6">
+					<form class="p-4 p-md-5 border rounded-3 bg-light" action="%VITE_CHECKSUBSCRIPTION_URL%"
+						aria-label="Check subscription form" method="post" enctype="application/x-www-form-urlencoded">
+						<div class="form-floating mb-3">
+							<input type="email" class="form-control" id="email" name="email"
+								placeholder="first.last@example.com" required="required"
+								autocomplete="email" />
+							<label for="email">Email address</label>
+						</div>
+						{% include "partials/consent.njk" %}
+						<input type="hidden" id="lang" name="lang" value="{{ site.lang }}" />
+						<button class="w-100 btn btn-lg btn-primary" type="submit" aria-live="polite">Check Subscription</button>
+					</form>
+				</article>
+			</div>
+		</section>
+		<section class="py-5 bg-light">
+			<div class="container pb-lg-5">
+				<p>FrostAlert.net processes the collected data to analyze weather forecasts and send alerts.</p>
+				<p>To learn more about the management of your personal data and to exercise your rights, consult
+					the <a class="link-dark" href="./legal.html">service terms of use</a>.
+				</p>
+			</div>
+		</section>
+	</main>
+{%- endblock %}

@@ -2,7 +2,7 @@
 <header>
 		<nav class="navbar navbar-dark bg-dark shadow-sm">
 			<div class="container">
-				<a class="navbar-brand" href="/" aria-label="{{ homeLabel }}">{{ site.name }}</a>
+				<a class="navbar-brand" href="/" aria-label="{{ homeLabel }}">{{ brand if brand else site.name }}</a>
 			</div>
 		</nav>
 	</header>
