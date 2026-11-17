@@ -3,9 +3,9 @@
 Work in progress: this folder will replace `site/` (alertegelee.fr) and `site-en/` (frostalert.net)
 with a single Eleventy project. Until cutover, the legacy folders stay untouched and remain the source of truth.
 
-Current state: **checkpoint 6 — both sites.** Both sites are built entirely from `site-11ty`: no file is read
-from `site/` or `site-en/` any more, except by the baseline scripts. Both outputs match the legacy sites.
-Next: deploy pipeline, staging check, cutover.
+Current state: **checkpoint 7 — deploy pipeline.** Both sites are built entirely from `site-11ty` and match
+the legacy sites. `azure-pipelines.yml` deploys them to staging; production still comes from the legacy
+pipelines. Next: staging check, cutover (see [Deployment](#deployment)).
 
 Node version: see `.nvmrc`.
 
@@ -204,3 +204,36 @@ folds `['yvan', '%40', …].join('')` into a plain string, while 1.2.14 does not
 
 `azure-pipelines-parity.yml` runs on every PR touching `site-11ty/`, `site/` or `site-en/`:
 self-tests, `baseline:verify`, then `npm run parity`. It deploys nothing.
+
+## Deployment
+
+`azure-pipelines.yml` builds and deploys both sites: per site, one build job (`npm ci`, then
+`npm run build -- --site <site>` with the endpoints as environment variables) and one deployment job
+(`CopyFilesOverSSH` of `dist/<site>/`, `.htaccess` included). Deployment runs from `main` only.
+
+| Parameter `Deploy to` | When | SSH variables used | Azure environment |
+|---|---|---|---|
+| `staging` (default) | every push to `main` touching `site-11ty/` (except `baseline/` and this README) | `stagingSshEndpoint`, `stagingSshTargetFolder` | `staging` |
+| `production` | manual run only | `sshEndpoint`, `sshTargetFolder` | `Azure` (the legacy pipelines' environment) |
+
+Variables come from the legacy variable groups, `production` (fr) and `production-en` (en):
+`signUpUrl`, `healthCheckUrl`, `supportUrl`, `checkSubscriptionUrl`, `unsubscribeUrl`, `sshEndpoint`,
+`sshTargetFolder`. Unlike the legacy pipelines, no `.env.production` file is written: the build step maps
+them explicitly to `VITE_*` environment variables, which Vite reads.
+
+**Setup, once:**
+
+1. In each variable group, add `stagingSshEndpoint` (an SSH service connection to the staging host) and
+   `stagingSshTargetFolder` (a folder served by a staging domain or subdomain, one per site).
+2. Create the pipeline in Azure DevOps from `site-11ty/azure-pipelines.yml`, and allow it to use both
+   variable groups, the SSH service connections and the `staging` environment (created on first run).
+3. Point the staging domains to the folders. Staging uses the production endpoints, already allowed by the
+   CSP. Form posts work from any origin; the health and support checks (`fetch`/XHR from the page) also
+   need the API's CORS settings to allow the staging origins.
+
+**Cutover** (checkpoint 9): run the pipeline manually with `Deploy to: production`, then disable the
+triggers of `site/azure-pipelines.yml` and `site-en/azure-pipelines.yml` (keep them for a rollback) and
+change the trigger of this pipeline to production if wanted.
+
+Hashed assets from previous deployments stay on the host, as with the legacy pipelines
+(`overwrite: true` replaces files, it does not delete old ones).

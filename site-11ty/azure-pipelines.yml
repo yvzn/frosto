@@ -1,0 +1,107 @@
+# Builds and deploys alertegelee.fr and frostalert.net from site-11ty/.
+# Replaces site/azure-pipelines.yml and site-en/azure-pipelines.yml at cutover; until then those stay
+# in charge of production.
+#
+# One build job and one deployment job per site, each with the site's variable group:
+#   fr: "production"     en: "production-en"
+# Variables read from each group:
+#   signUpUrl, healthCheckUrl, supportUrl, checkSubscriptionUrl, unsubscribeUrl   form/API endpoints
+#   sshEndpoint, sshTargetFolder                                                    production host
+#   stagingSshEndpoint, stagingSshTargetFolder                                      staging host
+#
+# Target:
+#   staging     default; every push to main touching site-11ty/ deploys here
+#   production  manual run only ("Run pipeline" > Deploy to: production)
+
+parameters:
+- name: target
+  displayName: Deploy to
+  type: string
+  default: staging
+  values:
+  - staging
+  - production
+- name: sites
+  type: object
+  default:
+  - name: fr
+    variableGroup: production
+  - name: en
+    variableGroup: production-en
+
+trigger:
+  branches:
+    include:
+    - main
+  paths:
+    include:
+    - site-11ty
+    exclude:
+    - site-11ty/baseline
+    - site-11ty/README.md
+
+pr: none
+
+pool:
+  vmImage: ubuntu-latest
+
+jobs:
+- ${{ each site in parameters.sites }}:
+  - job: build_${{ site.name }}
+    displayName: 'build ${{ site.name }}'
+    variables:
+    - group: ${{ site.variableGroup }}
+    steps:
+    - task: UseNode@1
+      inputs:
+        version: '26'
+      displayName: 'Install Node.js'
+
+    - script: npm ci
+      displayName: 'npm ci'
+      workingDirectory: 'site-11ty'
+
+    # Vite reads VITE_* environment variables (they take precedence over env/<site>/.env).
+    # Explicit mapping: pipeline variables are not exposed under these names, and secrets never implicitly.
+    - script: npm run build -- --site ${{ site.name }}
+      displayName: 'build dist/${{ site.name }}'
+      workingDirectory: 'site-11ty'
+      env:
+        VITE_SIGNUP_URL: $(signUpUrl)
+        VITE_HEALTHCHECK_URL: $(healthCheckUrl)
+        VITE_SUPPORT_URL: $(supportUrl)
+        VITE_CHECKSUBSCRIPTION_URL: $(checkSubscriptionUrl)
+        VITE_UNSUBSCRIBE_URL: $(unsubscribeUrl)
+
+    - task: PublishPipelineArtifact@1
+      inputs:
+        targetPath: 'site-11ty/dist/${{ site.name }}'
+        publishLocation: 'pipeline'
+        artifact: 'site-11ty-${{ site.name }}'
+
+  - deployment: deploy_${{ site.name }}
+    displayName: 'deploy ${{ site.name }} to ${{ parameters.target }}'
+    dependsOn: build_${{ site.name }}
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    variables:
+    - group: ${{ site.variableGroup }}
+    ${{ if eq(parameters.target, 'production') }}:
+      environment: 'Azure'
+    ${{ else }}:
+      environment: 'staging'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: CopyFilesOverSSH@0
+            inputs:
+              ${{ if eq(parameters.target, 'production') }}:
+                sshEndpoint: '$(sshEndpoint)'
+                targetFolder: '$(sshTargetFolder)'
+              ${{ else }}:
+                sshEndpoint: '$(stagingSshEndpoint)'
+                targetFolder: '$(stagingSshTargetFolder)'
+              sourceFolder: '$(Pipeline.Workspace)/site-11ty-${{ site.name }}'
+              contents: '**'
+              readyTimeout: '20000'
+              overwrite: true
