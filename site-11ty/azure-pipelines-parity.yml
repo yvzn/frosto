@@ -48,5 +48,8 @@ steps:
   displayName: 'baseline matches legacy sites'
   workingDirectory: 'site-11ty'
 
-# From checkpoint 2 on, add here: build the new sites with the same dummy
-# endpoints (scripts/lib/sites.mjs), then "npm run check".
+# Builds the new sites with the same dummy endpoints as the baseline,
+# then compares dist/ with baseline/.
+- script: npm run parity
+  displayName: 'new sites match baseline'
+  workingDirectory: 'site-11ty'
