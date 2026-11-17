@@ -3,9 +3,9 @@
 Work in progress: this folder will replace `site/` (alertegelee.fr) and `site-en/` (frostalert.net)
 with a single Eleventy project. Until cutover, the legacy folders stay untouched and remain the source of truth.
 
-Current state: **checkpoint 3 — French pages.** Every French page is rendered from `src/content/fr/` with a
-shared layout and partials. Page scripts, `public/` files and the whole English site still come from the
-legacy folders (see [Migration fallback](#migration-fallback)). Both outputs match the legacy sites.
+Current state: **checkpoint 4 — French scripts.** Every French page and page script comes from `site-11ty`.
+`public/` files and the whole English site still come from the legacy folders
+(see [Migration fallback](#migration-fallback)). Both outputs match the legacy sites.
 
 Node version: see `.nvmrc`.
 
@@ -17,7 +17,7 @@ npm run dev                 # both sites with live reload: FR http://localhost:5
 npm run dev -- --site fr    # one site
 npm run build               # dist/fr/ and dist/en/, ready to deploy as-is
 npm run parity              # build with dummy endpoints, then compare with baseline/
-npm test                    # parity check self-tests
+npm test                    # parity check and email guard self-tests
 ```
 
 The legacy sites still run side by side: `cd ../site && npm run dev` (port 5173).
@@ -31,6 +31,8 @@ For each site, in its own process (`SITE=fr` or `SITE=en`):
 2. **Vite** builds `.11ty/<site>/` into `dist/<site>/`: bundles JS and Bootstrap CSS, hashes file names,
    copies `public/` to the output root. Every `.html` file Eleventy produced is a Vite input: there is no page list to maintain.
 3. **PurgeCSS** removes unused CSS, with the same options as the legacy `postbuild` script.
+4. **Email check**: the build fails if the contact address appears unobfuscated in the output
+   (see [Email obfuscation](#email-obfuscation)).
 
 In dev, Eleventy watches `src/` and a Vite dev server serves `.11ty/<site>/`. Any edit re-renders the site
 and Vite reloads the page.
@@ -41,7 +43,8 @@ and Vite reloads the page.
 | `src/_includes/layouts/base.njk` | page skeleton: `<head>` built from front matter, header, page script |
 | `src/_includes/partials/` | header (with the language switch), simple header, footer, form consent checkbox |
 | `src/_data/site.js`, `src/_data/sites/<site>.js` | site settings and shared labels, available in templates as `{{ site.lang }}`, `{{ site.domain }}`… |
-| `src/assets/` | shared `main.js`, `main.css`, `asset/` images (identical on both sites) |
+| `src/assets/` | shared `main.js`, `main.css`, `unsubscribe.js`, `asset/` images (identical on both sites) |
+| `src/scripts/<site>/` | page scripts with translated strings, loaded as `./<page>.js` |
 | `env/<site>/.env` | form endpoints, empty in the repo |
 | `eleventy.config.js`, `vite.config.js` | read `SITE` |
 | `scripts/build.mjs`, `scripts/dev.mjs` | run the steps above for one or both sites |
@@ -80,16 +83,37 @@ Values come from environment variables (`VITE_SIGNUP_URL`, `VITE_HEALTHCHECK_URL
 `VITE_CHECKSUBSCRIPTION_URL`, `VITE_UNSUBSCRIBE_URL`), falling back to `env/<site>/.env`.
 Use `env/<site>/.env.local` (git-ignored by Vite convention) for local values.
 
+Page scripts are copied as-is from the legacy sites, even where two scripts share most of their code
+(`sign-up.js` and `check-subscription.js`): moving shared code into a module would change the bundles
+Vite produces, and the parity check requires identical output. Factor them after cutover.
+
+## Email obfuscation
+
+`contact.js` and `sign-up-complete.js` build the contact address in the browser from parts, so it never
+appears in the HTML or JS files:
+
+```js
+['yvan', '%40', 'alertegelee.', 'fr'].map(String).join('')
+```
+
+Keep `.map(String)`: without it, rolldown 1.2.16+ folds the parts into a plain string at build time.
+`scripts/lib/email-guard.mjs` fails the build if an address of `alertegelee.fr`, `alertegelees.fr` or
+`frostalert.net` appears in the output, plain or encoded (`@`, `%40`, `&#64;`).
+
+`alertegelees.fr` (with an "s") in `sign-up-complete.js` is not a typo: it is the sending domain set up for
+DKIM and SPF.
+
 ## Migration fallback
 
 Until all pages are migrated, `eleventy.config.js` copies from `site/` or `site-en/` every page, page script
 and `public/` file that `site-11ty` does not provide yet. The build log lists them:
 
 ```
-[11ty:fr] from legacy site/: check-subscription.js, contact.js, public, …
+[11ty:en] from legacy site-en/: check-subscription-complete.html, check-subscription.html, …
 ```
 
-To migrate a page, add `src/content/<site>/<page>.njk`: the legacy copy is then dropped automatically.
+To migrate a page, add `src/content/<site>/<page>.njk` (or a script to `src/scripts/<site>/`):
+the legacy copy is then dropped automatically.
 The fallback is removed once the list is empty for both sites.
 
 ## Parity check

@@ -9,7 +9,7 @@
 		"build:parity": "node scripts/build.mjs --dummy-endpoints",
 		"check": "node scripts/parity-check.mjs",
 		"parity": "npm run build:parity && npm run check",
-		"test": "node --test scripts/parity.test.mjs",
+		"test": "node --test scripts/*.test.mjs",
 		"baseline": "node scripts/build-baseline.mjs",
 		"baseline:verify": "node scripts/build-baseline.mjs --verify"
 	},
