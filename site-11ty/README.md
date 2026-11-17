@@ -18,7 +18,9 @@ npm run dev -- --site fr    # one site
 npm run build               # dist/fr/ and dist/en/, ready to deploy as-is
 npm run preview             # serve dist/ with the production headers: FR http://localhost:4180/, EN http://localhost:4181/
 npm run parity              # build with dummy endpoints, then compare with baseline/
-npm test                    # parity check and email guard self-tests
+npm test                    # self-tests (parity check, email guard, headers, live check)
+npm run live -- snapshot    # save the deployed sites to live-snapshots/<timestamp>/ (see Live check)
+npm run live -- check --snapshot live-snapshots/<timestamp>   # compare the deployed sites with a snapshot
 ```
 
 The legacy sites still run side by side: `cd ../site && npm run dev` (port 5173).
@@ -199,6 +201,32 @@ Regenerate the baseline and port the same change to the Eleventy templates.
 **Build dependencies must stay aligned** between `site/`, `site-en/` and `site-11ty/` (Vite, rolldown,
 Bootstrap, PurgeCSS): a different minifier version changes the JS output. For example, rolldown 1.2.16+
 folds `['yvan', '%40', …].join('')` into a plain string, while 1.2.14 does not.
+
+## Live check
+
+The parity check proves the built files are unchanged. The live check covers what the server adds, on the
+deployed sites: status codes, response headers, files actually present on the host. It is made for cutover:
+
+```bash
+npm run live -- snapshot                                   # 1. before cutover: save production
+# 2. cutover: deploy site-11ty to production
+npm run live -- check --snapshot live-snapshots/<timestamp>   # 3. after: compare production with the snapshot
+```
+
+- **Fetched**: `/`, every page of `src/content/<site>/`, `robots.txt`, `sitemap.xml`, and every same-origin
+  script, stylesheet, image and link they reference (about 30 URLs per site). Status only: `/.htaccess`
+  (expected 403) and a missing page (expected 404).
+- **Compared**: HTTP status; `content-type`, `cache-control`, `content-security-policy`, `x-frame-options`,
+  `x-content-type-options`, `strict-transport-security`, `referrer-policy`, `location`; file contents with
+  the parity check rules (whitespace, attribute order and asset hashes ignored).
+- **Options**: `--site fr|en` for one site; `--base <url>` to fetch another host with one site, for example
+  a staging URL against a production snapshot (pages are identical: canonical and `hreflang` always point
+  to the production domains).
+- **Output**: `live-snapshots/<timestamp>/<site>/` (git-ignored): `responses.json` and `files/`. The check
+  fetches into `.tmp/live/<site>/`, kept for inspection. Exit code 1 on any difference.
+
+Any difference after cutover is either expected (none should be) or a reason to roll back: re-enable the
+legacy pipelines and run them.
 
 ## CI
 
