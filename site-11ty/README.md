@@ -3,9 +3,9 @@
 Work in progress: this folder will replace `site/` (alertegelee.fr) and `site-en/` (frostalert.net)
 with a single Eleventy project. Until cutover, the legacy folders stay untouched and remain the source of truth.
 
-Current state: **checkpoint 2 — skeleton.** Eleventy and Vite are wired together. The French home page is
-rendered from `src/content/fr/index.njk`; every other page still comes from the legacy folders (see
-[Migration fallback](#migration-fallback)). Both outputs already match the legacy sites.
+Current state: **checkpoint 3 — French pages.** Every French page is rendered from `src/content/fr/` with a
+shared layout and partials. Page scripts, `public/` files and the whole English site still come from the
+legacy folders (see [Migration fallback](#migration-fallback)). Both outputs match the legacy sites.
 
 Node version: see `.nvmrc`.
 
@@ -38,11 +38,38 @@ and Vite reloads the page.
 | Path | What |
 |---|---|
 | `src/content/<site>/*.njk` | one file per page; `sign-up.njk` is published as `/sign-up.html` (`src/content/content.11tydata.js`) |
-| `src/_data/site.js`, `src/_data/sites/<site>.js` | site settings, available in templates as `{{ site.lang }}`, `{{ site.domain }}`… |
+| `src/_includes/layouts/base.njk` | page skeleton: `<head>` built from front matter, header, page script |
+| `src/_includes/partials/` | header (with the language switch), simple header, footer, form consent checkbox |
+| `src/_data/site.js`, `src/_data/sites/<site>.js` | site settings and shared labels, available in templates as `{{ site.lang }}`, `{{ site.domain }}`… |
 | `src/assets/` | shared `main.js`, `main.css`, `asset/` images (identical on both sites) |
 | `env/<site>/.env` | form endpoints, empty in the repo |
 | `eleventy.config.js`, `vite.config.js` | read `SITE` |
 | `scripts/build.mjs`, `scripts/dev.mjs` | run the steps above for one or both sites |
+
+## Pages
+
+A page extends the layout and fills two blocks: `head` (extra tags such as Open Graph) and `main`
+(everything between the header and the page script). The rest comes from front matter:
+
+```njk
+---
+title: Inscription - Alerte gelées     # full <title>, the site name is not appended
+description: Inscrivez-vous…           # optional <meta name="description">
+homeLabel: Revenir à l'accueil         # aria-label of the home link in the header
+script: sign-up                        # page script, default main
+noindex: true                          # default false
+canonical: false                       # default true: canonical + hreflang links
+header: simple                         # default full (with the language switch)
+---
+{% extends "layouts/base.njk" %}
+{% block main %}…{% endblock %}
+```
+
+Canonical, `hreflang`, `og:url` and the language switch are built from `site.domain`, `site.alternateDomain`
+and the page path, so a page cannot point to the wrong domain. Head tags keep the legacy order: the parity
+check compares the markup in order.
+
+`open-meteo.njk` is a bare redirect and does not use the layout.
 
 ## Form endpoints
 
@@ -59,7 +86,7 @@ Until all pages are migrated, `eleventy.config.js` copies from `site/` or `site-
 and `public/` file that `site-11ty` does not provide yet. The build log lists them:
 
 ```
-[11ty:fr] from legacy site/: check-subscription.html, check-subscription.js, …
+[11ty:fr] from legacy site/: check-subscription.js, contact.js, public, …
 ```
 
 To migrate a page, add `src/content/<site>/<page>.njk`: the legacy copy is then dropped automatically.

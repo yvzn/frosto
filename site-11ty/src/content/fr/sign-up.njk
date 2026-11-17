@@ -1,0 +1,62 @@
+---
+title: Inscription - Alerte gelées
+description: Inscrivez-vous au service alerte gel météo pour recevoir gratuitement une notification si des températures négatives sont prévues dans les jours suivants
+homeLabel: Revenir à l'accueil
+script: sign-up
+---
+{% extends "layouts/base.njk" %}
+
+{% block main %}
+	<main>
+		<section class="py-5 container">
+			<div class="row py-lg-5">
+				<article class="col-lg-6 p-4 p-md-5">
+					<h1 class="fw-light mb-3">Inscription</h1>
+					<p class="lead text-muted col-lg-10">Renseignez vos coordonnées, vous serez alerté uniquement si des
+						températures négatives sont prévues.</p>
+					<p class="lead text-muted col-lg-10">Service gratuit. Pas d'autres sollicitations commerciales de
+						notre part.</p>
+				</article>
+				<article class="col-md-10 mx-auto col-lg-6">
+					<form class="p-4 p-md-5 border rounded-3 bg-light" action="%VITE_SIGNUP_URL%"
+						aria-label="Vos coordonnées" method="post" enctype="application/x-www-form-urlencoded">
+						<div class="form-floating mb-3">
+							<input type="email" class="form-control" id="email" name="email"
+								placeholder="nom.prenom@exemple.com" required="required"
+								autocomplete="email" />
+							<label for="email">Adresse e-mail</label>
+						</div>
+						<div class="form-floating mb-3">
+							<input type="text" class="form-control" id="city" name="city" placeholder="Nantes"
+								required="required" autocomplete="address-level2" />
+							<label for="city">Ville</label>
+						</div>
+						<div class="form-floating mb-3">
+							<input type="text" class="form-control" id="zipCode" name="zipCode"
+								placeholder="44100" autocomplete="postal-code" />
+							<label for="zipCode">Code postal</label>
+						</div>
+						<div class="form-floating mb-3">
+							<input type="text" class="form-control" id="country" name="country"
+								placeholder="France" required="required" autocomplete="country-name" />
+							<label for="country">Pays</label>
+						</div>
+						{% include "partials/consent.njk" %}
+						<input type="hidden" id="lang" name="lang" value="{{ site.lang }}" />
+						<button class="w-100 btn btn-lg btn-primary" type="submit"
+							aria-live="polite">S'inscrire</button>
+					</form>
+				</article>
+			</div>
+		</section>
+		<section class="py-5 bg-light">
+			<div class="container pb-lg-5">
+				<p>Alertegelee.fr traite les données recueillies pour analyser les prévisions météo et envoyer les
+					alertes.</p>
+				<p>Pour en savoir plus sur la gestion de vos données personnelles et pour exercer vos droits, consultez
+					la <a class="link-dark" href="./legal.html">charte d'utilisation du service</a>.
+				</p>
+			</div>
+		</section>
+	</main>
+{%- endblock %}
