@@ -3,9 +3,9 @@
 Work in progress: this folder will replace `site/` (alertegelee.fr) and `site-en/` (frostalert.net)
 with a single Eleventy project. Until cutover, the legacy folders stay untouched and remain the source of truth.
 
-Current state: **checkpoint 4 — French scripts.** Every French page and page script comes from `site-11ty`.
-`public/` files and the whole English site still come from the legacy folders
-(see [Migration fallback](#migration-fallback)). Both outputs match the legacy sites.
+Current state: **checkpoint 5 — server files.** The French site is built entirely from `site-11ty`, and
+`.htaccess`, `robots.txt` and `sitemap.xml` are generated for both sites. English pages and scripts still
+come from `site-en/` (see [Migration fallback](#migration-fallback)). Both outputs match the legacy sites.
 
 Node version: see `.nvmrc`.
 
@@ -27,7 +27,8 @@ The legacy sites still run side by side: `cd ../site && npm run dev` (port 5173)
 For each site, in its own process (`SITE=fr` or `SITE=en`):
 
 1. **Eleventy** renders `src/` into `.11ty/<site>/`, a folder laid out like a legacy Vite project:
-   pages as `*.html`, `main.js`, `main.css`, `asset/`, and `public/` (`.htaccess`, `robots.txt`, `sitemap.xml`).
+   pages as `*.html`, `main.js`, `main.css`, `asset/`, and `public/` (`.htaccess`, `robots.txt`, `sitemap.xml`,
+   see [Server files](#server-files)).
 2. **Vite** builds `.11ty/<site>/` into `dist/<site>/`: bundles JS and Bootstrap CSS, hashes file names,
    copies `public/` to the output root. Every `.html` file Eleventy produced is a Vite input: there is no page list to maintain.
 3. **PurgeCSS** removes unused CSS, with the same options as the legacy `postbuild` script.
@@ -45,6 +46,8 @@ and Vite reloads the page.
 | `src/_data/site.js`, `src/_data/sites/<site>.js` | site settings and shared labels, available in templates as `{{ site.lang }}`, `{{ site.domain }}`… |
 | `src/assets/` | shared `main.js`, `main.css`, `unsubscribe.js`, `asset/` images (identical on both sites) |
 | `src/scripts/<site>/` | page scripts with translated strings, loaded as `./<page>.js` |
+| `src/public/` | `.htaccess` (shared), `robots.txt.njk`, `sitemap.xml.njk`: published at the site root |
+| `src/_data/sitemap.js` | pages listed in `sitemap.xml`, with `lastmod`, `changefreq`, `priority` |
 | `env/<site>/.env` | form endpoints, empty in the repo |
 | `eleventy.config.js`, `vite.config.js` | read `SITE` |
 | `scripts/build.mjs`, `scripts/dev.mjs` | run the steps above for one or both sites |
@@ -87,6 +90,15 @@ Page scripts are copied as-is from the legacy sites, even where two scripts shar
 (`sign-up.js` and `check-subscription.js`): moving shared code into a module would change the bundles
 Vite produces, and the parity check requires identical output. Factor them after cutover.
 
+## Server files
+
+- **`.htaccess`**: identical on both sites, copied as-is. It holds the security headers, including the
+  Content-Security-Policy whose `connect-src` lists the API hosts: update it when an endpoint host changes.
+- **`robots.txt`**: points to `{{ site.domain }}/sitemap.xml`.
+- **`sitemap.xml`**: one `<url>` per entry of `src/_data/sitemap.js`, on the site's own domain, with
+  `hreflang` alternates for both sites and `x-default` on the home page only. When a listed page changes,
+  update its `lastmod` there.
+
 ## Email obfuscation
 
 `contact.js` and `sign-up-complete.js` build the contact address in the browser from parts, so it never
@@ -105,8 +117,8 @@ DKIM and SPF.
 
 ## Migration fallback
 
-Until all pages are migrated, `eleventy.config.js` copies from `site/` or `site-en/` every page, page script
-and `public/` file that `site-11ty` does not provide yet. The build log lists them:
+Until all pages are migrated, `eleventy.config.js` copies from `site/` or `site-en/` every page and page
+script that `site-11ty` does not provide yet. The build log lists them:
 
 ```
 [11ty:en] from legacy site-en/: check-subscription-complete.html, check-subscription.html, …
