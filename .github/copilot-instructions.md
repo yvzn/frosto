@@ -35,9 +35,9 @@ frosto/
 │   ├── src/              # Production project and source
 │   └── tests/            # Separate entity test project
 ├── admin/                # ASP.NET Core web app (C# .NET 10) — admin tooling
-│   ├── admin.csproj      # Target: net10.0 (uses global.json pinning SDK 10.0.0)
 │   ├── admin.slnx
-│   ├── Controllers/, Models/, Pages/, Services/, wwwroot/
+│   ├── src/              # admin.csproj, application source, configuration, and web assets
+│   ├── tests/            # Separate admin test project
 │   └── azure-pipelines.yml
 ├── app/                  # Vue 3 + TypeScript companion app (Vite 8, base path /app/)
 │   ├── package.json      # Node >=20.19 || >=22.12
@@ -170,7 +170,7 @@ Each sub-project has its own `azure-pipelines.yml`. The API, batch, admin, and s
 - Issues labeled `sample` (prefixed `[SAMPLE 1]`, `[SAMPLE 2]`) are onboarding references — never close, implement, or modify them.
 - `batch/` has `TreatWarningsAsErrors=true` — fix all warnings before committing.
 - `local.settings.json` files are gitignored and must never be committed.
-- `dkim_private.pem` in `batch/` and `admin/` contains a placeholder (not real key); real key is injected by CI secure file task.
+- `dkim_private.pem` in `batch/` and `admin/src/` contains a placeholder (not real key); real key is injected by CI secure file task.
 - The `weather-forecast/` library is shared — changes there affect both `api/` and `batch/`.
 - C# nullable reference types are enabled (`<Nullable>enable</Nullable>`) across all projects.
 

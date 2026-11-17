@@ -19,6 +19,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../admin.csproj" />
+    <ProjectReference Include="../src/admin.csproj" />
   </ItemGroup>
 </Project>

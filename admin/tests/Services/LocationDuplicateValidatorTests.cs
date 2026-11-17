@@ -1,7 +1,7 @@
-﻿using admin.Models;
+using admin.Models;
 using admin.Services;
 
-namespace admin.Tests;
+namespace admin.Tests.Services;
 
 public class LocationDuplicateValidatorTests
 {

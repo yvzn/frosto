@@ -1,4 +1,6 @@
 <Solution>
+  <Project Path="tests/admin.Tests.csproj" />
+  <Project Path="src/admin.csproj" />
   <Project Path="../entities/src/entities.csproj" />
-  <Project Path="admin.csproj" />
+  <Project Path="../entities/tests/entities-tests.csproj" />
 </Solution>

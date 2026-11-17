@@ -16,19 +16,16 @@ applyTo: "admin/**"
 
 ```
 admin/
-├── admin.csproj        # net10.0, no Azure Functions dependency
 ├── admin.slnx          # Solution file (new .slnx format)
 ├── global.json         # Pins .NET SDK 10.0.0
-├── Program.cs          # App startup and DI configuration
-├── appsettings.json    # Non-secret config; secrets in user-secrets / env vars
-├── Controllers/        # MVC API controllers
-├── Models/             # View models and domain models
-├── Pages/              # Razor Pages
-├── Services/           # Business logic / service layer
-├── wwwroot/            # Static web assets
-├── timezones.json      # Timezone data (large, ~64 KB) — do not modify manually
-├── dkim_private.pem    # Placeholder private key; real key injected by CI
-└── dkim_public.pem     # Public key (committed)
+├── src/
+│   ├── admin.csproj    # net10.0, no Azure Functions dependency
+│   ├── Program.cs      # App startup and DI configuration
+│   ├── appsettings.json
+│   ├── Controllers/, Models/, Pages/, Services/, wwwroot/
+│   ├── timezones.json  # Timezone data — do not modify manually
+│   └── dkim_*.pem      # Placeholder private key; real key injected by CI
+└── tests/              # Separate test project
 ```
 
 ## Build Commands
@@ -40,7 +37,8 @@ dotnet restore admin.slnx
 dotnet build admin.slnx --configuration Release
 
 # Run locally
-dotnet run --project admin.csproj
+dotnet run --project src/admin.csproj
+dotnet test tests/admin.Tests.csproj --configuration Release
 ```
 
 ## Key Dependencies
