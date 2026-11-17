@@ -6,13 +6,11 @@
 	"scripts": {
 		"dev": "node scripts/dev.mjs",
 		"preview": "node scripts/preview.mjs",
-		"live": "node scripts/live.mjs",
 		"build": "node scripts/build.mjs",
 		"test": "node --test scripts/*.test.mjs"
 	},
 	"devDependencies": {
 		"@11ty/eleventy": "3.1.8",
-		"parse5": "8.1.1",
 		"purgecss": "8.0.0",
 		"vite": "8.3.5"
 	},

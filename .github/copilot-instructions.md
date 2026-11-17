@@ -131,7 +131,7 @@ npm run dev    # Live reload: FR http://localhost:5180/, EN http://localhost:518
 
 - The build fails if the contact email address appears unobfuscated in the output
 - Endpoint URLs come from environment variables (`VITE_*`), mapped explicitly in `azure-pipelines.yml`
-- See `site-11ty/README.md` for templates, front matter, CSP and the live check
+- See `site-11ty/README.md` for templates, front matter, endpoints and CSP
 
 ---
 

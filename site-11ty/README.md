@@ -5,8 +5,9 @@ The two Frosto landing sites, built from one Eleventy project:
 - **fr**: [alertegelee.fr](https://www.alertegelee.fr), output in `dist/fr/`
 - **en**: [frostalert.net](https://www.frostalert.net), output in `dist/en/`
 
-They replaced the former `site/` and `site-en/` Vite projects with zero visible difference (see the git history
-of the 11ty migration for the parity check used then).
+They replaced the former `site/` and `site-en/` Vite projects with zero visible difference. The tools used for
+that migration (parity check against the former builds, live snapshot and check of the deployed sites) are in
+the git history.
 
 Node version: see `.nvmrc`.
 
@@ -18,9 +19,7 @@ npm run dev                 # both sites with live reload: FR http://localhost:5
 npm run dev -- --site fr    # one site
 npm run build               # dist/fr/ and dist/en/, ready to deploy as-is
 npm run preview             # serve dist/ with the production headers: FR http://localhost:4180/, EN http://localhost:4181/
-npm test                    # self-tests (email guard, headers, live check)
-npm run live -- snapshot    # save the deployed sites to live-snapshots/<timestamp>/ (see Live check)
-npm run live -- check --snapshot live-snapshots/<timestamp>   # compare the deployed sites with a snapshot
+npm test                    # self-tests (email guard, local server headers)
 ```
 
 ## How a build works
@@ -149,32 +148,6 @@ Inherited from the former sites and kept during the zero-diff migration. Free to
 - Home-link `aria-label`, head tags order and some wording vary from page to page.
 - FR and EN `sign-up.html` use different markup for the consent checkbox.
 - `sign-up.js` and `check-subscription.js` share most of their code, duplicated on each site.
-
-## Live check
-
-Compares the deployed sites with a snapshot taken earlier: status codes, response headers, files actually
-present on the host and their contents. Useful around any change of the hosting or the pipeline:
-
-```bash
-npm run live -- snapshot                                      # before: save production
-# deploy
-npm run live -- check --snapshot live-snapshots/<timestamp>   # after: compare production with the snapshot
-```
-
-- **Fetched**: `/`, every page of `src/content/<site>/`, `robots.txt`, `sitemap.xml`, and every same-origin
-  script, stylesheet, image and link they reference (about 30 URLs per site). Status only: `/.htaccess`
-  (expected 403) and a missing page (expected 404). External links and API endpoints are never requested.
-- **Compared**: HTTP status; `content-type`, `cache-control`, `content-security-policy`, `x-frame-options`,
-  `x-content-type-options`, `strict-transport-security`, `referrer-policy`, `location`; file contents
-  (`scripts/lib/compare.mjs`: whitespace, attribute order and asset hashes ignored).
-- **Options**: `--site fr|en` for one site; `--base <url>` to fetch another host with one site, for example
-  a staging URL against a production snapshot (pages are identical: canonical and `hreflang` always point
-  to the production domains).
-- **Output**: `live-snapshots/<timestamp>/<site>/` (git-ignored): `responses.json` and `files/`. The check
-  fetches into `.tmp/live/<site>/`, kept for inspection. Exit code 1 on any difference.
-
-A deployment that changes pages on purpose shows those changes as differences: read them, they are the
-release notes of what visitors and search engines see.
 
 ## CI
 

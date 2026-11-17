@@ -24,7 +24,7 @@ site-11ty/
 ├── src/public/                                  # .htaccess (shared), robots.txt.njk, sitemap.xml.njk
 ├── env/fr/.env, env/en/.env                     # Endpoint variables, empty in the repo
 ├── eleventy.config.js, vite.config.js           # Read SITE=fr|en
-└── scripts/                                     # build, dev, preview, live check, tests
+└── scripts/                                     # build, dev, preview, tests
 ```
 
 ## Commands (run from `site-11ty/`)
@@ -44,5 +44,5 @@ npm test           # Self-tests
 - Form/API endpoints are substituted by Vite only (`%VITE_SIGNUP_URL%` in HTML, `import.meta.env.VITE_*` in JS), from environment variables or `env/<site>/.env*`. Use `env/<site>/.env.local` for local values. Templates must leave `%VITE_…%` placeholders untouched.
 - A new API host must be added to the CSP `connect-src` in `src/public/.htaccess`.
 - Keep the contact address split in parts with `.map(String).join('')`: the build fails if it appears in plain text.
-- `dist/`, `.11ty/` and `live-snapshots/` are gitignored; never commit build output.
+- `dist/` and `.11ty/` are gitignored; never commit build output.
 - No JavaScript framework. Do not add npm dependencies without a documented reason.

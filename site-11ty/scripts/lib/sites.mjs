@@ -39,8 +39,3 @@ export function parseSiteArgs(argv) {
 	}
 	return requested ? [requested] : Object.keys(SITES);
 }
-
-export function argValue(argv, name) {
-	const idx = argv.indexOf(name);
-	return idx >= 0 ? argv[idx + 1] : null;
-}
