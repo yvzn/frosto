@@ -1,13 +1,9 @@
 variables:
 - group: "production"
 
-trigger:
-  branches:
-    include:
-    - main
-  paths:
-    include:
-    - site
+# Replaced by site-11ty/azure-pipelines.yml. Kept for a manual rollback run ("Run pipeline"),
+# until site/ is removed.
+trigger: none
 
 pool:
   vmImage: ubuntu-latest

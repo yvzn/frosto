@@ -3,9 +3,9 @@
 Work in progress: this folder will replace `site/` (alertegelee.fr) and `site-en/` (frostalert.net)
 with a single Eleventy project. Until cutover, the legacy folders stay untouched and remain the source of truth.
 
-Current state: **checkpoint 7 — deploy pipeline.** Both sites are built entirely from `site-11ty` and match
-the legacy sites. `azure-pipelines.yml` deploys them to staging; production still comes from the legacy
-pipelines. Next: staging check, cutover (see [Deployment](#deployment)).
+Current state: **checkpoint 9 — cutover.** Production is deployed from `site-11ty` by `azure-pipelines.yml`.
+The legacy pipelines no longer trigger; they stay available for a rollback (see [Cutover](#cutover)).
+Next: remove `site/`, `site-en/` and the migration tooling once production has run from here for a while.
 
 Node version: see `.nvmrc`.
 
@@ -213,8 +213,8 @@ self-tests, `baseline:verify`, then `npm run parity`. It deploys nothing.
 
 | Parameter `Deploy to` | When | SSH variables used | Azure environment |
 |---|---|---|---|
-| `staging` (default) | every push to `main` touching `site-11ty/` (except `baseline/` and this README) | `stagingSshEndpoint`, `stagingSshTargetFolder` | `staging` |
-| `production` | manual run only | `sshEndpoint`, `sshTargetFolder` | `Azure` (the legacy pipelines' environment) |
+| `production` (default) | every push to `main` touching `site-11ty/` (except `baseline/` and this README) | `sshEndpoint`, `sshTargetFolder` | `Azure` (the legacy pipelines' environment) |
+| `staging` | manual run only | `stagingSshEndpoint`, `stagingSshTargetFolder` | `staging` |
 
 Variables come from the legacy variable groups, `production` (fr) and `production-en` (en):
 `signUpUrl`, `healthCheckUrl`, `supportUrl`, `checkSubscriptionUrl`, `unsubscribeUrl`, `sshEndpoint`,
@@ -231,9 +231,22 @@ them explicitly to `VITE_*` environment variables, which Vite reads.
    CSP. Form posts work from any origin; the health and support checks (`fetch`/XHR from the page) also
    need the API's CORS settings to allow the staging origins.
 
-**Cutover** (checkpoint 9): run the pipeline manually with `Deploy to: production`, then disable the
-triggers of `site/azure-pipelines.yml` and `site-en/azure-pipelines.yml` (keep them for a rollback) and
-change the trigger of this pipeline to production if wanted.
+### Cutover
+
+The cutover is the merge of the pull request that made `production` the default target: it changes this
+pipeline file, so the merge itself starts a production deployment of both sites. The same pull request sets
+`trigger: none` on `site/azure-pipelines.yml` and `site-en/azure-pipelines.yml`.
+
+1. **Before**: the staging check is done (pages, forms in both languages, headers). Save production:
+   `npm run live -- snapshot`.
+2. **Merge** the pull request. Follow the run of this pipeline: both deployment jobs must succeed.
+3. **After**: `npm run live -- check --snapshot live-snapshots/<timestamp>` must report no difference
+   (see [Live check](#live-check)). Submit one form per site by hand: sign-up, check subscription, unsubscribe.
+
+**Rollback**: revert the pull request. The revert restores the legacy triggers and changes files under
+`site/` and `site-en/`, so the legacy pipelines run and redeploy production (if they don't, "Run pipeline"
+on each); their output overwrites the same files on the host. This pipeline also runs, back to `staging`
+by default. Re-run the live check against the snapshot.
 
 Hashed assets from previous deployments stay on the host, as with the legacy pipelines
 (`overwrite: true` replaces files, it does not delete old ones).
