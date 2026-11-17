@@ -16,6 +16,7 @@ npm ci
 npm run dev                 # both sites with live reload: FR http://localhost:5180/, EN http://localhost:5181/
 npm run dev -- --site fr    # one site
 npm run build               # dist/fr/ and dist/en/, ready to deploy as-is
+npm run preview             # serve dist/ with the production headers: FR http://localhost:4180/, EN http://localhost:4181/
 npm run parity              # build with dummy endpoints, then compare with baseline/
 npm test                    # parity check and email guard self-tests
 ```
@@ -36,7 +37,7 @@ For each site, in its own process (`SITE=fr` or `SITE=en`):
    (see [Email obfuscation](#email-obfuscation)).
 
 In dev, Eleventy watches `src/` and a Vite dev server serves `.11ty/<site>/`. Any edit re-renders the site
-and Vite reloads the page.
+and Vite reloads the page. The dev server sends the production security headers (see [Local servers and CSP](#local-servers-and-csp)).
 
 | Path | What |
 |---|---|
@@ -86,7 +87,30 @@ Vite substitutes them, and only Vite, as on the legacy sites: `%VITE_SIGNUP_URL%
 
 Values come from environment variables (`VITE_SIGNUP_URL`, `VITE_HEALTHCHECK_URL`, `VITE_SUPPORT_URL`,
 `VITE_CHECKSUBSCRIPTION_URL`, `VITE_UNSUBSCRIBE_URL`), falling back to `env/<site>/.env`.
-Use `env/<site>/.env.local` (git-ignored by Vite convention) for local values.
+Use `env/<site>/.env.local` (git-ignored) for local values, read by both `npm run dev` and `npm run build`.
+For a build only, `env/<site>/.env.production.local` takes precedence.
+
+## Local servers and CSP
+
+Both local servers send the `Header set` values of `src/public/.htaccess` (`scripts/lib/headers.mjs`),
+so CSP violations show up in the browser console before deployment. `Cache-Control` is left out.
+
+| | `npm run dev` | `npm run preview` |
+|---|---|---|
+| Serves | `.11ty/<site>/`, live reload | `dist/<site>/`, from the last `npm run build` |
+| Ports | FR 5180, EN 5181 | FR 4180, EN 4181 |
+| CSP | production, plus the endpoint origins in `connect-src` and `worker-src 'self' blob:` | production, unchanged |
+
+- **Day to day**: put a local API in `env/<site>/.env.local`, for example
+  `VITE_SUPPORT_URL=http://localhost:7071/api/support`. The dev server adds `http://localhost:7071` to
+  `connect-src` and says so at startup: `[dev CSP] connect-src + http://localhost:7071`.
+  `worker-src` lets Vite's client poll for the server after a restart.
+- **Before a release**: build with the real endpoints (environment variables or
+  `env/<site>/.env.production.local`), then `npm run preview`. Any endpoint host missing from `.htaccess`
+  is blocked there, as it would be in production. A preview of a build made with local endpoints shows
+  those blocked, which is expected.
+- After changing headers, reload with the cache bypassed (Ctrl+Shift+R): a cached page keeps the old CSP.
+- Neither server runs Apache: `<FilesMatch>` scoping, `Cache-Control` and `AddType` are only exercised once deployed.
 
 Page scripts are copied as-is from the legacy sites, even where two scripts share most of their code
 (`sign-up.js` and `check-subscription.js`): moving shared code into a module would change the bundles
@@ -96,6 +120,7 @@ Vite produces, and the parity check requires identical output. Factor them after
 
 - **`.htaccess`**: identical on both sites, copied as-is. It holds the security headers, including the
   Content-Security-Policy whose `connect-src` lists the API hosts: update it when an endpoint host changes.
+  The local servers send these headers too, except `Cache-Control` (see [Local servers and CSP](#local-servers-and-csp)).
 - **`robots.txt`**: points to `{{ site.domain }}/sitemap.xml`.
 - **`sitemap.xml`**: one `<url>` per entry of `src/_data/sitemap.js`, on the site's own domain, with
   `hreflang` alternates for both sites and `x-default` on the home page only. When a listed page changes,
