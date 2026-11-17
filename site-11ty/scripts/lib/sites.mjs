@@ -4,11 +4,33 @@ import { fileURLToPath } from 'node:url';
 export const PROJECT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 export const REPO_ROOT = path.resolve(PROJECT_ROOT, '..');
 
-/** Legacy Vite project for each site, relative to the repository root. */
+/**
+ * Build settings per site. Site content settings (domain, lang...) live in src/_data/sites/.
+ * legacyDir: legacy Vite project, relative to the repository root.
+ * devPort: Vite dev server port (legacy sites use Vite's default 5173).
+ */
 export const SITES = {
-	fr: { legacyDir: 'site' },
-	en: { legacyDir: 'site-en' },
+	fr: { legacyDir: 'site', devPort: 5180 },
+	en: { legacyDir: 'site-en', devPort: 5181 },
 };
+
+/** Eleventy writes here; Vite then uses it as its root. */
+export function eleventyOutDir(site) {
+	return path.join(PROJECT_ROOT, '.11ty', site);
+}
+
+export function distDir(site) {
+	return path.join(PROJECT_ROOT, 'dist', site);
+}
+
+/** The site selected with the SITE environment variable. */
+export function currentSite() {
+	const site = process.env.SITE;
+	if (!SITES[site]) {
+		throw new Error(`Set SITE to one of: ${Object.keys(SITES).join(', ')} (got "${site ?? ''}")`);
+	}
+	return site;
+}
 
 /**
  * Dummy form/API endpoints used for BOTH the baseline build and the new build,

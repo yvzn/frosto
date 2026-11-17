@@ -4,12 +4,22 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"baseline": "node scripts/build-baseline.mjs",
-		"baseline:verify": "node scripts/build-baseline.mjs --verify",
+		"dev": "node scripts/dev.mjs",
+		"build": "node scripts/build.mjs",
+		"build:parity": "node scripts/build.mjs --dummy-endpoints",
 		"check": "node scripts/parity-check.mjs",
-		"test": "node --test scripts/parity.test.mjs"
+		"parity": "npm run build:parity && npm run check",
+		"test": "node --test scripts/parity.test.mjs",
+		"baseline": "node scripts/build-baseline.mjs",
+		"baseline:verify": "node scripts/build-baseline.mjs --verify"
 	},
 	"devDependencies": {
-		"parse5": "8.1.1"
+		"@11ty/eleventy": "3.1.8",
+		"parse5": "8.1.1",
+		"purgecss": "8.0.0",
+		"vite": "8.3.5"
+	},
+	"dependencies": {
+		"bootstrap": "5.3.8"
 	}
 }

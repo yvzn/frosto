@@ -3,17 +3,75 @@
 Work in progress: this folder will replace `site/` (alertegelee.fr) and `site-en/` (frostalert.net)
 with a single Eleventy project. Until cutover, the legacy folders stay untouched and remain the source of truth.
 
-Current state: **checkpoint 1 — baseline and parity check.** No new site is built yet.
+Current state: **checkpoint 2 — skeleton.** Eleventy and Vite are wired together. The French home page is
+rendered from `src/content/fr/index.njk`; every other page still comes from the legacy folders (see
+[Migration fallback](#migration-fallback)). Both outputs already match the legacy sites.
 
 Node version: see `.nvmrc`.
+
+## Commands
+
+```bash
+npm ci
+npm run dev                 # both sites with live reload: FR http://localhost:5180/, EN http://localhost:5181/
+npm run dev -- --site fr    # one site
+npm run build               # dist/fr/ and dist/en/, ready to deploy as-is
+npm run parity              # build with dummy endpoints, then compare with baseline/
+npm test                    # parity check self-tests
+```
+
+The legacy sites still run side by side: `cd ../site && npm run dev` (port 5173).
+
+## How a build works
+
+For each site, in its own process (`SITE=fr` or `SITE=en`):
+
+1. **Eleventy** renders `src/` into `.11ty/<site>/`, a folder laid out like a legacy Vite project:
+   pages as `*.html`, `main.js`, `main.css`, `asset/`, and `public/` (`.htaccess`, `robots.txt`, `sitemap.xml`).
+2. **Vite** builds `.11ty/<site>/` into `dist/<site>/`: bundles JS and Bootstrap CSS, hashes file names,
+   copies `public/` to the output root. Every `.html` file Eleventy produced is a Vite input: there is no page list to maintain.
+3. **PurgeCSS** removes unused CSS, with the same options as the legacy `postbuild` script.
+
+In dev, Eleventy watches `src/` and a Vite dev server serves `.11ty/<site>/`. Any edit re-renders the site
+and Vite reloads the page.
+
+| Path | What |
+|---|---|
+| `src/content/<site>/*.njk` | one file per page; `sign-up.njk` is published as `/sign-up.html` (`src/content/content.11tydata.js`) |
+| `src/_data/site.js`, `src/_data/sites/<site>.js` | site settings, available in templates as `{{ site.lang }}`, `{{ site.domain }}`… |
+| `src/assets/` | shared `main.js`, `main.css`, `asset/` images (identical on both sites) |
+| `env/<site>/.env` | form endpoints, empty in the repo |
+| `eleventy.config.js`, `vite.config.js` | read `SITE` |
+| `scripts/build.mjs`, `scripts/dev.mjs` | run the steps above for one or both sites |
+
+## Form endpoints
+
+Vite substitutes them, and only Vite, as on the legacy sites: `%VITE_SIGNUP_URL%` in HTML and
+`import.meta.env.VITE_SIGNUP_URL` in JS. Templates must leave `%VITE_…%` placeholders untouched.
+
+Values come from environment variables (`VITE_SIGNUP_URL`, `VITE_HEALTHCHECK_URL`, `VITE_SUPPORT_URL`,
+`VITE_CHECKSUBSCRIPTION_URL`, `VITE_UNSUBSCRIBE_URL`), falling back to `env/<site>/.env`.
+Use `env/<site>/.env.local` (git-ignored by Vite convention) for local values.
+
+## Migration fallback
+
+Until all pages are migrated, `eleventy.config.js` copies from `site/` or `site-en/` every page, page script
+and `public/` file that `site-11ty` does not provide yet. The build log lists them:
+
+```
+[11ty:fr] from legacy site/: check-subscription.html, check-subscription.js, …
+```
+
+To migrate a page, add `src/content/<site>/<page>.njk`: the legacy copy is then dropped automatically.
+The fallback is removed once the list is empty for both sites.
 
 ## Parity check
 
 The parity check answers "did the migration change anything visitors or search engines can see?" with yes or no.
 
 ```bash
-npm ci
-npm run check            # compare dist/fr and dist/en with baseline/fr and baseline/en
+npm run parity            # build with dummy endpoints + check
+npm run check             # check only, against the current dist/
 npm run check -- --site fr
 ```
 
@@ -37,7 +95,7 @@ and that harmless changes (re-indentation, new hashes) are not.
 `baseline/fr/` and `baseline/en/` are the legacy builds of `site/` and `site-en/`. **Do not edit them by hand.**
 
 They are built with dummy endpoints (`https://fr.parity.invalid/…`, `https://en.parity.invalid/…`,
-see `scripts/lib/sites.mjs`). The new build must use the same values so the comparison is fair.
+see `scripts/lib/sites.mjs`). The new build uses the same values (`npm run parity`) so the comparison is fair.
 A distinct host per site catches a page posting to the other site's API.
 
 ```bash
@@ -51,7 +109,11 @@ The build runs `npm ci` and `npm run build` inside the legacy folders. It only w
 If `site/` or `site-en/` is changed on `main` during the migration, `baseline:verify` fails in CI.
 Regenerate the baseline and port the same change to the Eleventy templates.
 
+**Build dependencies must stay aligned** between `site/`, `site-en/` and `site-11ty/` (Vite, rolldown,
+Bootstrap, PurgeCSS): a different minifier version changes the JS output. For example, rolldown 1.2.16+
+folds `['yvan', '%40', …].join('')` into a plain string, while 1.2.14 does not.
+
 ## CI
 
-`azure-pipelines-parity.yml` runs the self-tests and `baseline:verify` on every PR touching `site-11ty/`, `site/`
-or `site-en/`. It must be registered once as a new pipeline in Azure DevOps. It deploys nothing.
+`azure-pipelines-parity.yml` runs on every PR touching `site-11ty/`, `site/` or `site-en/`:
+self-tests, `baseline:verify`, then `npm run parity`. It deploys nothing.
