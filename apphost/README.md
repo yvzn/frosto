@@ -62,3 +62,32 @@ aspire secret set Parameters:smtp-password "..."
 
 A resource whose parameter has no value waits (state "Waiting") until it is provided. Use a dummy value for services
 you do not exercise locally (a mail sender you do not use, for example), so that local runs never send real emails.
+
+## Optional mocks of external services
+
+By default the real services are used (through the parameters above). Set `MOCKS` to replace some of them with a small
+local node server (`mocks/server.mjs`, started as the `mocks` resource, port 7090, no docker):
+
+```bash
+MOCKS=all aspire run                 # bash
+```
+
+```powershell
+$env:MOCKS = 'all'; aspire run       # PowerShell
+```
+
+`MOCKS` is `all` or a comma-separated list:
+
+| Value | Replaces | Mock behaviour |
+|---|---|---|
+| `weather` | Open-Meteo (`api`, `batch`) | one fixed forecast, same for any coordinates: frost on the next 3 days (about -2 / -4 / -1 °C minimum), mild otherwise |
+| `scaleway` | Scaleway TEM (`batch`) | stores the mail, answers 200 |
+| `mail` | custom send-mail API (`batch`) | stores the mail, answers 200 |
+
+Sent mails are listed at http://localhost:7090/ (link in the dashboard). A mocked service needs no parameter: its URL and
+credentials are set by the AppHost. With any mock on, `INTERNAL_API_KEY` and `PERIOD_IN_DAYS` also get local values.
+`batch` stays start-on-demand (start it from the dashboard).
+
+Not mocked: **SMTP** (`batch` hardcodes port 465 with TLS; with the `mail` mock on, `SMTP_*` get placeholder values, so
+only the `smtp` channel would fail) and **Azure Maps** (`admin`, still needs its parameter). The mock only covers the
+external HTTP calls: you still need locations in Azurite (sign up through the site) for `batch` to have something to notify.
