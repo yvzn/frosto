@@ -24,8 +24,7 @@ To contact us: https://frostalert.net/contact.html
 
 The application consists in the following components:
 
-- **site**: landing page with subscription form, in French
-- **site-en**: landing page with subscription form, in English
+- **site-11ty**: landing pages with subscription form, in French (alertegelee.fr) and English (frostalert.net), built with Eleventy and Vite
 - **api**: _Azure Function App_ that receives the subscription form data
 - **batch**: _Azure Function App_ that fetches weather forecasts and sends notifications
 - **logic-app**: _Azure Logic App_ that sends notifications

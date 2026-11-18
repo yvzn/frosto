@@ -45,11 +45,11 @@ frosto/
 │   ├── eslint.config.ts, .oxlintrc.json, .oxfmtrc.json
 │   ├── src/
 │   └── azure-pipelines.{fr,en}.yml (reference azure-pipelines.template.yml)
-├── site/                 # Static French landing page (plain HTML + Vite bundler, Bootstrap 5)
+├── site-11ty/            # Static landing pages, French and English (Eleventy + Vite, Bootstrap 5)
 │   ├── package.json
-│   ├── vite.config.js
-│   └── *.html, *.js, *.css
-├── site-en/              # Static English landing page (mirrors site/, content in English)
+│   ├── eleventy.config.js, vite.config.js
+│   ├── src/              # Templates (src/content/<site>/*.njk), layouts, data, assets, page scripts
+│   └── azure-pipelines.yml, azure-pipelines-checks.yml
 ├── site-maintenance/     # Maintenance placeholder page
 ├── site-redirect/        # HTTP redirect page
 ├── e2e/                  # End-to-end tests (Playwright)
@@ -117,19 +117,21 @@ npm run build        # type-check + vite build (outputs to app/dist/)
 
 ---
 
-### Static Sites (`site/`, `site-en/`)
+### Static Sites (`site-11ty/`)
 
-**Runtime:** Node.js. Package manager: npm.
+**Runtime:** Node.js (see `site-11ty/.nvmrc`). Package manager: npm. Builds alertegelee.fr (`dist/fr/`) and frostalert.net (`dist/en/`).
 
 ```bash
-cd site        # or site-en
-npm install    # Always run before building
-npm run build  # vite build + postbuild purgecss (outputs to dist/)
+cd site-11ty
+npm ci         # Always run before building
+npm test       # Self-tests (node:test)
+npm run build  # Eleventy + Vite + PurgeCSS for both sites (outputs to dist/fr/, dist/en/)
+npm run dev    # Live reload: FR http://localhost:5180/, EN http://localhost:5181/
 ```
 
-- `postbuild` runs PurgeCSS automatically after `vite build` — do not skip
-- Environment variables injected via `build-env-production.ps1` in CI
-- No test framework; validation is manual / e2e
+- The build fails if the contact email address appears unobfuscated in the output
+- Endpoint URLs come from environment variables (`VITE_*`), mapped explicitly in `azure-pipelines.yml`
+- See `site-11ty/README.md` for templates, front matter, endpoints and CSP
 
 ---
 
@@ -154,13 +156,13 @@ Each sub-project has its own `azure-pipelines.yml`. The API, batch, admin, and s
 | `batch/` | `batch/azure-pipelines.yml` | `dotnet publish` (warnings = errors) |
 | `admin/` | `admin/azure-pipelines.yml` | `dotnet build` |
 | `app/` | `app/azure-pipelines.template.yml` | `npm run build` (type-check + vite) |
-| `site/` | `site/azure-pipelines.yml` | `npm run build` |
+| `site-11ty/` | `site-11ty/azure-pipelines.yml` (deploy), `site-11ty/azure-pipelines-checks.yml` (PRs) | `npm test`, `npm run build` |
 | `e2e/` | `e2e/azure-pipelines.yml` | Playwright tests |
 
 **To replicate CI locally before opening a PR:**
 1. For C# changes: `dotnet build <project>.sln --configuration Release`
 2. For `app/` changes: `cd app && npm ci && npm run build`
-3. For `site/` or `site-en/` changes: `cd site && npm ci && npm run build`
+3. For `site-11ty/` changes: `cd site-11ty && npm ci && npm test && npm run build`
 4. For shared entity changes: `dotnet test entities/tests/entities-tests.csproj --configuration Release`
 
 ---

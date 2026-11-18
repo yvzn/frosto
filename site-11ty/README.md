@@ -1,11 +1,13 @@
-# site-11ty — Eleventy migration of the Frosto websites
+# site-11ty — Frosto websites
 
-Work in progress: this folder will replace `site/` (alertegelee.fr) and `site-en/` (frostalert.net)
-with a single Eleventy project. Until cutover, the legacy folders stay untouched and remain the source of truth.
+The two Frosto landing sites, built from one Eleventy project:
 
-Current state: **checkpoint 9 — cutover.** Production is deployed from `site-11ty` by `azure-pipelines.yml`.
-The legacy pipelines no longer trigger; they stay available for a rollback (see [Cutover](#cutover)).
-Next: remove `site/`, `site-en/` and the migration tooling once production has run from here for a while.
+- **fr**: [alertegelee.fr](https://www.alertegelee.fr), output in `dist/fr/`
+- **en**: [frostalert.net](https://www.frostalert.net), output in `dist/en/`
+
+They replaced the former `site/` and `site-en/` Vite projects with zero visible difference. The tools used for
+that migration (parity check against the former builds, live snapshot and check of the deployed sites) are in
+the git history.
 
 Node version: see `.nvmrc`.
 
@@ -17,24 +19,19 @@ npm run dev                 # both sites with live reload: FR http://localhost:5
 npm run dev -- --site fr    # one site
 npm run build               # dist/fr/ and dist/en/, ready to deploy as-is
 npm run preview             # serve dist/ with the production headers: FR http://localhost:4180/, EN http://localhost:4181/
-npm run parity              # build with dummy endpoints, then compare with baseline/
-npm test                    # self-tests (parity check, email guard, headers, live check)
-npm run live -- snapshot    # save the deployed sites to live-snapshots/<timestamp>/ (see Live check)
-npm run live -- check --snapshot live-snapshots/<timestamp>   # compare the deployed sites with a snapshot
+npm test                    # self-tests (email guard, local server headers)
 ```
-
-The legacy sites still run side by side: `cd ../site && npm run dev` (port 5173).
 
 ## How a build works
 
 For each site, in its own process (`SITE=fr` or `SITE=en`):
 
-1. **Eleventy** renders `src/` into `.11ty/<site>/`, a folder laid out like a legacy Vite project:
-   pages as `*.html`, `main.js`, `main.css`, `asset/`, and `public/` (`.htaccess`, `robots.txt`, `sitemap.xml`,
-   see [Server files](#server-files)).
+1. **Eleventy** renders `src/` into `.11ty/<site>/`, a folder laid out as a Vite project:
+   pages as `*.html`, `main.js`, `main.css`, page scripts, `asset/`, and `public/` (`.htaccess`, `robots.txt`,
+   `sitemap.xml`, see [Server files](#server-files)).
 2. **Vite** builds `.11ty/<site>/` into `dist/<site>/`: bundles JS and Bootstrap CSS, hashes file names,
    copies `public/` to the output root. Every `.html` file Eleventy produced is a Vite input: there is no page list to maintain.
-3. **PurgeCSS** removes unused CSS, with the same options as the legacy `postbuild` script.
+3. **PurgeCSS** removes unused CSS.
 4. **Email check**: the build fails if the contact address appears unobfuscated in the output
    (see [Email obfuscation](#email-obfuscation)).
 
@@ -54,7 +51,7 @@ and Vite reloads the page. The dev server sends the production security headers 
 | `src/_data/sitemap.js` | pages listed in `sitemap.xml`, with `lastmod`, `changefreq`, `priority` |
 | `env/<site>/.env` | form endpoints, empty in the repo |
 | `eleventy.config.js`, `vite.config.js` | read `SITE` |
-| `scripts/build.mjs`, `scripts/dev.mjs` | run the steps above for one or both sites |
+| `scripts/build.mjs`, `scripts/dev.mjs`, `scripts/preview.mjs` | run the steps above for one or both sites |
 
 ## Pages
 
@@ -77,15 +74,16 @@ header: simple                         # default full (with the language switch)
 ```
 
 Canonical, `hreflang`, `og:url` and the language switch are built from `site.domain`, `site.alternateDomain`
-and the page path, so a page cannot point to the wrong domain. Head tags keep the legacy order: the parity
-check compares the markup in order.
+and the page path, so a page cannot point to the wrong domain.
 
 `open-meteo.njk` is a bare redirect and does not use the layout.
 
+Keep both sites in sync: a structural or functional change to a French page goes to its English page too.
+
 ## Form endpoints
 
-Vite substitutes them, and only Vite, as on the legacy sites: `%VITE_SIGNUP_URL%` in HTML and
-`import.meta.env.VITE_SIGNUP_URL` in JS. Templates must leave `%VITE_…%` placeholders untouched.
+Vite substitutes them, and only Vite: `%VITE_SIGNUP_URL%` in HTML and `import.meta.env.VITE_SIGNUP_URL` in JS.
+Templates must leave `%VITE_…%` placeholders untouched.
 
 Values come from environment variables (`VITE_SIGNUP_URL`, `VITE_HEALTHCHECK_URL`, `VITE_SUPPORT_URL`,
 `VITE_CHECKSUBSCRIPTION_URL`, `VITE_UNSUBSCRIBE_URL`), falling back to `env/<site>/.env`.
@@ -114,10 +112,6 @@ so CSP violations show up in the browser console before deployment. `Cache-Contr
 - After changing headers, reload with the cache bypassed (Ctrl+Shift+R): a cached page keeps the old CSP.
 - Neither server runs Apache: `<FilesMatch>` scoping, `Cache-Control` and `AddType` are only exercised once deployed.
 
-Page scripts are copied as-is from the legacy sites, even where two scripts share most of their code
-(`sign-up.js` and `check-subscription.js`): moving shared code into a module would change the bundles
-Vite produces, and the parity check requires identical output. Factor them after cutover.
-
 ## Server files
 
 - **`.htaccess`**: identical on both sites, copied as-is. It holds the security headers, including the
@@ -144,63 +138,16 @@ Keep `.map(String)`: without it, rolldown 1.2.16+ folds the parts into a plain s
 `alertegelees.fr` (with an "s") in `sign-up-complete.js` is not a typo: it is the sending domain set up for
 DKIM and SPF.
 
-## Legacy quirks kept on purpose
+## Known quirks
 
-Zero-diff means a few oddities of the legacy pages are reproduced as-is. Fix them after cutover, each with
-its own baseline update:
+Inherited from the former sites and kept during the zero-diff migration. Free to fix now:
 
 - EN `donate.html`: header reads "Frost alert" instead of "Frost Alerts" (`brand` in its front matter).
 - EN `unsubscribe-complete.html`: image alt text copied from `check-subscription-complete.html`.
+- `contact.html` (both sites) has no `<main>` element.
 - Home-link `aria-label`, head tags order and some wording vary from page to page.
 - FR and EN `sign-up.html` use different markup for the consent checkbox.
-
-## Parity check
-
-The parity check answers "did the migration change anything visitors or search engines can see?" with yes or no.
-
-```bash
-npm run parity            # build with dummy endpoints + check
-npm run check             # check only, against the current dist/
-npm run check -- --site fr
-```
-
-For each site it fails on any difference in:
-
-- the list of output files (pages at the same flat `.html` paths, `.htaccess`, `robots.txt`, `sitemap.xml`, assets)
-- per page: `lang`, `<title>`, all `<meta>` tags, canonical, `hreflang` links, headings, links, and every `<form>`
-  (action, method, field names, hidden field values)
-- the rest of the markup (zero-diff principle): text, classes, attributes, element structure
-- `robots.txt`, `.htaccess`, page JS and CSS: exact content
-- `sitemap.xml`: URLs, `lastmod`, `changefreq`, `priority`, alternates (including `x-default` on home only)
-- any leftover `%VITE_…%` placeholder
-
-It ignores whitespace, line endings, attribute order and Vite content hashes in `assets/` file names.
-
-`npm test` runs self-tests that mutate a copy of the baseline and check that each kind of regression is caught,
-and that harmless changes (re-indentation, new hashes) are not.
-
-## Baseline
-
-`baseline/fr/` and `baseline/en/` are the legacy builds of `site/` and `site-en/`. **Do not edit them by hand.**
-
-They are built with dummy endpoints (`https://fr.parity.invalid/…`, `https://en.parity.invalid/…`,
-see `scripts/lib/sites.mjs`). The new build uses the same values (`npm run parity`) so the comparison is fair.
-A distinct host per site catches a page posting to the other site's API.
-
-```bash
-npm run baseline          # rebuild site/ and site-en/, overwrite baseline/ (then commit)
-npm run baseline:verify   # rebuild into .tmp/ and compare with baseline/ (run in CI)
-```
-
-The build runs `npm ci` and `npm run build` inside the legacy folders. It only writes their git-ignored
-`node_modules/` and `dist/`, and fails if any tracked file changes.
-
-If `site/` or `site-en/` is changed on `main` during the migration, `baseline:verify` fails in CI.
-Regenerate the baseline and port the same change to the Eleventy templates.
-
-**Build dependencies must stay aligned** between `site/`, `site-en/` and `site-11ty/` (Vite, rolldown,
-Bootstrap, PurgeCSS): a different minifier version changes the JS output. For example, rolldown 1.2.16+
-folds `['yvan', '%40', …].join('')` into a plain string, while 1.2.14 does not.
+- `sign-up.js` and `check-subscription.js` share most of their code, duplicated on each site.
 
 ## Live check
 
@@ -230,8 +177,8 @@ legacy pipelines and run them.
 
 ## CI
 
-`azure-pipelines-parity.yml` runs on every PR touching `site-11ty/`, `site/` or `site-en/`:
-self-tests, `baseline:verify`, then `npm run parity`. It deploys nothing.
+`azure-pipelines-checks.yml` runs on every PR touching `site-11ty/`: `npm test`, then `npm run build` of both
+sites. It deploys nothing.
 
 ## Deployment
 
@@ -241,43 +188,17 @@ self-tests, `baseline:verify`, then `npm run parity`. It deploys nothing.
 
 | Parameter `Deploy to` | When | SSH variables used | Azure environment |
 |---|---|---|---|
-| `production` (default) | every push to `main` touching `site-11ty/` (except `baseline/` and this README) | `sshEndpoint`, `sshTargetFolder` | `Azure` (the legacy pipelines' environment) |
-| `staging` | manual run only | `stagingSshTargetFolder` | `staging` |
+| `production` (default) | every push to `main` touching `site-11ty/` (except this README) | `sshEndpoint`, `sshTargetFolder` | `Azure` |
+| `staging` | manual run only | `stagingSshEndpoint` | `staging` |
 
-Variables come from the legacy variable groups, `production` (fr) and `production-en` (en):
-`signUpUrl`, `healthCheckUrl`, `supportUrl`, `checkSubscriptionUrl`, `unsubscribeUrl`, and `sshTargetFolder`
-(or `stagingSshTargetFolder` for staging). SSH service connections are compile-time pipeline settings:
-`SSH OVH Service Connection FR` for FR and `SSH OVH Service Connection EN` for EN. Unlike the legacy
-pipelines, no `.env.production` file is written: the build step maps
-them explicitly to `VITE_*` environment variables, which Vite reads.
+Variables come from the variable groups `production` (fr) and `production-en` (en): `signUpUrl`,
+`healthCheckUrl`, `supportUrl`, `checkSubscriptionUrl`, `unsubscribeUrl`, `sshEndpoint`, `sshTargetFolder`,
+`stagingSshEndpoint`, `stagingSshTargetFolder`. The build step maps the endpoints explicitly to `VITE_*`
+environment variables, which Vite reads.
 
-**Setup, once:**
+Staging uses the production endpoints, already allowed by the CSP. Form posts work from any origin; the
+health and support checks (`fetch`/XHR from the page) also need the API's CORS settings to allow the
+staging origins.
 
-1. In each variable group, add `stagingSshTargetFolder` (a folder served by a staging domain or subdomain,
-   one per site). Allow the pipeline to use the FR and EN SSH service connections configured in
-   `azure-pipelines.yml`.
-2. Create the pipeline in Azure DevOps from `site-11ty/azure-pipelines.yml`, and allow it to use both
-   variable groups, the SSH service connections and the `staging` environment (created on first run).
-3. Point the staging domains to the folders. Staging uses the production endpoints, already allowed by the
-   CSP. Form posts work from any origin; the health and support checks (`fetch`/XHR from the page) also
-   need the API's CORS settings to allow the staging origins.
-
-### Cutover
-
-The cutover is the merge of the pull request that made `production` the default target: it changes this
-pipeline file, so the merge itself starts a production deployment of both sites. The same pull request sets
-`trigger: none` on `site/azure-pipelines.yml` and `site-en/azure-pipelines.yml`.
-
-1. **Before**: the staging check is done (pages, forms in both languages, headers). Save production:
-   `npm run live -- snapshot`.
-2. **Merge** the pull request. Follow the run of this pipeline: both deployment jobs must succeed.
-3. **After**: `npm run live -- check --snapshot live-snapshots/<timestamp>` must report no difference
-   (see [Live check](#live-check)). Submit one form per site by hand: sign-up, check subscription, unsubscribe.
-
-**Rollback**: revert the pull request. The revert restores the legacy triggers and changes files under
-`site/` and `site-en/`, so the legacy pipelines run and redeploy production (if they don't, "Run pipeline"
-on each); their output overwrites the same files on the host. This pipeline also runs, back to `staging`
-by default. Re-run the live check against the snapshot.
-
-Hashed assets from previous deployments stay on the host, as with the legacy pipelines
-(`overwrite: true` replaces files, it does not delete old ones).
+Hashed assets from previous deployments stay on the host (`overwrite: true` replaces files, it does not
+delete old ones).

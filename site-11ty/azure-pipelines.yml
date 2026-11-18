@@ -1,6 +1,4 @@
 # Builds and deploys alertegelee.fr and frostalert.net from site-11ty/.
-# Replaces site/azure-pipelines.yml and site-en/azure-pipelines.yml, whose triggers are disabled:
-# they stay available for a manual rollback run until the legacy folders are removed.
 #
 # One build job and one deployment job per site, each with the site's variable group:
 #   fr: "production"     en: "production-en"
@@ -10,7 +8,7 @@
 #   stagingSshTargetFolder                                                          staging host
 #
 # Target:
-#   production  default; every push to main touching site-11ty/ deploys here, as the legacy pipelines did
+#   production  default; every push to main touching site-11ty/ deploys here
 #   staging     manual run only ("Run pipeline" > Deploy to: staging)
 
 parameters:
@@ -41,7 +39,6 @@ trigger:
     include:
     - site-11ty
     exclude:
-    - site-11ty/baseline
     - site-11ty/README.md
 
 pr: none

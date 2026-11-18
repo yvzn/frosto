@@ -1,7 +1,7 @@
 // Eleventy renders the pages of ONE site (selected with SITE=fr|en) into .11ty/<site>/.
 // Vite then builds .11ty/<site>/ into dist/<site>/ (see vite.config.js and scripts/build.mjs).
 //
-// .11ty/<site>/ mirrors the layout of the legacy Vite projects:
+// .11ty/<site>/ is laid out as a Vite project:
 //   *.html            pages (from src/content/<site>/)
 //   main.js, main.css shared assets (from src/assets/)
 //   <page>.js         page scripts (from src/scripts/<site>/, or src/assets/ when identical on both sites)
