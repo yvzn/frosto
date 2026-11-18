@@ -66,7 +66,7 @@ public class UserService(IAzureClientFactory<TableClient> azureClientFactory)
 		return new User
 		{
 			email = userEntity.email ?? string.Empty,
-			disabled = userEntity.disabled == true ? "true" : userEntity.disabled == false ? "false" : null,
+			disabled = userEntity.disabled,
 			created = userEntity.created,
 			PartitionKey = userEntity.PartitionKey ?? string.Empty,
 			RowKey = userEntity.RowKey ?? string.Empty,
