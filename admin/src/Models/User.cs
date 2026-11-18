@@ -9,7 +9,7 @@ public class User : ModelBase
     [EmailAddress]
     public string email { get; set; } = string.Empty;
 
-    public string? disabled { get; set; }
+    public bool? disabled { get; set; }
     public string? created { get; set; }
 
     [HiddenInput]
