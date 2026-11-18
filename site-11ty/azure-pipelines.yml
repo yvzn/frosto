@@ -4,8 +4,8 @@
 #   fr: "production"     en: "production-en"
 # Variables read from each group:
 #   signUpUrl, healthCheckUrl, supportUrl, checkSubscriptionUrl, unsubscribeUrl   form/API endpoints
-#   sshEndpoint, sshTargetFolder                                                    production host
-#   stagingSshEndpoint, stagingSshTargetFolder                                      staging host
+#   sshTargetFolder                                                                production host
+#   stagingSshTargetFolder                                                          staging host
 #
 # Target:
 #   production  default; every push to main touching site-11ty/ deploys here
@@ -24,8 +24,12 @@ parameters:
   default:
   - name: fr
     variableGroup: production
+    productionSshEndpoint: 'SSH OVH Service Connection FR'
+    stagingSshEndpoint: 'SSH OVH Service Connection FR'
   - name: en
     variableGroup: production-en
+    productionSshEndpoint: 'SSH OVH Service Connection EN'
+    stagingSshEndpoint: 'SSH OVH Service Connection EN'
 
 trigger:
   branches:
@@ -93,10 +97,10 @@ jobs:
           - task: CopyFilesOverSSH@0
             inputs:
               ${{ if eq(parameters.target, 'production') }}:
-                sshEndpoint: '$(sshEndpoint)'
+                sshEndpoint: '${{ site.productionSshEndpoint }}'
                 targetFolder: '$(sshTargetFolder)'
               ${{ else }}:
-                sshEndpoint: '$(stagingSshEndpoint)'
+                sshEndpoint: '${{ site.stagingSshEndpoint }}'
                 targetFolder: '$(stagingSshTargetFolder)'
               sourceFolder: '$(Pipeline.Workspace)/site-11ty-${{ site.name }}'
               contents: '**'

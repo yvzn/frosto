@@ -6,6 +6,7 @@
 	"scripts": {
 		"dev": "node scripts/dev.mjs",
 		"preview": "node scripts/preview.mjs",
+		"live": "node scripts/live.mjs",
 		"build": "node scripts/build.mjs",
 		"test": "node --test scripts/*.test.mjs"
 	},
