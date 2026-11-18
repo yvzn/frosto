@@ -4,32 +4,23 @@
 #   fr: "production"     en: "production-en"
 # Variables read from each group:
 #   signUpUrl, healthCheckUrl, supportUrl, checkSubscriptionUrl, unsubscribeUrl   form/API endpoints
-#   sshTargetFolder                                                                production host
-#   stagingSshTargetFolder                                                          staging host
+#   sshTargetFolder                                                                folder on the host
 #
-# Target:
-#   production  default; every push to main touching site-11ty/ deploys here
-#   staging     manual run only ("Run pipeline" > Deploy to: staging)
+# Every push to main touching site-11ty/ deploys both sites to production.
+#
+# SSH service connections are named here, not in the variable groups: Azure DevOps resolves them when the
+# pipeline is compiled, before job-level variable groups are available.
 
 parameters:
-- name: target
-  displayName: Deploy to
-  type: string
-  default: production
-  values:
-  - staging
-  - production
 - name: sites
   type: object
   default:
   - name: fr
     variableGroup: production
-    productionSshEndpoint: 'SSH OVH Service Connection FR'
-    stagingSshEndpoint: 'SSH OVH Service Connection FR'
+    sshEndpoint: 'SSH OVH Service Connection FR'
   - name: en
     variableGroup: production-en
-    productionSshEndpoint: 'SSH OVH Service Connection EN'
-    stagingSshEndpoint: 'SSH OVH Service Connection EN'
+    sshEndpoint: 'SSH OVH Service Connection EN'
 
 trigger:
   branches:
@@ -81,27 +72,20 @@ jobs:
         artifact: 'site-11ty-${{ site.name }}'
 
   - deployment: deploy_${{ site.name }}
-    displayName: 'deploy ${{ site.name }} to ${{ parameters.target }}'
+    displayName: 'deploy ${{ site.name }}'
     dependsOn: build_${{ site.name }}
     condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
     variables:
     - group: ${{ site.variableGroup }}
-    ${{ if eq(parameters.target, 'production') }}:
-      environment: 'Azure'
-    ${{ else }}:
-      environment: 'staging'
+    environment: 'Azure'
     strategy:
       runOnce:
         deploy:
           steps:
           - task: CopyFilesOverSSH@0
             inputs:
-              ${{ if eq(parameters.target, 'production') }}:
-                sshEndpoint: '${{ site.productionSshEndpoint }}'
-                targetFolder: '$(sshTargetFolder)'
-              ${{ else }}:
-                sshEndpoint: '${{ site.stagingSshEndpoint }}'
-                targetFolder: '$(stagingSshTargetFolder)'
+              sshEndpoint: '${{ site.sshEndpoint }}'
+              targetFolder: '$(sshTargetFolder)'
               sourceFolder: '$(Pipeline.Workspace)/site-11ty-${{ site.name }}'
               contents: '**'
               readyTimeout: '20000'

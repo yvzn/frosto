@@ -156,28 +156,18 @@ sites. It deploys nothing.
 
 ## Deployment
 
-`azure-pipelines.yml` builds and deploys both sites: per site, one build job (`npm ci`, then
-`npm run build -- --site <site>` with the endpoints as environment variables) and one deployment job
-(`CopyFilesOverSSH` of `dist/<site>/`, `.htaccess` included). Deployment runs from `main` only.
-
-| Parameter `Deploy to` | When | Target folder variable | Azure environment |
-|---|---|---|---|
-| `production` (default) | every push to `main` touching `site-11ty/` (except this README) | `sshTargetFolder` | `Azure` |
-| `staging` | manual run only | `stagingSshTargetFolder` | `staging` |
+`azure-pipelines.yml` builds and deploys both sites to production on every push to `main` touching
+`site-11ty/` (except this README): per site, one build job (`npm ci`, then `npm run build -- --site <site>`
+with the endpoints as environment variables) and one deployment job (`CopyFilesOverSSH` of `dist/<site>/`,
+`.htaccess` included, Azure environment `Azure`).
 
 Variables come from the variable groups `production` (fr) and `production-en` (en): `signUpUrl`,
-`healthCheckUrl`, `supportUrl`, `checkSubscriptionUrl`, `unsubscribeUrl`, `sshTargetFolder`,
-`stagingSshTargetFolder`. The build step maps the endpoints explicitly to `VITE_*` environment variables,
-which Vite reads.
+`healthCheckUrl`, `supportUrl`, `checkSubscriptionUrl`, `unsubscribeUrl`, `sshTargetFolder`. The build
+step maps the endpoints explicitly to `VITE_*` environment variables, which Vite reads.
 
-SSH service connections are named in `azure-pipelines.yml` (`sites` parameter: `productionSshEndpoint`,
-`stagingSshEndpoint`), not in the variable groups: Azure DevOps resolves service connections when the pipeline
-is compiled, before job-level variable groups are available. Today both targets of a site use the same
-connection (`SSH OVH Service Connection FR` / `EN`); staging differs by its target folder only.
-
-Staging uses the production endpoints, already allowed by the CSP. Form posts work from any origin; the
-health and support checks (`fetch`/XHR from the page) also need the API's CORS settings to allow the
-staging origins.
+SSH service connections are named in `azure-pipelines.yml` (`sites` parameter, `sshEndpoint`), not in the
+variable groups: Azure DevOps resolves service connections when the pipeline is compiled, before job-level
+variable groups are available.
 
 Hashed assets from previous deployments stay on the host (`overwrite: true` replaces files, it does not
 delete old ones).
