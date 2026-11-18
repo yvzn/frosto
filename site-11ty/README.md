@@ -149,32 +149,6 @@ Inherited from the former sites and kept during the zero-diff migration. Free to
 - FR and EN `sign-up.html` use different markup for the consent checkbox.
 - `sign-up.js` and `check-subscription.js` share most of their code, duplicated on each site.
 
-## Live check
-
-The parity check proves the built files are unchanged. The live check covers what the server adds, on the
-deployed sites: status codes, response headers, files actually present on the host. It is made for cutover:
-
-```bash
-npm run live -- snapshot                                   # 1. before cutover: save production
-# 2. cutover: deploy site-11ty to production
-npm run live -- check --snapshot live-snapshots/<timestamp>   # 3. after: compare production with the snapshot
-```
-
-- **Fetched**: `/`, every page of `src/content/<site>/`, `robots.txt`, `sitemap.xml`, and every same-origin
-  script, stylesheet, image and link they reference (about 30 URLs per site). Status only: `/.htaccess`
-  (expected 403) and a missing page (expected 404).
-- **Compared**: HTTP status; `content-type`, `cache-control`, `content-security-policy`, `x-frame-options`,
-  `x-content-type-options`, `strict-transport-security`, `referrer-policy`, `location`; file contents with
-  the parity check rules (whitespace, attribute order and asset hashes ignored).
-- **Options**: `--site fr|en` for one site; `--base <url>` to fetch another host with one site, for example
-  a staging URL against a production snapshot (pages are identical: canonical and `hreflang` always point
-  to the production domains).
-- **Output**: `live-snapshots/<timestamp>/<site>/` (git-ignored): `responses.json` and `files/`. The check
-  fetches into `.tmp/live/<site>/`, kept for inspection. Exit code 1 on any difference.
-
-Any difference after cutover is either expected (none should be) or a reason to roll back: re-enable the
-legacy pipelines and run them.
-
 ## CI
 
 `azure-pipelines-checks.yml` runs on every PR touching `site-11ty/`: `npm test`, then `npm run build` of both
@@ -182,23 +156,18 @@ sites. It deploys nothing.
 
 ## Deployment
 
-`azure-pipelines.yml` builds and deploys both sites: per site, one build job (`npm ci`, then
-`npm run build -- --site <site>` with the endpoints as environment variables) and one deployment job
-(`CopyFilesOverSSH` of `dist/<site>/`, `.htaccess` included). Deployment runs from `main` only.
-
-| Parameter `Deploy to` | When | SSH variables used | Azure environment |
-|---|---|---|---|
-| `production` (default) | every push to `main` touching `site-11ty/` (except this README) | `sshEndpoint`, `sshTargetFolder` | `Azure` |
-| `staging` | manual run only | `stagingSshEndpoint` | `staging` |
+`azure-pipelines.yml` builds and deploys both sites to production on every push to `main` touching
+`site-11ty/` (except this README): per site, one build job (`npm ci`, then `npm run build -- --site <site>`
+with the endpoints as environment variables) and one deployment job (`CopyFilesOverSSH` of `dist/<site>/`,
+`.htaccess` included, Azure environment `Azure`).
 
 Variables come from the variable groups `production` (fr) and `production-en` (en): `signUpUrl`,
-`healthCheckUrl`, `supportUrl`, `checkSubscriptionUrl`, `unsubscribeUrl`, `sshEndpoint`, `sshTargetFolder`,
-`stagingSshEndpoint`, `stagingSshTargetFolder`. The build step maps the endpoints explicitly to `VITE_*`
-environment variables, which Vite reads.
+`healthCheckUrl`, `supportUrl`, `checkSubscriptionUrl`, `unsubscribeUrl`, `sshTargetFolder`. The build
+step maps the endpoints explicitly to `VITE_*` environment variables, which Vite reads.
 
-Staging uses the production endpoints, already allowed by the CSP. Form posts work from any origin; the
-health and support checks (`fetch`/XHR from the page) also need the API's CORS settings to allow the
-staging origins.
+SSH service connections are named in `azure-pipelines.yml` (`sites` parameter, `sshEndpoint`), not in the
+variable groups: Azure DevOps resolves service connections when the pipeline is compiled, before job-level
+variable groups are available.
 
 Hashed assets from previous deployments stay on the host (`overwrite: true` replaces files, it does not
 delete old ones).
