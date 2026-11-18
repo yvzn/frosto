@@ -3,3 +3,4 @@ dist/
 .tmp/
 .11ty/
 *.local
+live-snapshots/
