@@ -306,6 +306,7 @@ public partial class LocationService(IAzureClientFactory<TableClient> azureClien
 			timezone = locationEntity.timezone ?? "",
 			offset = locationEntity.offset ?? "",
 			utc_offset_minutes = locationEntity.utc_offset_minutes,
+			preferred_local_time_minutes = locationEntity.preferred_local_time_minutes,
 			hemisphere = locationEntity.hemisphere,
 			temperatureUnit = locationEntity.temperatureUnit ?? "",
 			PartitionKey = locationEntity.PartitionKey ?? "",
@@ -404,4 +405,3 @@ public partial class LocationService(IAzureClientFactory<TableClient> azureClien
 		return null;
 	}
 }
-
