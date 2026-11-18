@@ -29,11 +29,11 @@ const devStorage = 'UseDevelopmentStorage=true'; // Azurite
 const builder = await createBuilder();
 
 // --- Mocks of external services (optional) -------------------------------------------------
-// MOCKS=all | comma list of: weather, scaleway, mail   (unset = real services, as before)
-//   weather   Open-Meteo forecast       scaleway  Scaleway TEM        mail  custom send-mail API
+// MOCKS=all | comma list of: weather, scaleway, mail, maps   (unset = real services, as before)
+//   weather  Open-Meteo forecast   scaleway  Scaleway TEM   mail  custom send-mail API   maps  Azure Maps (admin)
 // A mocked service needs no parameter: its URL/credentials are set here.
-// Not mocked: SMTP (batch hardcodes port 465 + TLS) and Azure Maps (admin, SDK default endpoint).
-const allMocks = ['weather', 'scaleway', 'mail'];
+// Not mocked: SMTP (batch hardcodes port 465 + TLS).
+const allMocks = ['weather', 'scaleway', 'mail', 'maps'];
 const requested = (process.env.MOCKS ?? '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
 const mocked = new Set(requested.includes('all') ? allMocks : requested);
 for (const m of mocked) {
@@ -119,14 +119,19 @@ const batch = await common(builder.addExecutable('batch', 'func', at('batch'), [
 if (mocks) await batch.waitFor(mocks);
 
 // --- admin (ASP.NET, config binds env vars: ConnectionStrings__X, SiteEnUrl...) -----------
-await builder
+// With the maps mock, AzureMapsEndpoint redirects admin's Azure Maps SDK calls to the mock
+// (optional admin setting; unset = real Azure Maps). The browser map widgets still load the real
+// Azure Maps web SDK and need a real key: with the mock they do not render.
+const admin = builder
   .addProject('admin', at('admin', 'src', 'admin.csproj'), { launchProfileOrOptions: 'http' })
   .withEnvironment('ConnectionStrings__Alerts', devStorage)
-  .withEnvironment('ConnectionStrings__AzureMaps', await param('azure-maps-connection-string', true))
-  .withEnvironment('ConnectionStrings__Smtp', await param('admin-smtp-connection-string', true))
+  .withEnvironment('ConnectionStrings__AzureMaps', await setting('maps', 'azure-maps-connection-string', 'mock', true))
+  .withEnvironment('ConnectionStrings__Smtp', mocked.size ? 'mock' : await param('admin-smtp-connection-string', true))
   .withEnvironment('SiteFrUrl', url.siteFr)
   .withEnvironment('SiteEnUrl', url.siteEn)
   .waitFor(db);
+if (mocked.has('maps')) await admin.withEnvironment('AzureMapsEndpoint', mockUrl).waitFor(mocks!);
+else await admin;
 
 // --- app (Vue/Vite). Real env vars override app/.env ---------------------------------------
 await builder

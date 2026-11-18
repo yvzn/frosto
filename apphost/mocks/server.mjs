@@ -2,6 +2,7 @@
 //   GET  /open-meteo   fixed forecast, frost in the next 2-3 days (any coordinates)
 //   POST /scaleway     Scaleway TEM stand-in: stores the mail, answers 200
 //   POST /send-mail    custom mail API stand-in: stores the mail, answers 200
+//   GET  /geocode, /timezone/byCoordinates/json   Azure Maps stand-ins (same place for any address)
 //   GET  /             inbox of the stored mails;  GET /mail/<id> shows one;  GET /healthz
 // No dependency: plain node.
 
@@ -43,6 +44,39 @@ function forecast() {
   };
 }
 
+
+// Azure Maps stand-ins (admin, through AzureMapsEndpoint): same place for any address.
+function geocode(query = '') {
+  // "<zip> <city>, <country>"
+  const [place = '', country = 'France'] = query.split(',').map((s) => s.trim());
+  const locality = place.replace(/^\d+\s*/, '') || 'Paris';
+  return {
+    type: 'FeatureCollection',
+    features: [{
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [2.3522, 48.8566] },
+      properties: {
+        type: 'Locality',
+        confidence: 'High',
+        address: { locality, countryRegion: { name: country, ISO: 'FR' }, adminDistricts: [{ shortName: 'IDF', name: 'Île-de-France' }], formattedAddress: `${locality}, ${country}` },
+      },
+    }],
+  };
+}
+
+function timezone() {
+  return {
+    Version: '2024a',
+    ReferenceUtcTimestamp: new Date().toISOString(),
+    TimeZones: [{
+      Id: 'Europe/Paris',
+      Aliases: [],
+      Countries: [{ Name: 'France', Code: 'FR' }],
+      Names: { ISO6391LanguageCode: 'en', Generic: 'Central European Time', Standard: 'Central European Standard Time', Daylight: 'Central European Summer Time' },
+      ReferenceTime: { Tag: 'CET', StandardOffset: '01:00:00', DaylightSavings: '00:00:00', WallTime: new Date().toISOString(), PosixTzValidYear: new Date().getFullYear(), PosixTz: 'CET-1CEST,M3.5.0,M10.5.0/3' },
+    }],
+  };
+}
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 const readBody = (req) => new Promise((resolve) => {
   let data = '';
@@ -66,10 +100,13 @@ async function storeMail(req, res, via) {
 }
 
 createServer(async (req, res) => {
-  const { pathname } = new URL(req.url, `http://localhost:${port}`);
+  const url = new URL(req.url, `http://localhost:${port}`);
+  const { pathname } = url;
   try {
     if (req.method === 'GET' && pathname === '/healthz') return send(res, 200, 'text/plain', 'ok');
     if (req.method === 'GET' && pathname === '/open-meteo') return send(res, 200, 'application/json', JSON.stringify(forecast()));
+    if (req.method === 'GET' && pathname === '/geocode') return send(res, 200, 'application/json', JSON.stringify(geocode(url.searchParams.get('query'))));
+    if (req.method === 'GET' && pathname.startsWith('/timezone/byCoordinates')) return send(res, 200, 'application/json', JSON.stringify(timezone()));
     if (req.method === 'POST' && pathname === '/scaleway') return await storeMail(req, res, 'scaleway');
     if (req.method === 'POST' && pathname === '/send-mail') return await storeMail(req, res, 'send-mail');
     if (req.method === 'GET' && pathname === '/') {

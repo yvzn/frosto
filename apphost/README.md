@@ -83,11 +83,20 @@ $env:MOCKS = 'all'; aspire run       # PowerShell
 | `weather` | Open-Meteo (`api`, `batch`) | one fixed forecast, same for any coordinates: frost on the next 3 days (about -2 / -4 / -1 °C minimum), mild otherwise |
 | `scaleway` | Scaleway TEM (`batch`) | stores the mail, answers 200 |
 | `mail` | custom send-mail API (`batch`) | stores the mail, answers 200 |
+| `maps` | Azure Maps geocoding and time zone (`admin`, server side) | same place (Paris, `Europe/Paris`) for any address or coordinates |
 
 Sent mails are listed at http://localhost:7090/ (link in the dashboard). A mocked service needs no parameter: its URL and
 credentials are set by the AppHost. With any mock on, `INTERNAL_API_KEY` and `PERIOD_IN_DAYS` also get local values.
 `batch` stays start-on-demand (start it from the dashboard).
 
 Not mocked: **SMTP** (`batch` hardcodes port 465 with TLS; with the `mail` mock on, `SMTP_*` get placeholder values, so
-only the `smtp` channel would fail) and **Azure Maps** (`admin`, still needs its parameter). The mock only covers the
-external HTTP calls: you still need locations in Azurite (sign up through the site) for `batch` to have something to notify.
+only the `smtp` channel would fail; with any mock on, `admin` gets a placeholder SMTP connection string, so its mail
+sending fails gracefully).
+
+Limits of the `maps` mock: it covers the Azure Maps SDK calls made by `admin`'s server (geocoding, time zone). The map
+widgets in the browser load the real Azure Maps web SDK and tiles, so they do not render with the mock key.
+To let `admin` call another host, the AppHost sets an optional `AzureMapsEndpoint` setting that `admin`
+reads (`admin/src/Services/AzureMapsEndpointOverride.cs`); when it is absent (production) the SDK calls Azure Maps as before.
+
+The mocks only cover external HTTP calls: you still need locations in Azurite (sign up through the site) for `batch`
+to have something to notify.
