@@ -241,18 +241,21 @@ self-tests, `baseline:verify`, then `npm run parity`. It deploys nothing.
 
 | Parameter `Deploy to` | When | SSH variables used | Azure environment |
 |---|---|---|---|
-| `staging` (default) | every push to `main` touching `site-11ty/` (except `baseline/` and this README) | `stagingSshEndpoint`, `stagingSshTargetFolder` | `staging` |
-| `production` | manual run only | `sshEndpoint`, `sshTargetFolder` | `Azure` (the legacy pipelines' environment) |
+| `staging` (default) | every push to `main` touching `site-11ty/` (except `baseline/` and this README) | `stagingSshTargetFolder` | `staging` |
+| `production` | manual run only | `sshTargetFolder` | `Azure` (the legacy pipelines' environment) |
 
 Variables come from the legacy variable groups, `production` (fr) and `production-en` (en):
-`signUpUrl`, `healthCheckUrl`, `supportUrl`, `checkSubscriptionUrl`, `unsubscribeUrl`, `sshEndpoint`,
-`sshTargetFolder`. Unlike the legacy pipelines, no `.env.production` file is written: the build step maps
+`signUpUrl`, `healthCheckUrl`, `supportUrl`, `checkSubscriptionUrl`, `unsubscribeUrl`, and `sshTargetFolder`
+(or `stagingSshTargetFolder` for staging). SSH service connections are compile-time pipeline settings:
+`SSH OVH Service Connection FR` for FR and `SSH OVH Service Connection EN` for EN. Unlike the legacy
+pipelines, no `.env.production` file is written: the build step maps
 them explicitly to `VITE_*` environment variables, which Vite reads.
 
 **Setup, once:**
 
-1. In each variable group, add `stagingSshEndpoint` (an SSH service connection to the staging host) and
-   `stagingSshTargetFolder` (a folder served by a staging domain or subdomain, one per site).
+1. In each variable group, add `stagingSshTargetFolder` (a folder served by a staging domain or subdomain,
+   one per site). Allow the pipeline to use the FR and EN SSH service connections configured in
+   `azure-pipelines.yml`.
 2. Create the pipeline in Azure DevOps from `site-11ty/azure-pipelines.yml`, and allow it to use both
    variable groups, the SSH service connections and the `staging` environment (created on first run).
 3. Point the staging domains to the folders. Staging uses the production endpoints, already allowed by the
