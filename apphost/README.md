@@ -86,7 +86,7 @@ $env:MOCKS = 'all'; aspire run       # PowerShell
 | `maps` | Azure Maps geocoding and time zone (`admin`, server side) | same place (Paris, `Europe/Paris`) for any address or coordinates |
 | `smtp` | SMTP (`batch` "smtp" channel, `admin`) | fake SMTP server on `localhost:465` (implicit TLS, any login accepted), mails shown in the inbox as `smtp` |
 
-Sent mails are listed at http://localhost:7090/ (link in the dashboard). A mocked service needs no parameter: its URL and
+Sent mails are listed at http://localhost:7090/ (link in the dashboard); open one to see its headers and body. `smtp` mails show the real headers received (DKIM-Signature, List-Unsubscribe...) plus a raw message link; `scaleway` and `send-mail` mails show headers rebuilt from the API request (the real provider builds the final ones; `send-mail` carries none beyond to/subject). A mocked service needs no parameter: its URL and
 credentials are set by the AppHost. With any mock on, `INTERNAL_API_KEY` and `PERIOD_IN_DAYS` also get local values.
 `batch` stays start-on-demand (start it from the dashboard).
 
@@ -119,3 +119,13 @@ reads (`admin/src/Services/AzureMapsEndpointOverride.cs`); when it is absent (pr
 
 The mocks only cover calls to external services: you still need locations in Azurite (sign up through the site) for `batch`
 to have something to notify.
+
+### DKIM keys
+
+`batch` and `admin` load `dkim_private.pem` / `dkim_public.pem` to sign mails (DKIM) and unsubscribe tokens. The files in
+the repo are placeholders (`CHANGE ME`: the pipelines deploy the real keys), which makes any mail with a signature fail
+(`PemException: problem creating RSA private key`). With the `smtp` or `scaleway` mock on, the AppHost generates a
+throwaway RSA key pair in `apphost/mocks/.cert/` (gitignored) and sets `DKIM_PRIVATE_KEY_PATH` (batch, admin) and
+`DKIM_PUBLIC_KEY_PATH` (admin) to it. These settings are optional overrides read by the services; when unset (production, or
+runs without these mocks) the services read the `.pem` files next to the app as before. Real SMTP/Scaleway runs
+need your real key in those files.

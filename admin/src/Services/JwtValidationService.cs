@@ -5,15 +5,18 @@ using System.Security.Cryptography;
 
 namespace admin.Services;
 
-public class JwtValidationService(IWebHostEnvironment environment) : IDisposable
+public class JwtValidationService(IWebHostEnvironment environment, IConfiguration configuration) : IDisposable
 {
 	private const string PublicKeyFileName = "dkim_public.pem";
-	private readonly RSA _rsa = InitializeRsa(environment);
+	private readonly RSA _rsa = InitializeRsa(environment, configuration);
 	private bool _disposed;
 
-	private static RSA InitializeRsa(IWebHostEnvironment environment)
+	private static RSA InitializeRsa(IWebHostEnvironment environment, IConfiguration configuration)
 	{
-		var pemPath = Path.Combine(environment.ContentRootPath, PublicKeyFileName);
+		// DKIM_PUBLIC_KEY_PATH: optional override (local runs); unset in production
+		var pemPath = configuration["DKIM_PUBLIC_KEY_PATH"] is { Length: > 0 } configured
+			? configured
+			: Path.Combine(environment.ContentRootPath, PublicKeyFileName);
 		var pemContent = File.ReadAllText(pemPath);
 
 		var rsa = RSA.Create();

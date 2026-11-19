@@ -6,8 +6,8 @@
 // reading Azure app settings / pipeline variables. See README.md.
 
 import { execFileSync } from 'node:child_process';
-import { randomBytes } from 'node:crypto';
-import { mkdirSync } from 'node:fs';
+import { generateKeyPairSync, randomBytes } from 'node:crypto';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createBuilder } from './.aspire/modules/aspire.mjs';
@@ -71,6 +71,31 @@ function exportDevCertificate(): { pfx: string; password: string } {
   return { pfx, password };
 }
 const smtpCert = mocked.has('smtp') ? exportDevCertificate() : undefined;
+
+/**
+ * The repo's dkim_*.pem files are placeholders ("CHANGE ME"; the pipelines deploy the real keys), and
+ * batch / admin load them to sign mails (DKIM) and unsubscribe tokens. For mocked mail they need a
+ * valid key pair: generate a throwaway one in the gitignored mocks/.cert/ and point the optional
+ * DKIM_PRIVATE_KEY_PATH / DKIM_PUBLIC_KEY_PATH settings at it. Not used for real services.
+ */
+function dkimKeyPair(): { privateKey: string; publicKey: string } {
+  const dir = path.join(here, 'mocks', '.cert');
+  const privateKey = path.join(dir, 'dkim_private.pem');
+  const publicKey = path.join(dir, 'dkim_public.pem');
+  if (!existsSync(privateKey) || !existsSync(publicKey)) {
+    mkdirSync(dir, { recursive: true });
+    const pair = generateKeyPairSync('rsa', {
+      modulusLength: 2048,
+      privateKeyEncoding: { type: 'pkcs1', format: 'pem' },
+      publicKeyEncoding: { type: 'pkcs1', format: 'pem' },
+    });
+    writeFileSync(privateKey, pair.privateKey);
+    writeFileSync(publicKey, pair.publicKey);
+  }
+  return { privateKey, publicKey };
+}
+// Mails signed with DKIM / unsubscribe tokens: the smtp and scaleway channels (api mail does not sign).
+const dkim = mocked.has('smtp') || mocked.has('scaleway') ? dkimKeyPair() : undefined;
 
 const mockPort = 7090;
 const mockUrl = `${origin(mockPort)}`;
@@ -147,6 +172,7 @@ const batch = await common(builder.addExecutable('batch', 'func', at('batch'), [
   .withEnvironment('SMTP_URL', mocked.size ? 'localhost' : await param('smtp-url'))
   .withEnvironment('SMTP_LOGIN', mocked.size ? 'mock' : await param('smtp-login'))
   .withEnvironment('SMTP_PASSWORD', mocked.size ? 'mock' : await param('smtp-password', true))
+  .withEnvironment('DKIM_PRIVATE_KEY_PATH', dkim?.privateKey ?? '')
   .withEnvironment('SCALEWAY_API_URL', await setting('scaleway', 'scaleway-api-url', `${mockUrl}/scaleway`))
   .withEnvironment('SCALEWAY_PROJECT_ID', await setting('scaleway', 'scaleway-project-id', 'mock'))
   .withEnvironment('SCALEWAY_API_KEY', await setting('scaleway', 'scaleway-api-key', 'mock', true))
@@ -165,6 +191,8 @@ const admin = builder
   .withEnvironment('ConnectionStrings__Smtp', smtp ? 'mock:mock@localhost' : mocked.size ? 'mock' : await param('admin-smtp-connection-string', true))
   .withEnvironment('SiteFrUrl', url.siteFr)
   .withEnvironment('SiteEnUrl', url.siteEn)
+  .withEnvironment('DKIM_PRIVATE_KEY_PATH', dkim?.privateKey ?? '')
+  .withEnvironment('DKIM_PUBLIC_KEY_PATH', dkim?.publicKey ?? '')
   .waitFor(db);
 if (mocked.has('maps')) await admin.withEnvironment('AzureMapsEndpoint', mockUrl).waitFor(mocks!);
 else await admin;

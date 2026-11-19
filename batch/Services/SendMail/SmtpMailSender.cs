@@ -20,7 +20,7 @@ internal class SmtpMailSender(
 
 	public override async Task<(bool success, string? error)> SendMailAsync(SingleRecipientNotification notification)
 	{
-		var privateKey = File.OpenRead(Path.Combine(ThisFunctionApp.WorkingDirectory, "dkim_private.pem"));
+		var privateKey = File.OpenRead(ThisFunctionApp.DkimPrivateKeyPath);
 		var replyTo = new System.Net.Mail.MailAddress(Encoding.UTF8.GetString(Convert.FromBase64String(ReplyTo)));
 
 		var signer = new DkimSigner(
