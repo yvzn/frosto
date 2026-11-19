@@ -7,13 +7,18 @@
 
 var RETRIES = 3;
 var TIMEOUT_MS = 30 * 1000;
+// A network error comes back at once: wait a bit before trying again.
 var ERROR_RETRY_DELAY_MS = 2 * 1000;
 
 function ping(url, retries) {
 	var request = new XMLHttpRequest();
+
 	request.timeout = TIMEOUT_MS;
+	// The timeout is already a long wait: retry right away.
 	request.ontimeout = function () {
-		if (retries > 1) ping(url, retries - 1);
+		if (retries > 1) {
+			ping(url, retries - 1);
+		}
 	};
 	request.onerror = function () {
 		if (retries > 1) {
@@ -22,6 +27,7 @@ function ping(url, retries) {
 			}, ERROR_RETRY_DELAY_MS);
 		}
 	};
+
 	request.open('GET', url, true);
 	request.send();
 }
@@ -30,7 +36,12 @@ export function warmUp(url, form) {
 	addEventListener('load', function () {
 		ping(url, RETRIES);
 	});
-	form.addEventListener('focusin', function () {
-		ping(url, RETRIES);
-	}, { once: true });
+
+	form.addEventListener(
+		'focusin',
+		function () {
+			ping(url, RETRIES);
+		},
+		{ once: true },
+	);
 }
