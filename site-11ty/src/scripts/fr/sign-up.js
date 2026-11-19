@@ -1,5 +1,6 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './main.css';
+import { warmUp } from './warm-up.js';
 
 var signupForm = document.querySelector('form');
 var formStatus = 'IDLE';
@@ -61,28 +62,4 @@ function clearLoadingTimeouts() {
 	}
 }
 
-addEventListener('load', onLoad);
-
-function onLoad() {
-	healthCheck(3);
-}
-
-function healthCheck(retries) {
-	var request = new XMLHttpRequest();
-	var url = import.meta.env.VITE_HEALTHCHECK_URL;
-
-	request.timeout = 30 * 1000;
-	request.ontimeout = function () {
-		if (retries > 1) {
-			healthCheck(retries - 1);
-		}
-	};
-	request.onerror = function () {
-		if (retries > 1) {
-			healthCheck(retries - 1);
-		}
-	};
-
-	request.open("GET", url, true);
-	request.send();
-}
+warmUp(import.meta.env.VITE_HEALTHCHECK_URL, signupForm);
