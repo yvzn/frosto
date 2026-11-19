@@ -84,19 +84,38 @@ $env:MOCKS = 'all'; aspire run       # PowerShell
 | `scaleway` | Scaleway TEM (`batch`) | stores the mail, answers 200 |
 | `mail` | custom send-mail API (`batch`) | stores the mail, answers 200 |
 | `maps` | Azure Maps geocoding and time zone (`admin`, server side) | same place (Paris, `Europe/Paris`) for any address or coordinates |
+| `smtp` | SMTP (`batch` "smtp" channel, `admin`) | fake SMTP server on `localhost:465` (implicit TLS, any login accepted), mails shown in the inbox as `smtp` |
 
 Sent mails are listed at http://localhost:7090/ (link in the dashboard). A mocked service needs no parameter: its URL and
 credentials are set by the AppHost. With any mock on, `INTERNAL_API_KEY` and `PERIOD_IN_DAYS` also get local values.
 `batch` stays start-on-demand (start it from the dashboard).
 
-Not mocked: **SMTP** (`batch` hardcodes port 465 with TLS; with the `mail` mock on, `SMTP_*` get placeholder values, so
-only the `smtp` channel would fail; with any mock on, `admin` gets a placeholder SMTP connection string, so its mail
-sending fails gracefully).
+Without `smtp`, `batch` and `admin` get placeholder SMTP values when another mock is on, so they start but sending mail
+by SMTP fails (admin shows "SMTP configuration is missing").
+
+### SMTP mock: development certificate
+
+`batch` and `admin` connect with MailKit (port 465, implicit TLS) and validate the server certificate normally, so the
+fake SMTP server must present a certificate they trust for `localhost`: the ASP.NET Core development certificate.
+`MOCKS=smtp` (or `all`) therefore needs it to exist and be trusted. The AppHost checks this at startup and stops with
+these steps if it is not the case:
+
+```bash
+dotnet dev-certs https --check --trust   # exists, valid and trusted? (exit code 0 = yes)
+dotnet dev-certs https --trust           # create it if missing and trust it (Windows asks to confirm)
+# if it exists but is not trusted or not exportable:
+dotnet dev-certs https --clean
+dotnet dev-certs https --trust
+```
+
+The AppHost then exports the certificate with a random password to `apphost/mocks/.cert/localhost.pfx` (gitignored) and
+passes it to the mock server. The certificate is never committed. It expires after a year: rerun the commands above.
+Port 465 must be free on `localhost`.
 
 Limits of the `maps` mock: it covers the Azure Maps SDK calls made by `admin`'s server (geocoding, time zone). The map
 widgets in the browser load the real Azure Maps web SDK and tiles, so they do not render with the mock key.
 To let `admin` call another host, the AppHost sets an optional `AzureMapsEndpoint` setting that `admin`
 reads (`admin/src/Services/AzureMapsEndpointOverride.cs`); when it is absent (production) the SDK calls Azure Maps as before.
 
-The mocks only cover external HTTP calls: you still need locations in Azurite (sign up through the site) for `batch`
+The mocks only cover calls to external services: you still need locations in Azurite (sign up through the site) for `batch`
 to have something to notify.

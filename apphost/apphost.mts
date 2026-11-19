@@ -5,6 +5,9 @@
 // provides secrets through Aspire parameters (user-secrets). Production is untouched: it keeps
 // reading Azure app settings / pipeline variables. See README.md.
 
+import { execFileSync } from 'node:child_process';
+import { randomBytes } from 'node:crypto';
+import { mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createBuilder } from './.aspire/modules/aspire.mjs';
@@ -32,13 +35,43 @@ const builder = await createBuilder();
 // MOCKS=all | comma list of: weather, scaleway, mail, maps   (unset = real services, as before)
 //   weather  Open-Meteo forecast   scaleway  Scaleway TEM   mail  custom send-mail API   maps  Azure Maps (admin)
 // A mocked service needs no parameter: its URL/credentials are set here.
-// Not mocked: SMTP (batch hardcodes port 465 + TLS).
-const allMocks = ['weather', 'scaleway', 'mail', 'maps'];
+//   smtp  fake SMTP server on localhost:465 (implicit TLS) for batch's "smtp" channel and admin;
+//         needs the ASP.NET dev certificate to exist and be trusted (checked below)
+const allMocks = ['weather', 'scaleway', 'mail', 'maps', 'smtp'];
 const requested = (process.env.MOCKS ?? '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
 const mocked = new Set(requested.includes('all') ? allMocks : requested);
 for (const m of mocked) {
   if (!allMocks.includes(m)) throw new Error(`Unknown MOCKS entry "${m}". Expected: all, ${allMocks.join(', ')}`);
 }
+/**
+ * The fake SMTP server must present a certificate that MailKit (batch, admin) trusts for "localhost":
+ * the ASP.NET Core development certificate. Checks it exists and is trusted, then exports it (with a
+ * random password, to the gitignored mocks/.cert/) for the mock server.
+ */
+function exportDevCertificate(): { pfx: string; password: string } {
+  const dotnet = (...args: string[]) => execFileSync('dotnet', ['dev-certs', 'https', ...args], { stdio: 'pipe' });
+  try {
+    dotnet('--check', '--trust'); // exists, valid and trusted (exit code 0)
+  } catch {
+    throw new Error(
+      'MOCKS=smtp needs a trusted ASP.NET development certificate (CN=localhost). Create and trust it, then rerun:\n' +
+        '  dotnet dev-certs https --trust\n' +
+        'Check it with: dotnet dev-certs https --check --trust',
+    );
+  }
+  const dir = path.join(here, 'mocks', '.cert');
+  mkdirSync(dir, { recursive: true });
+  const pfx = path.join(dir, 'localhost.pfx');
+  const password = randomBytes(16).toString('hex');
+  try {
+    dotnet('--export-path', pfx, '--password', password, '--format', 'Pfx');
+  } catch {
+    throw new Error('Could not export the development certificate (it must be exportable). Recreate it: dotnet dev-certs https --clean then dotnet dev-certs https --trust');
+  }
+  return { pfx, password };
+}
+const smtpCert = mocked.has('smtp') ? exportDevCertificate() : undefined;
+
 const mockPort = 7090;
 const mockUrl = `${origin(mockPort)}`;
 
@@ -66,7 +99,9 @@ const db = await builder.addJavaScriptApp('db', at('db'), { runScriptName: 'dev'
 // --- Mock services (only when MOCKS is set) ------------------------------------------------
 const mocks = mocked.size
   ? await builder
-      .addExecutable('mocks', 'node', path.join(here, 'mocks'), ['server.mjs'])
+      .addJavaScriptApp('mocks', path.join(here, 'mocks'), { runScriptName: 'start' })
+      .withEnvironment('MOCK_SMTP_PFX', smtpCert?.pfx ?? '')
+      .withEnvironment('MOCK_SMTP_PFX_PASSWORD', smtpCert?.password ?? '')
       .withEnvironment('PORT', String(mockPort))
       .withHttpEndpoint({ port: mockPort, targetPort: mockPort, isProxied: false })
       .withHttpHealthCheck({ path: '/healthz' })
@@ -96,8 +131,9 @@ const support = await common(builder.addExecutable('support', 'func', at('suppor
   .withEnvironment('SITE_EN_URL', url.siteEn)
   .waitFor(api);
 
-// SMTP is not mocked; with the mail mock on it gets placeholder values (only used by the "smtp" channel).
-const smtp = mocked.has('mail');
+// With the smtp mock: batch and admin talk to the fake SMTP server on localhost:465 (any login).
+// With another mock but not smtp: placeholder values so they start (the smtp channel would fail).
+const smtp = mocked.has('smtp');
 const batch = await common(builder.addExecutable('batch', 'func', at('batch'), ['host', 'start', '--port', String(ports.batch)]), ports.batch)
   .withEnvironment('SITE_FR_URL', url.siteFr)
   .withEnvironment('SITE_EN_URL', url.siteEn)
@@ -108,9 +144,9 @@ const batch = await common(builder.addExecutable('batch', 'func', at('batch'), [
   .withEnvironment('PERIOD_IN_DAYS', mocked.size ? '1' : await param('period-in-days'))
   .withEnvironment('OPEN_METEO_API_URL', openMeteoApiUrl)
   .withEnvironment('SEND_MAIL_API_URL', await setting('mail', 'send-mail-api-url', `${mockUrl}/send-mail`))
-  .withEnvironment('SMTP_URL', smtp ? 'localhost' : await param('smtp-url'))
-  .withEnvironment('SMTP_LOGIN', smtp ? 'mock' : await param('smtp-login'))
-  .withEnvironment('SMTP_PASSWORD', smtp ? 'mock' : await param('smtp-password', true))
+  .withEnvironment('SMTP_URL', mocked.size ? 'localhost' : await param('smtp-url'))
+  .withEnvironment('SMTP_LOGIN', mocked.size ? 'mock' : await param('smtp-login'))
+  .withEnvironment('SMTP_PASSWORD', mocked.size ? 'mock' : await param('smtp-password', true))
   .withEnvironment('SCALEWAY_API_URL', await setting('scaleway', 'scaleway-api-url', `${mockUrl}/scaleway`))
   .withEnvironment('SCALEWAY_PROJECT_ID', await setting('scaleway', 'scaleway-project-id', 'mock'))
   .withEnvironment('SCALEWAY_API_KEY', await setting('scaleway', 'scaleway-api-key', 'mock', true))
@@ -126,7 +162,7 @@ const admin = builder
   .addProject('admin', at('admin', 'src', 'admin.csproj'), { launchProfileOrOptions: 'http' })
   .withEnvironment('ConnectionStrings__Alerts', devStorage)
   .withEnvironment('ConnectionStrings__AzureMaps', await setting('maps', 'azure-maps-connection-string', 'mock', true))
-  .withEnvironment('ConnectionStrings__Smtp', mocked.size ? 'mock' : await param('admin-smtp-connection-string', true))
+  .withEnvironment('ConnectionStrings__Smtp', smtp ? 'mock:mock@localhost' : mocked.size ? 'mock' : await param('admin-smtp-connection-string', true))
   .withEnvironment('SiteFrUrl', url.siteFr)
   .withEnvironment('SiteEnUrl', url.siteEn)
   .waitFor(db);

@@ -3,10 +3,14 @@
 //   POST /scaleway     Scaleway TEM stand-in: stores the mail, answers 200
 //   POST /send-mail    custom mail API stand-in: stores the mail, answers 200
 //   GET  /geocode, /timezone/byCoordinates/json   Azure Maps stand-ins (same place for any address)
+//   SMTP on 465 (implicit TLS, any login)   stores the mail (only when MOCK_SMTP_PFX is set)
 //   GET  /             inbox of the stored mails;  GET /mail/<id> shows one;  GET /healthz
-// No dependency: plain node.
+// Dependencies: smtp-server, mailparser (npm install in this folder).
 
+import { readFileSync } from 'node:fs';
 import { createServer } from 'node:http';
+import { simpleParser } from 'mailparser';
+import { SMTPServer } from 'smtp-server';
 
 const port = Number(process.env.PORT ?? 7090);
 const mails = [];
@@ -88,15 +92,51 @@ const send = (res, status, type, body) => {
   res.end(body);
 };
 
+function addMail(via, { to, subject, html, text }) {
+  const mail = { id: mails.length + 1, via, at: new Date().toISOString(), to, subject, html, text };
+  mails.push(mail);
+  console.log(`[mock ${via}] mail #${mail.id} to ${to}: ${subject}`);
+  return mail;
+}
+
 async function storeMail(req, res, via) {
   let body = {};
   try { body = JSON.parse(await readBody(req)); } catch { /* keep empty */ }
   // Scaleway: { to: [{email}], subject, html, text }; custom API: { to, subject, body }
   const to = Array.isArray(body.to) ? body.to.map((t) => t.email ?? t).join(', ') : body.to;
-  const mail = { id: mails.length + 1, via, at: new Date().toISOString(), to, subject: body.subject, html: body.html ?? body.body, text: body.text };
-  mails.push(mail);
-  console.log(`[mock ${via}] mail #${mail.id} to ${to}: ${mail.subject}`);
+  const mail = addMail(via, { to, subject: body.subject, html: body.html ?? body.body, text: body.text });
   send(res, 200, 'application/json', JSON.stringify({ id: mail.id }));
+}
+
+// SMTP stand-in (batch "smtp" channel and admin): implicit TLS on 465 like the real servers,
+// any login accepted. Needs a certificate the clients trust for "localhost" (see README):
+// MOCK_SMTP_PFX (path) and MOCK_SMTP_PFX_PASSWORD. Without them the SMTP part is not started.
+function startSmtp() {
+  const pfx = process.env.MOCK_SMTP_PFX;
+  if (!pfx) return;
+  const smtpPort = Number(process.env.MOCK_SMTP_PORT ?? 465);
+  const smtp = new SMTPServer({
+    secure: true,
+    pfx: readFileSync(pfx),
+    passphrase: process.env.MOCK_SMTP_PFX_PASSWORD,
+    authOptional: true,
+    onAuth: (auth, session, callback) => callback(null, { user: auth.username }),
+    onData(stream, session, callback) {
+      simpleParser(stream)
+        .then((parsed) => {
+          addMail('smtp', {
+            to: parsed.to?.text ?? session.envelope.rcptTo.map((r) => r.address).join(', '),
+            subject: parsed.subject,
+            html: parsed.html || undefined,
+            text: parsed.text,
+          });
+          callback();
+        })
+        .catch(callback);
+    },
+  });
+  smtp.on('error', (e) => console.error(`[mock smtp] ${e.message}`));
+  smtp.listen(smtpPort, () => console.log(`mock smtp (implicit TLS) on localhost:${smtpPort}`));
 }
 
 createServer(async (req, res) => {
@@ -125,3 +165,5 @@ createServer(async (req, res) => {
     send(res, 500, 'text/plain', String(e));
   }
 }).listen(port, () => console.log(`mock services on http://localhost:${port}`));
+
+startSmtp();
