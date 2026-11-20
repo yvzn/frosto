@@ -1,5 +1,8 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './main.css';
+import { warmUp } from './warm-up.js';
+
+warmUp(import.meta.env.VITE_SUPPORT_URL, document.querySelector('form'));
 
 var unsubscribeParams = [
 	'user',
