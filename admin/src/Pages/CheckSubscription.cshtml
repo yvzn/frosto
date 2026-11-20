@@ -31,7 +31,13 @@
 					@foreach (var request in Model.CheckSubscriptionRequests)
 					{
 						<tr>
-							<td>@Html.DisplayFor(modelItem => request.email)</td>
+							<td>
+								@Html.DisplayFor(modelItem => request.email)
+								@if (request.ReviewNotes.Count > 0)
+								{
+									<div class="mt-1"><partial name="_ReviewNotes" model="request.ReviewNotes" /></div>
+								}
+							</td>
 							<td>@Html.DisplayFor(modelItem => request.lang)</td>
 							<td>@Html.DisplayFor(modelItem => request.source)</td>
 							<td>@Html.DisplayFor(modelItem => request.Timestamp)</td>

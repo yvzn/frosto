@@ -29,8 +29,15 @@ script: check-subscription
 								autocomplete="email" />
 							<label for="email">Adresse e-mail</label>
 						</div>
+						<div class="form-floating mb-3 form-aside" inert aria-hidden="true">
+							<input type="text" class="form-control" id="reason" name="reason"
+								placeholder="exemple : Je souhaite confirmer mon inscription" autocomplete="off"
+								tabindex="-1" />
+							<label for="reason">Raison de la vérification</label>
+						</div>
 						{% include "partials/consent.njk" %}
 						<input type="hidden" id="lang" name="lang" value="{{ site.lang }}" />
+						<input type="hidden" id="duration" name="duration" value="" />
 						<button class="w-100 btn btn-lg btn-primary" type="submit" aria-live="polite">Vérifier</button>
 					</form>
 				</article>

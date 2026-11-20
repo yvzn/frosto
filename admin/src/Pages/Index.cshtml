@@ -24,13 +24,14 @@
 			<th>Country</th>
 			<th>Language</th>
 			<th>Last Modified</th>
+			<th>Notes</th>
 			<td></td>
 		</tr>
 	</thead>
 	<tbody>
 		@foreach (var item in Model.NewSignUps)
 		{
-			<tr>
+			<tr data-has-notes="@(item.ReviewNotes.Count > 0 ? "true" : "false")">
 				<td>
 					<input type="checkbox" name="location" value="@item.Id" />
 				</td>
@@ -45,6 +46,9 @@
 				</td>
 				<td>
 					@Html.DisplayFor(modelItem => item.Timestamp)
+				</td>
+				<td>
+					<partial name="_ReviewNotes" model="item.ReviewNotes" />
 				</td>
 				<td>
 					<a asp-page="./SignUp" asp-route-id="@item.Id">Validate</a>
@@ -70,6 +74,7 @@
 
 			<details>
 				<summary>Bulk actions:</summary>
+				<button type="button" id="select-with-notes" class="btn btn-outline-secondary mt-3 me-2">Select Sign-ups with Notes</button>
 				<button type="submit" form="bulk-process-form" class="btn btn-danger mt-3">Process Multiple Sign-ups</button>
 			</details>
 		</div>
@@ -90,6 +95,15 @@
 	function toggleLocationSelection(event) {
 		var checkbox = event.target;
 		checkbox.closest('tr')?.classList.toggle('table-info');
+	}
+
+	document.getElementById('select-with-notes')?.addEventListener('click', selectSignUpsWithNotes);
+
+	function selectSignUpsWithNotes() {
+		for (var checkbox of document.querySelectorAll('tr[data-has-notes=true] input[name=location]')) {
+			checkbox.checked = true;
+			checkbox.closest('tr').classList.add('table-info');
+		}
 	}
 
 	var bulkProcessForm = document.getElementById('bulk-process-form');

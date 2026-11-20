@@ -1,6 +1,7 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './main.css';
 import { warmUp } from './warm-up.js';
+import { recordDuration } from './form-duration.js';
 
 var signupForm = document.querySelector('form');
 var formStatus = 'IDLE';
@@ -9,6 +10,7 @@ if (import.meta.env.MODE === "development") {
 	signupForm.action = import.meta.env.VITE_SIGNUP_URL;
 }
 
+recordDuration(signupForm);
 signupForm.addEventListener('submit', showLoadingText);
 
 function showLoadingText(event) {

@@ -1,0 +1,13 @@
+{
+  "name": "frosto-mocks",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "dependencies": {
+    "mailparser": "^3.7.0",
+    "smtp-server": "^3.13.0"
+  }
+}
