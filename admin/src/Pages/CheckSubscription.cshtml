@@ -24,7 +24,6 @@
 						<th>Language</th>
 						<th>Source</th>
 						<th>Last Modified</th>
-						<th>Notes</th>
 						<td></td>
 					</tr>
 				</thead>
@@ -32,11 +31,16 @@
 					@foreach (var request in Model.CheckSubscriptionRequests)
 					{
 						<tr>
-							<td>@Html.DisplayFor(modelItem => request.email)</td>
+							<td>
+								@Html.DisplayFor(modelItem => request.email)
+								@if (request.ReviewNotes.Count > 0)
+								{
+									<div class="mt-1"><partial name="_ReviewNotes" model="request.ReviewNotes" /></div>
+								}
+							</td>
 							<td>@Html.DisplayFor(modelItem => request.lang)</td>
 							<td>@Html.DisplayFor(modelItem => request.source)</td>
 							<td>@Html.DisplayFor(modelItem => request.Timestamp)</td>
-							<td><partial name="_ReviewNotes" model="request.ReviewNotes" /></td>
 							<td>
 								<form method="post" class="d-inline">
 									<input type="hidden" name="SelectedRequest.Id" value="@request.Id" />
