@@ -42,6 +42,8 @@ public class Location : ModelBase
 
 	public int? utc_offset_minutes { get; set; }
 
+	public int? preferred_local_time_minutes { get; set; }
+
 	public string? hemisphere { get; set; }
 
 	[HiddenInput]

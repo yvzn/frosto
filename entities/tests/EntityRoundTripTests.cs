@@ -29,6 +29,7 @@ public class EntityRoundTripTests
             weatherApiUrl = "https://example.test/{0}/{1}",
             appEnabled = true,
             utc_offset_minutes = 60,
+            preferred_local_time_minutes = 510,
             hemisphere = "N",
         };
 
@@ -42,6 +43,7 @@ public class EntityRoundTripTests
         Assert.Equal("https://example.test/{0}/{1}", tableEntity["weatherApiUrl"] as string);
         Assert.Equal(true, tableEntity["appEnabled"] as bool?);
         Assert.Equal(60, tableEntity["utc_offset_minutes"] as int?);
+        Assert.Equal(510, tableEntity["preferred_local_time_minutes"] as int?);
         Assert.Equal("N", tableEntity["hemisphere"] as string);
     }
 
@@ -83,6 +85,7 @@ public class EntityRoundTripTests
         Assert.False(tableEntity.ContainsKey("appEnabled"));
         Assert.False(tableEntity.ContainsKey("minThreshold"));
         Assert.False(tableEntity.ContainsKey("weatherApiUrl"));
+        Assert.False(tableEntity.ContainsKey("preferred_local_time_minutes"));
     }
 
     [Fact]

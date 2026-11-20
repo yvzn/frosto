@@ -38,6 +38,7 @@ public class LocationEntity : ILocation, ITableEntity
     public string? weatherApiUrl { get; set; }
     public bool? appEnabled { get; set; }
     public int? utc_offset_minutes { get; set; }
+    public int? preferred_local_time_minutes { get; set; }
     public string? hemisphere { get; set; }
     public string? zipCode { get; set; }
     public string PartitionKey { get; set; } = string.Empty;
