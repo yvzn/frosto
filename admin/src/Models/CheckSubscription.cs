@@ -7,6 +7,9 @@ public class CheckSubscription : ModelBase
 	public string lang { get; set; } = "";
 	public string source { get; set; } = "";
 	public string reason { get; set; } = "";
+	public int? duration { get; set; }
+
+	public IReadOnlyList<string> ReviewNotes { get; set; } = [];
 
 	public string Id
 	{

@@ -32,6 +32,8 @@ const formStatus = ref<FormStatus>('IDLE');
 const submitLabel = ref<string | null>(null);
 const failureMessage = ref(false);
 const reasonField = useTemplateRef('reasonField');
+const durationField = useTemplateRef('durationField');
+let startedAt = performance.now();
 
 let updateLoadingTextTimeoutId: ReturnType<typeof setTimeout> | null = null;
 let showFailureTextTimeoutId: ReturnType<typeof setTimeout> | null = null;
@@ -40,6 +42,10 @@ function onSubmit(event: Event) {
 	if (formStatus.value === 'IDLE') {
 		formStatus.value = 'PENDING';
 		submitLabel.value = null;
+
+		if (durationField.value) {
+			durationField.value.value = String(Math.round(performance.now() - startedAt));
+		}
 
 		updateLoadingTextTimeoutId = setTimeout(updateLoadingText, SLOW_LOADING_THRESHOLD_MS);
 
@@ -91,6 +97,7 @@ function healthCheck(retries: number) {
 }
 
 onMounted(() => {
+	startedAt = performance.now();
 	healthCheck(3);
 	fixAccessibility();
 });
@@ -175,6 +182,7 @@ onBeforeUnmount(() => {
 					</div>
 					<input type="hidden" id="lang" name="lang" :value="locale" />
 					<input type="hidden" id="source" name="source" value="app" />
+					<input type="hidden" id="duration" name="duration" value="" ref="durationField" />
 					<div v-if="failureMessage" class="alert alert-danger mt-3" role="alert">
 						{{ t('checkSubscription.failureMessage') }}
 					</div>

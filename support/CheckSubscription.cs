@@ -59,6 +59,19 @@ public class CheckSubscription
 			userConsent = requestParams["userConsent"],
 			lang = requestParams["lang"],
 			source = requestParams["source"],
-			reason = requestParams["reason"],
+			reason = ParseText(requestParams["reason"]),
+			duration = ParseDuration(requestParams["duration"]),
 		};
+
+	private const int MaxTextLength = 500;
+
+	private static string? ParseText(string? value)
+		=> string.IsNullOrWhiteSpace(value) ? null
+			: value.Length > MaxTextLength ? value[..MaxTextLength]
+			: value;
+
+	private static int? ParseDuration(string? value)
+		=> int.TryParse(value, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var duration)
+			? duration
+			: null;
 }

@@ -14,20 +14,34 @@ public class SignUpService(IAzureClientFactory<TableClient> azureClientFactory)
 
 		await foreach (var signUpEntity in _signUpTableClient.QueryAsync<SignUpEntity>(_ => true, cancellationToken: cancellationToken))
 		{
-			result.Add(new()
-			{
-				city = signUpEntity.city ?? "",
-				country = signUpEntity.country ?? "",
-				lang = signUpEntity.lang ?? "",
-				temperatureUnit = signUpEntity.temperatureUnit,
-				PartitionKey = signUpEntity.PartitionKey ?? "",
-				RowKey = signUpEntity.RowKey ?? "",
-				Timestamp = signUpEntity.Timestamp,
-			});
+			result.Add(EntityToModel(signUpEntity));
 		}
 
 		return result;
 	}
+
+	public async Task<SignUp?> GetSignUpAsync(string id, CancellationToken cancellationToken)
+	{
+		var (partitionKey, rowKey) = id.ToKeys();
+
+		var signUpEntity = await _signUpTableClient.GetEntityIfExistsAsync<SignUpEntity>(partitionKey, rowKey, cancellationToken: cancellationToken);
+
+		return signUpEntity.HasValue && signUpEntity.Value is not null ? EntityToModel(signUpEntity.Value) : null;
+	}
+
+	private static SignUp EntityToModel(SignUpEntity signUpEntity)
+		=> new()
+		{
+			city = signUpEntity.city ?? "",
+			country = signUpEntity.country ?? "",
+			lang = signUpEntity.lang ?? "",
+			temperatureUnit = signUpEntity.temperatureUnit,
+			comment = signUpEntity.comment,
+			duration = signUpEntity.duration,
+			PartitionKey = signUpEntity.PartitionKey ?? "",
+			RowKey = signUpEntity.RowKey ?? "",
+			Timestamp = signUpEntity.Timestamp,
+		};
 
 	internal async Task<bool> DeleteSignUpAsync(string? id, CancellationToken cancellationToken)
 	{

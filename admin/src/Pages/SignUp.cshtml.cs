@@ -33,6 +33,10 @@ public class SignUpModel(
 
 	public ICollection<Geocoding> GeocodingResults { get; private set; } = [];
 
+	public IReadOnlyList<string> ReviewNotes { get; private set; } = [];
+
+	public string? ReviewComment { get; private set; }
+
 	public string AzureMapsSubscriptionKey => _azureMapsSubscriptionKey;
 
 	private readonly string _azureMapsSubscriptionKey = configuration.GetConnectionString("AzureMaps") ?? string.Empty;
@@ -131,6 +135,32 @@ public class SignUpModel(
 		CountryList = await geographicalDataService.GetCountryListAsync(cancellationToken);
 		TimezoneList = await geographicalDataService.GetCommonTimezonesAsync(cancellationToken);
 		GeocodingResults = GetGeocodingResults(ValidLocation);
+		await PopulateReviewNotesAsync(cancellationToken);
+	}
+
+	private async Task PopulateReviewNotesAsync(CancellationToken cancellationToken)
+	{
+		ReviewNotes = [];
+		ReviewComment = null;
+
+		if (string.IsNullOrWhiteSpace(ValidLocation?.Id))
+		{
+			return;
+		}
+
+		try
+		{
+			var signUp = await signUpService.GetSignUpAsync(ValidLocation.Id, cancellationToken);
+			if (signUp is not null)
+			{
+				ReviewNotes = InputReview.GetNotes(signUp.comment, signUp.duration, signUp.country, CountryList);
+				ReviewComment = signUp.comment;
+			}
+		}
+		catch (RequestFailedException ex)
+		{
+			logger.LogWarning(ex, "Could not load sign-up {LocationId}", ValidLocation.Id);
+		}
 	}
 
 	private Geocoding[] GetGeocodingResults(Location? location)

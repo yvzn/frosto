@@ -24,6 +24,7 @@
 			<th>Country</th>
 			<th>Language</th>
 			<th>Last Modified</th>
+			<th>Notes</th>
 			<td></td>
 		</tr>
 	</thead>
@@ -45,6 +46,9 @@
 				</td>
 				<td>
 					@Html.DisplayFor(modelItem => item.Timestamp)
+				</td>
+				<td>
+					<partial name="_ReviewNotes" model="item.ReviewNotes" />
 				</td>
 				<td>
 					<a asp-page="./SignUp" asp-route-id="@item.Id">Validate</a>

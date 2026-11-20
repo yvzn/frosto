@@ -1,5 +1,6 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './main.css';
+import { recordDuration } from './form-duration.js';
 
 var checkForm = document.querySelector('form');
 var formStatus = 'IDLE';
@@ -8,6 +9,7 @@ if (import.meta.env.MODE === "development") {
 	checkForm.action = import.meta.env.VITE_CHECKSUBSCRIPTION_URL;
 }
 
+recordDuration(checkForm);
 checkForm.addEventListener('submit', showLoadingText);
 
 function showLoadingText(event) {

@@ -1,0 +1,5 @@
+@model IReadOnlyList<string>
+@foreach (var note in Model)
+{
+	<span class="badge text-bg-warning me-1">@note</span>
+}

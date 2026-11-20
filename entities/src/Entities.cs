@@ -90,6 +90,8 @@ public class SignUpEntity : EntityBase
     public string? country { get; set; }
     public string? lang { get; set; }
     public string? temperatureUnit { get; set; }
+    public string? comment { get; set; }
+    public int? duration { get; set; }
 }
 
 public class CheckSubscriptionEntity : EntityBase
@@ -99,6 +101,7 @@ public class CheckSubscriptionEntity : EntityBase
     public string? lang { get; set; }
     public string? source { get; set; }
     public string? reason { get; set; }
+    public int? duration { get; set; }
 }
 
 public class UnsubscribeEntity : EntityBase

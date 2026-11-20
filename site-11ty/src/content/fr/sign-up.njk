@@ -41,8 +41,14 @@ script: sign-up
 								placeholder="France" required="required" autocomplete="country-name" />
 							<label for="country">Pays</label>
 						</div>
+						<div class="form-floating mb-3 form-aside" inert aria-hidden="true">
+							<input type="text" class="form-control" id="comment" name="comment"
+								placeholder="Une précision ?" autocomplete="off" tabindex="-1" />
+							<label for="comment">Commentaire</label>
+						</div>
 						{% include "partials/consent.njk" %}
 						<input type="hidden" id="lang" name="lang" value="{{ site.lang }}" />
+						<input type="hidden" id="duration" name="duration" value="" />
 						<button class="w-100 btn btn-lg btn-primary" type="submit"
 							aria-live="polite">S'inscrire</button>
 					</form>

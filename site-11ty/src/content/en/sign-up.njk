@@ -40,6 +40,11 @@ script: sign-up
 								placeholder="United Kingdom" required="required" autocomplete="country-name" />
 							<label for="country">Country</label>
 						</div>
+						<div class="form-floating mb-3 form-aside" inert aria-hidden="true">
+							<input type="text" class="form-control" id="comment" name="comment"
+								placeholder="Anything to add?" autocomplete="off" tabindex="-1" />
+							<label for="comment">Comment</label>
+						</div>
 						<fieldset class="mb-3 d-flex">
 							<legend class="fs-6 d-inline-block w-auto me-3 mb-0">Temperature unit:</legend>
 							<div class="form-check form-check-inline ms-auto me-0">
@@ -59,6 +64,7 @@ script: sign-up
 							<label class="form-check-label" for="userConsent">{{ site.consentLabel }}</label>
 						</div>
 						<input type="hidden" id="lang" name="lang" value="{{ site.lang }}" />
+						<input type="hidden" id="duration" name="duration" value="" />
 						<button class="w-100 btn btn-lg btn-primary" type="submit" aria-live="polite">Sign up</button>
 					</form>
 				</article>

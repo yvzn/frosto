@@ -24,6 +24,7 @@
 						<th>Language</th>
 						<th>Source</th>
 						<th>Last Modified</th>
+						<th>Notes</th>
 						<td></td>
 					</tr>
 				</thead>
@@ -35,6 +36,7 @@
 							<td>@Html.DisplayFor(modelItem => request.lang)</td>
 							<td>@Html.DisplayFor(modelItem => request.source)</td>
 							<td>@Html.DisplayFor(modelItem => request.Timestamp)</td>
+							<td><partial name="_ReviewNotes" model="request.ReviewNotes" /></td>
 							<td>
 								<form method="post" class="d-inline">
 									<input type="hidden" name="SelectedRequest.Id" value="@request.Id" />
