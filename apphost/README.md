@@ -60,6 +60,9 @@ aspire secret set Parameters:smtp-password "..."
 | `azure-maps-connection-string` | yes | admin | `ConnectionStrings__AzureMaps` |
 | `admin-smtp-connection-string` | yes | admin | `ConnectionStrings__Smtp` |
 
+Each parameter has a description (what it is for, format, which mock makes it unnecessary) shown in the dashboard when
+you enter its value; the source is the `descriptions` map in `apphost.mts`.
+
 A resource whose parameter has no value waits (state "Waiting") until it is provided. Use a dummy value for services
 you do not exercise locally (a mail sender you do not use, for example), so that local runs never send real emails.
 

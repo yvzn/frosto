@@ -104,10 +104,37 @@ const mockUrl = `${origin(mockPort)}`;
 // Created on first use, so a mocked service does not ask for its parameter.
 type Param = Awaited<ReturnType<typeof builder.addParameter>>;
 const created = new Map<string, Param>();
+// What each parameter is for: shown in the dashboard (value prompt and resource details), Markdown allowed.
+// Keep in sync with the table in README.md.
+const descriptions: Record<string, string> = {
+  'open-meteo-api-url':
+    'Open-Meteo forecast URL used by **api** and **batch** (`OPEN_METEO_API_URL`). A .NET format string: `{0}` latitude, `{1}` longitude, `{2}` time zone. Not needed with `MOCKS=weather`.',
+  'period-in-days':
+    'Length in days of the notification cycle of **batch** (`PERIOD_IN_DAYS`): locations are spread over this many days. Gets a local value with any mock on.',
+  'internal-api-key':
+    'Function key **batch** appends (`code=`) when it calls its own functions (`INTERNAL_API_KEY`). Gets a local value with any mock on.',
+  'send-mail-api-url':
+    'URL of the custom send-mail API, the default mail channel of **batch** (`SEND_MAIL_API_URL`). Not needed with `MOCKS=mail`.',
+  'smtp-url':
+    'SMTP host for the `smtp` mail channel of **batch** (`SMTP_URL`). Port 465 with implicit TLS is fixed in the code. Gets `localhost` with any mock on.',
+  'smtp-login': 'SMTP login for the `smtp` mail channel of **batch** (`SMTP_LOGIN`). Gets a placeholder with any mock on.',
+  'smtp-password': 'SMTP password for the `smtp` mail channel of **batch** (`SMTP_PASSWORD`). Gets a placeholder with any mock on.',
+  'scaleway-api-url':
+    'Scaleway Transactional Email API URL for the `scaleway` mail channel of **batch** (`SCALEWAY_API_URL`). Not needed with `MOCKS=scaleway`.',
+  'scaleway-project-id':
+    'Scaleway project id sent with each mail by **batch** (`SCALEWAY_PROJECT_ID`). Not needed with `MOCKS=scaleway`.',
+  'scaleway-api-key':
+    'Scaleway API secret key, sent as `X-Auth-Token` by **batch** (`SCALEWAY_API_KEY`). Not needed with `MOCKS=scaleway`.',
+  'azure-maps-connection-string':
+    'Azure Maps subscription key used by **admin** for geocoding, time zones and the map pages (`ConnectionStrings__AzureMaps`). The map widgets in the browser always need a real key; geocoding and time zones are not needed with `MOCKS=maps`.',
+  'admin-smtp-connection-string':
+    'SMTP settings of **admin** to send mail, format `login:password@host` (`ConnectionStrings__Smtp`). Port 465 with implicit TLS is fixed in the code. Gets a local value with any mock on (`MOCKS=smtp` makes it work).',
+};
+
 const param = async (name: string, secret = false): Promise<Param> => {
   let existing = created.get(name);
   if (!existing) {
-    existing = await builder.addParameter(name, { secret });
+    existing = await builder.addParameter(name, { secret }).withDescription(descriptions[name] ?? name, { enableMarkdown: true });
     created.set(name, existing);
   }
   return existing;
