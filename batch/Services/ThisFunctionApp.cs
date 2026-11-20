@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 
 internal static class ThisFunctionApp
 {
@@ -12,4 +13,13 @@ internal static class ThisFunctionApp
 			return local_root ?? azure_root;
 		}
 	}
+
+	/// <summary>
+	/// DKIM / unsubscribe-token private key. DKIM_PRIVATE_KEY_PATH is an optional override
+	/// (local runs); unset in production, where dkim_private.pem is deployed next to the app.
+	/// </summary>
+	public static string DkimPrivateKeyPath
+		=> Environment.GetEnvironmentVariable("DKIM_PRIVATE_KEY_PATH") is { Length: > 0 } configured
+			? configured
+			: Path.Combine(WorkingDirectory, "dkim_private.pem");
 }

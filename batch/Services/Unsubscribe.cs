@@ -23,7 +23,7 @@ public class Unsubscribe : IDisposable
 
 	private static RSA BuildRsa()
 	{
-		var privateKey = File.OpenRead(Path.Combine(ThisFunctionApp.WorkingDirectory, "dkim_private.pem"));
+		var privateKey = File.OpenRead(ThisFunctionApp.DkimPrivateKeyPath);
 		var rsa = RSA.Create();
 		rsa.ImportFromPem(new StreamReader(privateKey).ReadToEnd().AsSpan());
 		return rsa;

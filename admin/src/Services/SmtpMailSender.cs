@@ -27,7 +27,9 @@ public class SmtpMailSender(IConfiguration configuration, IWebHostEnvironment en
 
 		var replyTo = new System.Net.Mail.MailAddress(Encoding.UTF8.GetString(Convert.FromBase64String(ReplyToEncoded)));
 
-		var privateKeyPath = Path.Combine(environment.ContentRootPath, "dkim_private.pem");
+		var privateKeyPath = configuration["DKIM_PRIVATE_KEY_PATH"] is { Length: > 0 } configured
+			? configured // optional override (local runs); unset in production
+			: Path.Combine(environment.ContentRootPath, "dkim_private.pem");
 		if (!File.Exists(privateKeyPath))
 		{
 			logger.LogWarning("DKIM private key not found at {Path}; cannot send mail", privateKeyPath);
