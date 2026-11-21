@@ -86,6 +86,8 @@ reply ""STOP"" to this e-mail.
 
 <p>To change the temperature unit, reply with ""CELSIUS"" or ""FAHRENHEIT"" to this e-mail.
 
+<|feedback_links|>
+
 <hr>
 
 <p>Weather data is provided by <em>Open-Meteo.com</em> &mdash;
@@ -179,6 +181,8 @@ To change the temperature unit, reply with ""CELSIUS"" or ""FAHRENHEIT"" to this
 
 To stop receiving these messages, <|unsubscribe_link|>
 reply ""STOP"" to this e-mail.
+
+<|feedback_links|>
 
 __________
 

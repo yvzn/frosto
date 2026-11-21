@@ -115,6 +115,19 @@ public class UnsubscribeEntity : EntityBase
     public string? lang { get; set; }
 }
 
+public class FeedbackEntity : EntityBase
+{
+    public string? sentiment { get; set; }
+    public string? text { get; set; }
+    public string? email { get; set; }
+    public bool consent { get; set; }
+    public string? lang { get; set; }
+    public string? source { get; set; }
+    public string? locationPartitionKey { get; set; }
+    public string? locationRowKey { get; set; }
+    public int? duration { get; set; }
+}
+
 public static class EntityTableExtensions
 {
     public static TableEntity ToTableEntity(this ITableEntity entity)

@@ -50,8 +50,8 @@ internal class ScalewayMailSender(
 			to = [new ScalewayApiIdentity { name = notification.to, email = notification.to }],
 			subject = notification.subject,
 			project_id = AppSettings.ScalewayProjectId,
-			text = notification.raw?.Replace(FrenchHtmlFormatter.unsubscribeLinkPlaceholder, textUnsubscribeLink),
-			html = notification.body?.Replace(FrenchHtmlFormatter.unsubscribeLinkPlaceholder, unsubscribeLink),
+			text = FeedbackLinks.ReplaceText(notification.raw?.Replace(FrenchHtmlFormatter.unsubscribeLinkPlaceholder, textUnsubscribeLink), notification),
+			html = FeedbackLinks.ReplaceHtml(notification.body?.Replace(FrenchHtmlFormatter.unsubscribeLinkPlaceholder, unsubscribeLink), notification),
 			attachments = [],
 			additional_headers = [.. BuildScalewayHeaders(unsubscribeToken, notification)]
 		};

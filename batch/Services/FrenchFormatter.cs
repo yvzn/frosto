@@ -70,6 +70,8 @@ internal static class FrenchHtmlFormatter
 <|unsubscribe_link|>
 répondez ""STOP"" à ce message.
 
+<|feedback_links|>
+
 <hr>
 
 <p>Les données météo sont fournies par <em>Open-Meteo.com</em> &mdash;
@@ -157,6 +159,8 @@ Yvan de Alertegelee.fr
 
 Pour vous désinscrire, <|unsubscribe_link|>
 répondez ""STOP"" à ce message.
+
+<|feedback_links|>
 
 __________
 
