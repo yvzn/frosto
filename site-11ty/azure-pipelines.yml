@@ -3,7 +3,7 @@
 # One build job and one deployment job per site, each with the site's variable group:
 #   fr: "production"     en: "production-en"
 # Variables read from each group:
-#   signUpUrl, healthCheckUrl, supportUrl, checkSubscriptionUrl, unsubscribeUrl   form/API endpoints
+#   signUpUrl, healthCheckUrl, supportUrl, checkSubscriptionUrl, unsubscribeUrl, feedbackUrl   form/API endpoints
 #   sshTargetFolder                                                                folder on the host
 #
 # Every push to main touching site-11ty/ deploys both sites to production.
