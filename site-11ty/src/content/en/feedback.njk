@@ -1,0 +1,53 @@
+---
+title: Your feedback - Frost Alerts
+description: Tell us whether an alert was useful or was wrong or unnecessary.
+noindex: true
+script: feedback
+---
+{% extends "layouts/base.njk" %}
+
+{% block main %}
+	<main class="container py-5">
+		<section id="feedback-form-section" class="col-lg-7 mx-auto">
+			<h1 class="fw-light mb-3">Your alert feedback</h1>
+			<form id="feedback-form" action="%VITE_FEEDBACK_URL%" class="border rounded-3 bg-light p-4 p-md-5"
+				method="post" enctype="application/x-www-form-urlencoded">
+				<fieldset class="mb-4">
+					<legend class="form-label">Was this alert useful?</legend>
+					<div class="d-grid gap-2 d-sm-flex">
+						<input class="btn-check" type="radio" name="sentiment" id="sentiment-positive" value="positive" required>
+						<label class="btn btn-outline-success flex-fill" for="sentiment-positive">👍 Yes</label>
+						<input class="btn-check" type="radio" name="sentiment" id="sentiment-negative" value="negative" required>
+						<label class="btn btn-outline-danger flex-fill" for="sentiment-negative">👎 No</label>
+					</div>
+				</fieldset>
+				<div class="form-floating mb-3">
+					<textarea class="form-control" id="text" name="text" maxlength="500" style="height: 120px" placeholder="Your comment"></textarea>
+					<label for="text">Comment (optional)</label>
+				</div>
+				<div class="form-floating mb-3">
+					<input type="email" class="form-control" id="email" name="email" maxlength="254" autocomplete="email" placeholder="name.surname@example.com">
+					<label for="email">E-mail address (optional)</label>
+				</div>
+				<div id="feedback-consent" class="form-check mb-3" hidden>
+					<input class="form-check-input" type="checkbox" id="consent" name="consent" value="true">
+					<label class="form-check-label" for="consent">I agree that this address may be used to reply or contact me about this feedback.</label>
+				</div>
+				<div class="form-aside" inert aria-hidden="true">
+					<input type="text" name="comment" tabindex="-1" autocomplete="off">
+				</div>
+				<input type="hidden" name="lang" value="en">
+				<input type="hidden" name="source" value="home">
+				<input type="hidden" name="locationPartitionKey" value="">
+				<input type="hidden" name="locationRowKey" value="">
+				<input type="hidden" name="duration" value="">
+				<button class="w-100 btn btn-primary" type="submit">Send</button>
+			</form>
+		</section>
+		<section id="feedback-thanks" class="col-lg-7 mx-auto text-center py-5" hidden>
+			<h1 class="fw-light mb-3">Thank you for your feedback</h1>
+			<p class="lead">Your comment has been submitted.</p>
+			<a class="btn btn-outline-primary" href="./">Back to home</a>
+		</section>
+	</main>
+{%- endblock %}

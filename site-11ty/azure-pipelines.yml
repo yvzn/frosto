@@ -64,6 +64,7 @@ jobs:
         VITE_SUPPORT_URL: $(supportUrl)
         VITE_CHECKSUBSCRIPTION_URL: $(checkSubscriptionUrl)
         VITE_UNSUBSCRIBE_URL: $(unsubscribeUrl)
+        VITE_FEEDBACK_URL: $(feedbackUrl)
 
     - task: PublishPipelineArtifact@1
       inputs:

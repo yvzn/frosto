@@ -65,8 +65,8 @@ internal class SmtpMailSender(
 
 		var builder = new BodyBuilder
 		{
-			TextBody = notification.raw?.Replace(FrenchHtmlFormatter.unsubscribeLinkPlaceholder, textUnsubscribeLink),
-			HtmlBody = notification.body?.Replace(FrenchHtmlFormatter.unsubscribeLinkPlaceholder, unsubscribeLink)
+			TextBody = FeedbackLinks.ReplaceText(notification.raw?.Replace(FrenchHtmlFormatter.unsubscribeLinkPlaceholder, textUnsubscribeLink), notification),
+			HtmlBody = FeedbackLinks.ReplaceHtml(notification.body?.Replace(FrenchHtmlFormatter.unsubscribeLinkPlaceholder, unsubscribeLink), notification)
 		};
 
 		message.Body = builder.ToMessageBody();

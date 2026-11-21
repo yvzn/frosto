@@ -1,0 +1,57 @@
+@page
+@model admin.Pages.FeedbackModel
+@{
+	ViewData["Title"] = "Feedback";
+}
+
+<div class="d-flex align-items-center justify-content-between">
+	<h1 class="display-6">Feedback</h1>
+	<div>
+		<span class="badge text-bg-success">@Model.PositiveCount positive</span>
+		<span class="badge text-bg-danger">@Model.NegativeCount negative</span>
+	</div>
+</div>
+
+<form method="get" class="mb-3">
+	<label class="visually-hidden" for="sentiment">Sentiment</label>
+	<select id="sentiment" name="sentiment" class="form-select w-auto" onchange="this.form.submit()">
+		<option value="">All sentiments</option>
+		<option value="positive" selected="@(Model.SelectedSentiment == "positive")">Positive</option>
+		<option value="negative" selected="@(Model.SelectedSentiment == "negative")">Negative</option>
+	</select>
+</form>
+
+<div class="table-responsive">
+	<table class="table table-striped align-middle">
+		<caption>@Model.Feedback.Count items</caption>
+		<thead>
+			<tr><th>Date</th><th>Sentiment</th><th>Text</th><th>E-mail</th><th>Consent</th><th>Source</th><th>Location</th><th></th></tr>
+		</thead>
+		<tbody>
+			@foreach (var item in Model.Feedback)
+			{
+				<tr>
+					<td>@item.Timestamp?.UtcDateTime.ToString("yyyy-MM-dd HH:mm")</td>
+					<td>@item.Sentiment</td>
+					<td>@item.Text</td>
+					<td>@item.Email</td>
+					<td>@(item.Consent ? "Yes" : "No")</td>
+					<td>@item.Source</td>
+					<td>
+						@if (!string.IsNullOrEmpty(item.LocationPartitionKey) && !string.IsNullOrEmpty(item.LocationRowKey))
+						{
+							<a asp-page="/Edit" asp-route-id="@((item.LocationPartitionKey, item.LocationRowKey).ToId())">
+								@item.LocationPartitionKey / @item.LocationRowKey
+							</a>
+						}
+					</td>
+					<td>
+						<form method="post" asp-page-handler="Delete" asp-route-id="@item.Id">
+							<button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+						</form>
+					</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+</div>
