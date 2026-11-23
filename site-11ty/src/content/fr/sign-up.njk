@@ -20,6 +20,12 @@ script: sign-up
 				<article class="col-md-10 mx-auto col-lg-6">
 					<form class="p-4 p-md-5 border rounded-3 bg-light" action="%VITE_SIGNUP_URL%"
 						aria-label="Vos coordonnées" method="post" enctype="application/x-www-form-urlencoded">
+						<div class="form-floating mb-3 form-aside" inert aria-hidden="true">
+							<input type="text" class="form-control" id="comment" name="comment"
+								placeholder="Une précision ?" autocomplete="off" tabindex="-1"
+								data-1p-ignore data-lpignore="true" data-bwignore data-form-type="other" />
+							<label for="comment">Commentaire</label>
+						</div>
 						<div class="form-floating mb-3">
 							<input type="email" class="form-control" id="email" name="email"
 								placeholder="nom.prenom@exemple.com" required="required"
@@ -40,11 +46,6 @@ script: sign-up
 							<input type="text" class="form-control" id="country" name="country"
 								placeholder="France" required="required" autocomplete="country-name" />
 							<label for="country">Pays</label>
-						</div>
-						<div class="form-floating mb-3 form-aside" inert aria-hidden="true">
-							<input type="text" class="form-control" id="comment" name="comment"
-								placeholder="Une précision ?" autocomplete="off" tabindex="-1" />
-							<label for="comment">Commentaire</label>
 						</div>
 						{% include "partials/consent.njk" %}
 						<input type="hidden" id="lang" name="lang" value="{{ site.lang }}" />
