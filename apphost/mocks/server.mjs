@@ -5,6 +5,7 @@
 //   GET  /geocode, /timezone/byCoordinates/json   Azure Maps stand-ins (same place for any address)
 //   SMTP on 465 (implicit TLS, any login)   stores the mail (only when MOCK_SMTP_PFX is set)
 //   GET  /             inbox of the stored mails;  GET /mail/<id> shows headers + body (/raw: smtp raw message);  GET /healthz
+//   GET  /api/mails[?to=<address>]   stored mails as JSON (e2e tests);  DELETE /api/mails   clears the inbox
 // Dependencies: smtp-server, mailparser (npm install in this folder).
 
 import { readFileSync } from 'node:fs';
@@ -179,6 +180,18 @@ createServer(async (req, res) => {
     if (req.method === 'GET' && pathname.startsWith('/timezone/byCoordinates')) return send(res, 200, 'application/json', JSON.stringify(timezone()));
     if (req.method === 'POST' && pathname === '/scaleway') return await storeMail(req, res, 'scaleway');
     if (req.method === 'POST' && pathname === '/send-mail') return await storeMail(req, res, 'send-mail');
+    if (pathname === '/api/mails') {
+      if (req.method === 'DELETE') {
+        mails.length = 0;
+        return send(res, 204, 'text/plain', '');
+      }
+      if (req.method === 'GET') {
+        // "to" may hold several addresses ("a, b") or a display name ("Name <a>"): match case-insensitively on the address
+        const to = url.searchParams.get('to')?.trim().toLowerCase();
+        const found = to ? mails.filter((m) => String(m.to ?? '').toLowerCase().includes(to)) : mails;
+        return send(res, 200, 'application/json', JSON.stringify(found));
+      }
+    }
     if (req.method === 'GET' && pathname === '/') {
       const rows = mails.map((m) => `<tr><td>${m.id}</td><td>${esc(m.at)}</td><td>${m.via}</td><td>${esc(m.to)}</td><td><a href="/mail/${m.id}">${esc(m.subject)}</a></td></tr>`).join('');
       return send(res, 200, 'text/html; charset=utf-8',

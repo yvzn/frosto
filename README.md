@@ -29,6 +29,7 @@ The application consists in the following components:
 - **batch**: _Azure Function App_ that fetches weather forecasts and sends notifications
 - **logic-app**: _Azure Logic App_ that sends notifications
 - **admin**: _ASP.NET_ webapp with admin tools
+- **e2e**: _Playwright_ end-to-end tests, on the deployed sites and on the local stack (see [e2e/README.md](e2e/README.md))
 
 ## Licensing
 
