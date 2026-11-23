@@ -3,7 +3,7 @@ using Frosto.Entities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Azure;
 
-namespace support;
+namespace batch;
 
 public class PurgeFeedbackEmail(IAzureClientFactory<TableClient> azureClientFactory)
 {

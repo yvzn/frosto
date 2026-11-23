@@ -23,7 +23,7 @@ public class Feedback
 #endif
 	}
 
-	[Function("FeedbackPost")]
+	[Function("Feedback")]
 	public async Task<IActionResult> PostAsync(
 		[HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "feedback")]
 		HttpRequest request)

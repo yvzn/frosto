@@ -159,6 +159,24 @@ reply ""STOP"" to this e-mail.
 			unsubscribeUrl
 		);
 	}
+
+	public static string FormatFeedbackLinks(string? partitionKey, string? rowKey)
+	{
+		if (string.IsNullOrWhiteSpace(partitionKey) || string.IsNullOrWhiteSpace(rowKey))
+			return string.Empty;
+		var positive = BuildFeedbackUrl("positive", partitionKey, rowKey);
+		var negative = BuildFeedbackUrl("negative", partitionKey, rowKey);
+		return $"<p>Was this alert useful? <a href=\"{positive}\" target=\"_blank\" rel=\"noopener noreferrer\">👍 Yes</a> · <a href=\"{negative}\" target=\"_blank\" rel=\"noopener noreferrer\">👎 No</a></p>";
+	}
+
+	private static string BuildFeedbackUrl(string sentiment, string partitionKey, string rowKey)
+	{
+		var parameters = System.Web.HttpUtility.ParseQueryString(string.Empty);
+		parameters["s"] = sentiment;
+		parameters["p"] = partitionKey;
+		parameters["r"] = rowKey;
+		return AppSettings.SiteEnUrl + "feedback.html?" + parameters;
+	}
 }
 
 internal static class EnglishTextFormatter
@@ -190,6 +208,24 @@ Weather data is provided by Open-Meteo.com -- Weather data by Open-Meteo.com";
 
 	public static string FormatUnsubscribeLink(string unsubscribeUrl)
 		=> $"visit {unsubscribeUrl} or";
+
+	public static string FormatFeedbackLinks(string? partitionKey, string? rowKey)
+	{
+		if (string.IsNullOrWhiteSpace(partitionKey) || string.IsNullOrWhiteSpace(rowKey))
+			return string.Empty;
+		var positive = BuildFeedbackUrl("positive", partitionKey, rowKey);
+		var negative = BuildFeedbackUrl("negative", partitionKey, rowKey);
+		return $"Was this alert useful? 👍 Yes: {positive} · 👎 No: {negative}";
+	}
+
+	private static string BuildFeedbackUrl(string sentiment, string partitionKey, string rowKey)
+	{
+		var parameters = System.Web.HttpUtility.ParseQueryString(string.Empty);
+		parameters["s"] = sentiment;
+		parameters["p"] = partitionKey;
+		parameters["r"] = rowKey;
+		return AppSettings.SiteEnUrl + "feedback.html?" + parameters;
+	}
 
 	public static string FormatBody(List<weather.Forecast> forecasts, LocationEntity location)
 	{

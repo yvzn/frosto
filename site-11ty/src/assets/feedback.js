@@ -1,4 +1,5 @@
 import { recordDuration } from './form-duration.js';
+import { warmUp } from './warm-up.js';
 
 var feedbackForm = document.querySelector('#feedback-form');
 if (feedbackForm) {
@@ -38,6 +39,7 @@ if (feedbackForm) {
 
 	email.addEventListener('input', updateConsent);
 	updateConsent();
+	warmUp(import.meta.env.VITE_SUPPORT_URL, feedbackForm);
 
 	healthCheck(3);
 

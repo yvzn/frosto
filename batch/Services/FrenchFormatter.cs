@@ -139,6 +139,24 @@ répondez ""STOP"" à ce message.
 			unsubscribeUrl
 		);
 	}
+
+	public static string FormatFeedbackLinks(string? partitionKey, string? rowKey)
+	{
+		if (string.IsNullOrWhiteSpace(partitionKey) || string.IsNullOrWhiteSpace(rowKey))
+			return string.Empty;
+		var positive = BuildFeedbackUrl("positive", partitionKey, rowKey);
+		var negative = BuildFeedbackUrl("negative", partitionKey, rowKey);
+		return $"<p>Cette alerte vous a-t-elle été utile ? <a href=\"{positive}\" target=\"_blank\" rel=\"noopener noreferrer\">👍 Oui</a> · <a href=\"{negative}\" target=\"_blank\" rel=\"noopener noreferrer\">👎 Non</a></p>";
+	}
+
+	private static string BuildFeedbackUrl(string sentiment, string partitionKey, string rowKey)
+	{
+		var parameters = System.Web.HttpUtility.ParseQueryString(string.Empty);
+		parameters["s"] = sentiment;
+		parameters["p"] = partitionKey;
+		parameters["r"] = rowKey;
+		return AppSettings.SiteFrUrl + "feedback.html?" + parameters;
+	}
 }
 
 internal static class TextFormatter
@@ -168,6 +186,24 @@ Les données météo sont fournies par Open-Meteo.com -- Weather data by Open-Me
 
 	public static string FormatUnsubscribeLink(string unsubscribeUrl)
 		=> $"rendez-vous sur {unsubscribeUrl} ou";
+
+	public static string FormatFeedbackLinks(string? partitionKey, string? rowKey)
+	{
+		if (string.IsNullOrWhiteSpace(partitionKey) || string.IsNullOrWhiteSpace(rowKey))
+			return string.Empty;
+		var positive = BuildFeedbackUrl("positive", partitionKey, rowKey);
+		var negative = BuildFeedbackUrl("negative", partitionKey, rowKey);
+		return $"Cette alerte vous a-t-elle été utile ? 👍 Oui : {positive} · 👎 Non : {negative}";
+	}
+
+	private static string BuildFeedbackUrl(string sentiment, string partitionKey, string rowKey)
+	{
+		var parameters = System.Web.HttpUtility.ParseQueryString(string.Empty);
+		parameters["s"] = sentiment;
+		parameters["p"] = partitionKey;
+		parameters["r"] = rowKey;
+		return AppSettings.SiteFrUrl + "feedback.html?" + parameters;
+	}
 
 	public static string FormatBody(List<weather.Forecast> forecasts, LocationEntity location)
 	{
