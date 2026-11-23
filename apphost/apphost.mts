@@ -162,7 +162,8 @@ const mocks = mocked.size
 
 // --- Azure Functions: `func host start` on fixed ports. api then support start one after the other:
 // they share ../entities and ../weather-forecast, concurrent builds lock their obj/ files.
-// batch is optional locally (needs mail settings) so it starts on demand, last.
+// batch starts last. With mocks it starts automatically (mails go to the mock inbox, the e2e tests need it);
+// without mocks it would send real mails, so it stays start-on-demand.
 const common = (r: ReturnType<typeof builder.addExecutable>, port: number) =>
   r
     .withHttpEndpoint({ port, targetPort: port, isProxied: false })
@@ -203,9 +204,9 @@ const batch = await common(builder.addExecutable('batch', 'func', at('batch'), [
   .withEnvironment('SCALEWAY_API_URL', await setting('scaleway', 'scaleway-api-url', `${mockUrl}/scaleway`))
   .withEnvironment('SCALEWAY_PROJECT_ID', await setting('scaleway', 'scaleway-project-id', 'mock'))
   .withEnvironment('SCALEWAY_API_KEY', await setting('scaleway', 'scaleway-api-key', 'mock', true))
-  .waitFor(support)
-  .withExplicitStart();
+  .waitFor(support);
 if (mocks) await batch.waitFor(mocks);
+else await batch.withExplicitStart();
 
 // --- admin (ASP.NET, config binds env vars: ConnectionStrings__X, SiteEnUrl...) -----------
 // With the maps mock, AzureMapsEndpoint redirects admin's Azure Maps SDK calls to the mock

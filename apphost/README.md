@@ -8,7 +8,7 @@ npm install
 aspire run
 ```
 
-The dashboard URL is printed on start. `api` then `support` start one after the other (shared projects, concurrent builds lock `obj/`). `batch` is started on demand from the dashboard (it needs mail settings).
+The dashboard URL is printed on start. `api` then `support` start one after the other (shared projects, concurrent builds lock `obj/`). `batch` starts automatically with mocks on; without mocks it would send real mails, so it is started on demand from the dashboard.
 
 | Resource | URL |
 |---|---|
@@ -91,7 +91,8 @@ $env:MOCKS = 'all'; aspire run       # PowerShell
 
 Sent mails are listed at http://localhost:7090/ (link in the dashboard); open one to see its headers and body. `smtp` mails show the real headers received (DKIM-Signature, List-Unsubscribe...) plus a raw message link; `scaleway` and `send-mail` mails show headers rebuilt from the API request (the real provider builds the final ones; `send-mail` carries none beyond to/subject). A mocked service needs no parameter: its URL and
 credentials are set by the AppHost. With any mock on, `INTERNAL_API_KEY` and `PERIOD_IN_DAYS` also get local values.
-`batch` stays start-on-demand (start it from the dashboard).
+`batch` starts automatically (its mails go to the mock inbox). The same mails are available as JSON at
+http://localhost:7090/api/mails (`?to=<address>` to filter, `DELETE` to clear): the e2e happy path (`e2e/`, `npm run test:local`) reads them there.
 
 Without `smtp`, `batch` and `admin` get placeholder SMTP values when another mock is on, so they start but sending mail
 by SMTP fails (admin shows "SMTP configuration is missing").
