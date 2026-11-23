@@ -2,6 +2,8 @@ using Azure.Data.Tables;
 using Frosto.Entities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Azure;
+using System;
+using System.Threading.Tasks;
 
 namespace batch;
 
