@@ -6,9 +6,14 @@
 	"scripts": {
 		"install:browsers": "playwright install --with-deps",
 		"install:ci": "playwright install chromium",
-		"test": "playwright test"
+		"test": "npm run test:prod",
+		"test:prod": "playwright test --project=prod",
+		"test:local": "playwright test --project=local-fr --project=local-en",
+		"test:local:fr": "playwright test --project=local-fr",
+		"test:local:en": "playwright test --project=local-en"
 	},
 	"devDependencies": {
+		"@azure/data-tables": "^13.3.2",
 		"@playwright/test": "^1.57.0",
 		"@types/node": "^24.10.1"
 	}
