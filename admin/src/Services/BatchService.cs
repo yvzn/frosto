@@ -64,9 +64,7 @@ public class BatchService(
 		{
 			var dayIndex = (int)(StableHash(location.Id) % (uint)periodInDays);
 
-			uint jitterHash = StableHash(location.Id + ":slot");
-			int jitterMinutes = (int)(jitterHash % 120);
-			int targetLocalMinutes = 7 * 60 - jitterMinutes;
+			int targetLocalMinutes = CalculateTargetLocalMinutes(location.Id, location.PreferredLocalTimeMinutes);
 			int targetUtcMinutes = targetLocalMinutes - (location.UtcOffsetMinutes ?? 0);
 			targetUtcMinutes = ((targetUtcMinutes % 1440) + 1440) % 1440;
 			int targetSlotIndex = targetUtcMinutes / 20;
@@ -124,12 +122,13 @@ public class BatchService(
 	{
 		var results = new List<LocationWithBatchInfo>();
 		await foreach (var entity in _validLocationTableClient.QueryAsync<LocationEntity>(
-			select: ["PartitionKey", "RowKey", "utc_offset_minutes"],
+			select: ["PartitionKey", "RowKey", "utc_offset_minutes", "preferred_local_time_minutes"],
 			cancellationToken: cancellationToken))
 		{
 			results.Add(new LocationWithBatchInfo(
 				(entity.PartitionKey, entity.RowKey).ToId(),
-				entity.utc_offset_minutes));
+				entity.utc_offset_minutes,
+				entity.preferred_local_time_minutes));
 		}
 		return results;
 	}
@@ -236,5 +235,17 @@ public class BatchService(
 		return hash;
 	}
 
-	private record LocationWithBatchInfo(string Id, int? UtcOffsetMinutes);
+	internal static int CalculateTargetLocalMinutes(string locationId, int? preferredLocalTimeMinutes)
+	{
+		if (preferredLocalTimeMinutes.HasValue)
+		{
+			return preferredLocalTimeMinutes.Value;
+		}
+
+		uint jitterHash = StableHash(locationId + ":slot");
+		int jitterMinutes = (int)(jitterHash % 120);
+		return 7 * 60 - jitterMinutes;
+	}
+
+	private record LocationWithBatchInfo(string Id, int? UtcOffsetMinutes, int? PreferredLocalTimeMinutes);
 }
