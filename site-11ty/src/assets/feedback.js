@@ -1,3 +1,5 @@
+import 'bootstrap/dist/css/bootstrap.min.css';
+import './main.css';
 import { recordDuration } from './form-duration.js';
 import { warmUp } from './warm-up.js';
 
@@ -40,19 +42,4 @@ if (feedbackForm) {
 	email.addEventListener('input', updateConsent);
 	updateConsent();
 	warmUp(import.meta.env.VITE_SUPPORT_URL, feedbackForm);
-
-	healthCheck(3);
-
-	function healthCheck(retries) {
-		var request = new XMLHttpRequest();
-		request.timeout = 30 * 1000;
-		request.ontimeout = function () {
-			if (retries > 1) healthCheck(retries - 1);
-		};
-		request.onerror = function () {
-			if (retries > 1) healthCheck(retries - 1);
-		};
-		request.open('GET', import.meta.env.VITE_HEALTHCHECK_URL, true);
-		request.send();
-	}
 }
