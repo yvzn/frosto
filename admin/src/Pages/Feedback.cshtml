@@ -1,0 +1,133 @@
+@page
+@model admin.Pages.FeedbackModel
+@using admin.Models
+@{
+	ViewData["Title"] = "Feedback";
+}
+
+<div class="d-flex align-items-center justify-content-between">
+	<h1 class="display-6">Feedback</h1>
+	<div>
+		<span class="badge text-bg-success">@Model.PositiveCount positive</span>
+		<span class="badge text-bg-danger">@Model.NegativeCount negative</span>
+	</div>
+</div>
+
+<form method="get" class="mb-3">
+	<label class="visually-hidden" for="sentiment">Sentiment</label>
+	<select id="sentiment" name="sentiment" class="form-select w-auto" onchange="this.form.submit()">
+		<option value="">All sentiments</option>
+		<option value="positive" selected="@(Model.SelectedSentiment == "positive")">Positive</option>
+		<option value="negative" selected="@(Model.SelectedSentiment == "negative")">Negative</option>
+	</select>
+</form>
+
+<div class="table-responsive">
+	<table class="table table-striped align-middle">
+		<caption>@Model.Feedback.Count items</caption>
+		<thead>
+			<tr><th>Date</th><th>Sentiment</th><th>Text</th><th>E-mail</th><th>Consent</th><th>Source</th><th>Location</th><th></th></tr>
+		</thead>
+		<tbody>
+			@foreach (var item in Model.Feedback)
+			{
+				<tr>
+					<td>@item.Timestamp?.UtcDateTime.ToString("yyyy-MM-dd HH:mm")</td>
+					<td>@item.Sentiment</td>
+					<td>@item.Text</td>
+					<td>@item.Email</td>
+					<td>@(item.Consent ? "Yes" : "No")</td>
+					<td>@item.Source</td>
+					<td>
+						@if (!string.IsNullOrEmpty(item.LocationPartitionKey) && !string.IsNullOrEmpty(item.LocationRowKey))
+						{
+							<a asp-page="/Edit" asp-route-id="@((item.LocationPartitionKey, item.LocationRowKey).ToId())">
+								@item.LocationPartitionKey / @item.LocationRowKey
+							</a>
+						}
+					</td>
+					<td>
+						<button class="btn btn-sm btn-outline-danger"
+							type="button"
+							data-bs-toggle="modal"
+							data-bs-target="#delete-feedback-modal"
+							data-feedback-id="@item.Id"
+							data-feedback-text="@item.Text"
+							data-feedback-sentiment="@item.Sentiment"
+							data-feedback-source="@item.Source"
+							aria-label="Delete feedback">
+							Delete
+						</button>
+					</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+</div>
+
+<div class="modal fade" id="delete-feedback-modal" tabindex="-1" aria-labelledby="delete-feedback-modal-label" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<form method="post" asp-page-handler="Delete">
+				<input type="hidden" name="id" id="delete-feedback-id" />
+				<input type="hidden" name="sentiment" value="@Model.SelectedSentiment" />
+				<div class="modal-header">
+					<h2 class="modal-title fs-5" id="delete-feedback-modal-label">Delete feedback?</h2>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cancel"></button>
+				</div>
+				<div class="modal-body">
+					<p class="mb-2">This feedback will be removed from the list.</p>
+					<p class="mb-0 text-muted small" id="delete-feedback-preview"></p>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+					<button type="submit" class="btn btn-danger">Delete feedback</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+
+@if (Model.DeletedFeedback != null)
+{
+	<div class="position-fixed bottom-0 start-50 translate-middle-x p-3" style="z-index: 1080;">
+		<div class="alert alert-success d-flex align-items-center shadow mb-0" role="status">
+			<span class="me-3">Feedback deleted.</span>
+			<form method="post" asp-page-handler="Undo" class="ms-auto">
+				<input type="hidden" name="deletedFeedback.Id" value="@Model.DeletedFeedback.Id" />
+				<input type="hidden" name="deletedFeedback.Sentiment" value="@Model.DeletedFeedback.Sentiment" />
+				<input type="hidden" name="deletedFeedback.Text" value="@Model.DeletedFeedback.Text" />
+				<input type="hidden" name="deletedFeedback.Email" value="@Model.DeletedFeedback.Email" />
+				<input type="hidden" name="deletedFeedback.Consent" value="@Model.DeletedFeedback.Consent" />
+				<input type="hidden" name="deletedFeedback.Language" value="@Model.DeletedFeedback.Language" />
+				<input type="hidden" name="deletedFeedback.Source" value="@Model.DeletedFeedback.Source" />
+				<input type="hidden" name="deletedFeedback.LocationPartitionKey" value="@Model.DeletedFeedback.LocationPartitionKey" />
+				<input type="hidden" name="deletedFeedback.LocationRowKey" value="@Model.DeletedFeedback.LocationRowKey" />
+				<input type="hidden" name="sentiment" value="@Model.SelectedSentiment" />
+				<button type="submit" class="btn btn-link fw-semibold p-0">Undo</button>
+			</form>
+		</div>
+	</div>
+}
+
+@section Scripts {
+	<script>
+		document.querySelectorAll("[data-feedback-id][data-bs-target='#delete-feedback-modal']").forEach(button => {
+			button.addEventListener("click", () => {
+				document.getElementById("delete-feedback-id").value = button.dataset.feedbackId;
+
+				const rowText = button.closest("tr")?.querySelector("td:nth-child(3)")?.textContent?.trim();
+				const preview = rowText || button.dataset.feedbackText?.trim();
+				const sentiment = button.dataset.feedbackSentiment?.trim();
+				const source = button.dataset.feedbackSource?.trim();
+				const fallback = [
+					sentiment ? `${sentiment} feedback` : "Feedback",
+					source ? `from ${source}` : null
+				].filter(Boolean).join(" ");
+
+				document.getElementById("delete-feedback-preview").textContent =
+					preview ? `"${preview}"` : fallback;
+			});
+		});
+	</script>
+}

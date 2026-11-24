@@ -162,7 +162,7 @@ with the endpoints as environment variables) and one deployment job (`CopyFilesO
 `.htaccess` included, Azure environment `Azure`).
 
 Variables come from the variable groups `production` (fr) and `production-en` (en): `signUpUrl`,
-`healthCheckUrl`, `supportUrl`, `checkSubscriptionUrl`, `unsubscribeUrl`, `sshTargetFolder`. The build
+`healthCheckUrl`, `supportUrl`, `checkSubscriptionUrl`, `unsubscribeUrl`, `feedbackUrl`, `sshTargetFolder`. The build
 step maps the endpoints explicitly to `VITE_*` environment variables, which Vite reads.
 
 SSH service connections are named in `azure-pipelines.yml` (`sites` parameter, `sshEndpoint`), not in the

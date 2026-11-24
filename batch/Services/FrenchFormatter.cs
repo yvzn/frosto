@@ -66,11 +66,13 @@ internal static class FrenchHtmlFormatter
 <p>Cordialement,
 <br>Yvan de Alertegelee.fr
 
+<hr>
+
 <p>Pour ne plus recevoir ces messages,
 <|unsubscribe_link|>
 répondez ""STOP"" à ce message.
 
-<hr>
+<|feedback_links|>
 
 <p>Les données météo sont fournies par <em>Open-Meteo.com</em> &mdash;
 <a href=""{4}"" target=""_blank"" rel=""noopener noreferrer"">Weather data by Open-Meteo.com</a>";
@@ -137,6 +139,24 @@ répondez ""STOP"" à ce message.
 			unsubscribeUrl
 		);
 	}
+
+	public static string FormatFeedbackLinks(string? partitionKey, string? rowKey)
+	{
+		if (string.IsNullOrWhiteSpace(partitionKey) || string.IsNullOrWhiteSpace(rowKey))
+			return string.Empty;
+		var positive = BuildFeedbackUrl("positive", partitionKey, rowKey);
+		var negative = BuildFeedbackUrl("negative", partitionKey, rowKey);
+		return $"<p>Cette alerte vous a-t-elle été utile ? <a href=\"{positive}\" target=\"_blank\" rel=\"noopener noreferrer\">👍 Oui</a> · <a href=\"{negative}\" target=\"_blank\" rel=\"noopener noreferrer\">👎 Non</a></p>";
+	}
+
+	private static string BuildFeedbackUrl(string sentiment, string partitionKey, string rowKey)
+	{
+		var parameters = System.Web.HttpUtility.ParseQueryString(string.Empty);
+		parameters["s"] = sentiment;
+		parameters["p"] = partitionKey;
+		parameters["r"] = rowKey;
+		return AppSettings.SiteFrUrl + "feedback.html?" + parameters;
+	}
 }
 
 internal static class TextFormatter
@@ -155,15 +175,35 @@ Les prévisions de température des prochains jours ({0}, {1}):
 Cordialement,
 Yvan de Alertegelee.fr
 
+__________
+
 Pour vous désinscrire, <|unsubscribe_link|>
 répondez ""STOP"" à ce message.
 
-__________
+<|feedback_links|>
 
 Les données météo sont fournies par Open-Meteo.com -- Weather data by Open-Meteo.com";
 
 	public static string FormatUnsubscribeLink(string unsubscribeUrl)
 		=> $"rendez-vous sur {unsubscribeUrl} ou";
+
+	public static string FormatFeedbackLinks(string? partitionKey, string? rowKey)
+	{
+		if (string.IsNullOrWhiteSpace(partitionKey) || string.IsNullOrWhiteSpace(rowKey))
+			return string.Empty;
+		var positive = BuildFeedbackUrl("positive", partitionKey, rowKey);
+		var negative = BuildFeedbackUrl("negative", partitionKey, rowKey);
+		return $"Cette alerte vous a-t-elle été utile ? 👍 Oui : {positive} · 👎 Non : {negative}";
+	}
+
+	private static string BuildFeedbackUrl(string sentiment, string partitionKey, string rowKey)
+	{
+		var parameters = System.Web.HttpUtility.ParseQueryString(string.Empty);
+		parameters["s"] = sentiment;
+		parameters["p"] = partitionKey;
+		parameters["r"] = rowKey;
+		return AppSettings.SiteFrUrl + "feedback.html?" + parameters;
+	}
 
 	public static string FormatBody(List<weather.Forecast> forecasts, LocationEntity location)
 	{

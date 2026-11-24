@@ -1,0 +1,60 @@
+---
+title: Votre avis - Alerte gelées
+description: Faites-nous savoir si une alerte vous a été utile ou si elle était inutile ou incorrecte.
+noindex: true
+homeLabel: Accueil du site
+script: feedback
+---
+{% extends "layouts/base.njk" %}
+
+{% block main %}
+	<main>
+		<section id="feedback-form-section" class="py-5 container">
+			<div class="row py-lg-5">
+				<article class="col-lg-6 p-4 p-md-5">
+					<h1 class="fw-light mb-3">Donnez-nous votre avis</h1>
+					<p class="lead text-muted col-lg-10">Vos retours nous permettent d'améliorer la pertinence du service.</p>
+				</article>
+				<article class="col-md-10 mx-auto col-lg-6">
+					<form id="feedback-form" class="p-4 p-md-5 border rounded-3 bg-light" action="%VITE_FEEDBACK_URL%"
+						aria-label="Formulaire d'avis" method="post" enctype="application/x-www-form-urlencoded">
+						<fieldset class="mb-4">
+							<legend class="form-label form-text">Les alertes gelées vous sont elles utiles&nbsp;?</legend>
+							<div class="form-check form-check-inline">
+								<input class="form-check-input" type="radio" name="sentiment" id="sentiment-positive" value="positive" required>
+								<label class="form-check-label" for="sentiment-positive">👍 Oui</label>
+							</div>
+							<div class="form-check form-check-inline">
+								<input class="form-check-input" type="radio" name="sentiment" id="sentiment-negative" value="negative" required>
+								<label class="form-check-label" for="sentiment-negative">👎 Non</label>
+							</div>
+						</fieldset>
+						<div class="form-text mb-3">Avez-vous des suggestions ou des commentaires (facultatif)&nbsp;?</div>
+						<div class="form-floating mb-3">
+							<textarea class="form-control" id="text" name="text" maxlength="500" style="height: 120px" placeholder="Votre commentaire"></textarea>
+							<label for="text">Commentaire libre</label>
+						</div>
+						<div class="form-text mb-3">Acceptez-vous d'être éventuellement recontacté (facultatif)&nbsp;?</div>
+						<div class="form-floating mb-3">
+							<input type="email" class="form-control" id="email" name="email" maxlength="254" autocomplete="email" placeholder="nom.prenom@exemple.com">
+							<label for="email">Adresse e-mail</label>
+						</div>
+						<div id="feedback-consent" class="form-check mb-3">
+							<input class="form-check-input" type="checkbox" id="consent" name="consent" value="true">
+							<label class="form-check-label" for="consent">J'accepte que cette adresse soit utilisée pour me répondre ou me contacter au sujet de cet avis.</label>
+						</div>
+						<div class="form-aside" inert aria-hidden="true">
+							<input type="text" name="comment" tabindex="-1" autocomplete="off">
+						</div>
+						<input type="hidden" name="lang" value="fr">
+						<input type="hidden" name="source" value="home">
+						<input type="hidden" name="locationPartitionKey" value="">
+						<input type="hidden" name="locationRowKey" value="">
+						<input type="hidden" name="duration" value="">
+						<button class="w-100 btn btn-lg btn-primary" type="submit">Envoyer</button>
+					</form>
+				</article>
+			</div>
+		</section>
+	</main>
+{%- endblock %}

@@ -4,6 +4,7 @@ namespace batch.Models;
 
 public class Notification
 {
+	public required string? partitionKey { get; init; }
 	public required string? rowKey { get; init; }
 	public required string? subject { get; init; }
 	public required string? body { get; init; }
@@ -21,6 +22,7 @@ public class NotificationFrom
 
 public class SingleRecipientNotification
 {
+	public string? partitionKey { get; private set; }
 	public string? rowKey { get; private set; }
 	public string? subject { get; private set; }
 	public string? body { get; private set; }
@@ -31,6 +33,7 @@ public class SingleRecipientNotification
 
 	public SingleRecipientNotification(string recipient, Notification notification)
 	{
+		partitionKey = notification.partitionKey;
 		rowKey = notification.rowKey;
 		subject = notification.subject;
 		body = notification.body;
