@@ -24,7 +24,7 @@ internal class ScalewayMailSender(
 		var unsubscribeToken = unsubscribe.BuildUnsubscribeToken(notification);
 		if (!unsubscribeToken.StartsWith("ey"))
 		{
-			logger.LogWarning("Invalid unsubscribe token generated for recipient {recipient}", notification.to);
+			logger.LogWarning("Invalid unsubscribe token generated for location {LocationId}", notification.rowKey);
 		}
 
 		var unsubscribeUrl = Unsubscribe.BuildUnsubscribeUrl(unsubscribeToken, notification);

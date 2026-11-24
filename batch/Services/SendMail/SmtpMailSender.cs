@@ -43,7 +43,7 @@ internal class SmtpMailSender(
 		var unsubscribeToken = unsubscribe.BuildUnsubscribeToken(notification);
 		if (!unsubscribeToken.StartsWith("ey"))
 		{
-			logger.LogWarning("Invalid unsubscribe token generated for recipient {recipient}", notification.to);
+			logger.LogWarning("Invalid unsubscribe token generated for location {LocationId}", notification.rowKey);
 		}
 
 		var listUnsubscribeHeaders = Unsubscribe.GetListUnsubscribeHeaders(replyTo.Address, unsubscribeToken, notification);
