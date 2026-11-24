@@ -143,10 +143,10 @@ répondez ""STOP"" à ce message.
 	public static string FormatFeedbackLinks(string? partitionKey, string? rowKey)
 	{
 		if (string.IsNullOrWhiteSpace(partitionKey) || string.IsNullOrWhiteSpace(rowKey))
-			return string.Empty;
+			return $"<p><a href=\"{AppSettings.SiteFrUrl}share.html\" target=\"_blank\" rel=\"noopener noreferrer\">Recommander le service</a></p>";
 		var positive = BuildFeedbackUrl("positive", partitionKey, rowKey);
 		var negative = BuildFeedbackUrl("negative", partitionKey, rowKey);
-		return $"<p>Cette alerte vous a-t-elle été utile ? <a href=\"{positive}\" target=\"_blank\" rel=\"noopener noreferrer\">👍 Oui</a> · <a href=\"{negative}\" target=\"_blank\" rel=\"noopener noreferrer\">👎 Non</a></p>";
+		return $"<p>Cette alerte vous a-t-elle été utile ? <a href=\"{positive}\" target=\"_blank\" rel=\"noopener noreferrer\">👍 Oui</a> · <a href=\"{negative}\" target=\"_blank\" rel=\"noopener noreferrer\">👎 Non</a> · <a href=\"{AppSettings.SiteFrUrl}share.html\" target=\"_blank\" rel=\"noopener noreferrer\">Recommander le service</a></p>";
 	}
 
 	private static string BuildFeedbackUrl(string sentiment, string partitionKey, string rowKey)
@@ -190,10 +190,10 @@ Les données météo sont fournies par Open-Meteo.com -- Weather data by Open-Me
 	public static string FormatFeedbackLinks(string? partitionKey, string? rowKey)
 	{
 		if (string.IsNullOrWhiteSpace(partitionKey) || string.IsNullOrWhiteSpace(rowKey))
-			return string.Empty;
+			return $"Recommander le service : {AppSettings.SiteFrUrl}share.html";
 		var positive = BuildFeedbackUrl("positive", partitionKey, rowKey);
 		var negative = BuildFeedbackUrl("negative", partitionKey, rowKey);
-		return $"Cette alerte vous a-t-elle été utile ? 👍 Oui : {positive} · 👎 Non : {negative}";
+		return $"Cette alerte vous a-t-elle été utile ? 👍 Oui : {positive} · 👎 Non : {negative} · Recommander le service : {AppSettings.SiteFrUrl}share.html";
 	}
 
 	private static string BuildFeedbackUrl(string sentiment, string partitionKey, string rowKey)

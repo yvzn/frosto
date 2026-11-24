@@ -10,4 +10,6 @@ export default {
 	xDefaultDomain: 'https://www.frostalert.net',
 	// Consent checkbox of the forms (src/_includes/partials/consent.njk).
 	consentLabel: 'I agree that my personal contact details are used as part of this service.',
+	ogDescription: 'Get free frost alerts near you. Personalized frost alerts for your area and your city.',
+	ogImage: 'https://www.frostalert.net/asset/share-en.png',
 };

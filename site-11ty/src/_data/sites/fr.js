@@ -10,4 +10,6 @@ export default {
 	xDefaultDomain: 'https://www.frostalert.net',
 	// Consent checkbox of the forms (src/_includes/partials/consent.njk).
 	consentLabel: "J'accepte que mes coordonnées personnelles soient utilisées dans le cadre de ce service.",
+	ogDescription: "Recevez gratuitement une alerte lorsque la météo prévoit des températures négatives dans votre ville.",
+	ogImage: 'https://www.alertegelee.fr/asset/share-fr.png',
 };

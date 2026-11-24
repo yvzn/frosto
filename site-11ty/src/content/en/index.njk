@@ -6,20 +6,6 @@ homeLabel: Home page
 ---
 {% extends "layouts/base.njk" %}
 
-{% block head %}
-
-	<meta property="og:type" content="website" />
-	<meta property="og:title" content="{{ title }}" />
-	<meta property="og:description"
-		content="Get free frost alerts near you. Personalized frost alerts for your area and your city." />
-	<meta property="og:url" content="{{ site.domain }}{{ pagePath }}" />
-
-	<meta name="twitter:card" content="summary" />
-	<meta name="twitter:title" content="{{ title }}" />
-	<meta name="twitter:description"
-		content="Free frost alerts for my area. Be notified before temperatures drop below zero." />
-{%- endblock %}
-
 {% block main %}
 	<main>
 		<section class="container py-5">

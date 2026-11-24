@@ -5,5 +5,6 @@ export default [
 	{ path: '/', lastmod: '2026-01-21', changefreq: 'monthly', priority: '1.0' },
 	{ path: '/sign-up.html', lastmod: '2025-09-08', changefreq: 'yearly', priority: '0.9' },
 	{ path: '/contact.html', lastmod: '2025-09-08', changefreq: 'yearly', priority: '0.7' },
+	{ path: '/share.html', lastmod: '2026-11-24', changefreq: 'yearly', priority: '0.7' },
 	{ path: '/legal.html', lastmod: '2025-09-08', changefreq: 'yearly', priority: '0.5' },
 ];

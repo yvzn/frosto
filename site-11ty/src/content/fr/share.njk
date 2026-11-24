@@ -1,0 +1,40 @@
+---
+title: Recommander le service - Alerte gelées
+description: Parlez d'Alerte gelées à vos voisins, jardiniers et proches.
+homeLabel: Accueil du site
+script: share
+ogDescription: Recommandez Alerte gelées à vos voisins, jardiniers et proches.
+---
+{% extends "layouts/base.njk" %}
+
+{% block main %}
+	<main data-share-url="{{ site.domain }}/">
+		<section class="container py-5">
+			<div class="row py-lg-5">
+				<article class="col-lg-6 p-4 p-md-5">
+					<h1 class="fw-light mb-3">Recommander le service</h1>
+					<p class="lead text-muted">Connaissez-vous quelqu'un qui aimerait recevoir une alerte avant une gelée ?</p>
+				</article>
+				<article class="col-md-10 mx-auto col-lg-6">
+					<div class="p-4 p-md-5 border rounded-3 bg-light" aria-label="Partager Alerte gelées">
+						<p class="form-text mb-3">Partager la page d'accueil :</p>
+						<button type="button" class="w-100 btn btn-lg btn-primary mb-3" data-native-share hidden>Partager</button>
+						<a class="w-100 btn btn-lg btn-primary mb-3"
+							href="mailto:?subject=Découvrez%20Alerte%20gelées&amp;body=Bonjour%2C%0A%0AJe%20vous%20recommande%20Alerte%20gelées%20%3A%20https%3A%2F%2Fwww.alertegelee.fr%2F%0A%0ACe%20service%20gratuit%20vous%20avertit%20avant%20les%20gelées.">Envoyer par e-mail</a>
+						<button type="button" class="w-100 btn btn-lg btn-outline-secondary mb-3" data-copy-share>Copier le lien</button>
+						<p class="text-success" data-copy-status hidden>Lien copié.</p>
+						<div class="d-flex flex-wrap gap-2" data-share-social>
+							<a class="btn btn-outline-secondary" href="https://wa.me/?text=D%C3%A9couvrez%20Alerte%20gel%C3%A9es%20%3A%20https%3A%2F%2Fwww.alertegelee.fr%2F" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+							<a class="btn btn-outline-secondary" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fwww.alertegelee.fr%2F" target="_blank" rel="noopener noreferrer">Facebook</a>
+							<a class="btn btn-outline-secondary" href="https://twitter.com/intent/tweet?text=D%C3%A9couvrez%20Alerte%20gel%C3%A9es&amp;url=https%3A%2F%2Fwww.alertegelee.fr%2F" target="_blank" rel="noopener noreferrer">X</a>
+							<a class="btn btn-outline-secondary" href="https://bsky.app/intent/compose?text=D%C3%A9couvrez%20Alerte%20gel%C3%A9es%20%3A%20https%3A%2F%2Fwww.alertegelee.fr%2F" target="_blank" rel="noopener noreferrer">Bluesky</a>
+						</div>
+						<hr>
+						<h2 class="h5">Imprimer un prospectus</h2>
+						<p class="mb-0"><a href="./asset/recommend-fr.pdf" download>Télécharger le prospectus PDF</a>, avec un QR code vers la page d'accueil.</p>
+					</div>
+				</article>
+			</div>
+		</section>
+	</main>
+{%- endblock %}

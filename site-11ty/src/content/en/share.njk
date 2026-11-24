@@ -1,0 +1,40 @@
+---
+title: Recommend the service - Frost Alerts
+description: Tell your neighbours, gardeners and friends about Frost Alerts.
+homeLabel: Home
+script: share
+ogDescription: Recommend Frost Alerts to your neighbours, gardeners and friends.
+---
+{% extends "layouts/base.njk" %}
+
+{% block main %}
+	<main data-share-url="{{ site.domain }}/">
+		<section class="container py-5">
+			<div class="row py-lg-5">
+				<article class="col-lg-6 p-4 p-md-5">
+					<h1 class="fw-light mb-3">Recommend the service</h1>
+					<p class="lead text-muted">Know someone who would like to receive an alert before frost?</p>
+				</article>
+				<article class="col-md-10 mx-auto col-lg-6">
+					<div class="p-4 p-md-5 border rounded-3 bg-light" aria-label="Share Frost Alerts">
+						<p class="form-text mb-3">Share the home page:</p>
+						<button type="button" class="w-100 btn btn-lg btn-primary mb-3" data-native-share hidden>Share</button>
+						<a class="w-100 btn btn-lg btn-primary mb-3"
+							href="mailto:?subject=Discover%20Frost%20Alerts&amp;body=Hello%2C%0A%0AI%20recommend%20Frost%20Alerts%3A%20https%3A%2F%2Fwww.frostalert.net%2F%0A%0AThis%20free%20service%20warns%20you%20before%20temperatures%20fall%20below%20freezing.">Send by e-mail</a>
+						<button type="button" class="w-100 btn btn-lg btn-outline-secondary mb-3" data-copy-share>Copy link</button>
+						<p class="text-success" data-copy-status hidden>Link copied.</p>
+						<div class="d-flex flex-wrap gap-2" data-share-social>
+							<a class="btn btn-outline-secondary" href="https://wa.me/?text=Discover%20Frost%20Alerts%3A%20https%3A%2F%2Fwww.frostalert.net%2F" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+							<a class="btn btn-outline-secondary" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fwww.frostalert.net%2F" target="_blank" rel="noopener noreferrer">Facebook</a>
+							<a class="btn btn-outline-secondary" href="https://twitter.com/intent/tweet?text=Discover%20Frost%20Alerts&amp;url=https%3A%2F%2Fwww.frostalert.net%2F" target="_blank" rel="noopener noreferrer">X</a>
+							<a class="btn btn-outline-secondary" href="https://bsky.app/intent/compose?text=Discover%20Frost%20Alerts%3A%20https%3A%2F%2Fwww.frostalert.net%2F" target="_blank" rel="noopener noreferrer">Bluesky</a>
+						</div>
+						<hr>
+						<h2 class="h5">Print a flyer</h2>
+						<p class="mb-0"><a href="./asset/recommend-en.pdf" download>Download the PDF flyer</a>, with a QR code to the home page.</p>
+					</div>
+				</article>
+			</div>
+		</section>
+	</main>
+{%- endblock %}

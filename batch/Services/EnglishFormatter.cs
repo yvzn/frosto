@@ -163,10 +163,10 @@ reply ""STOP"" to this e-mail.
 	public static string FormatFeedbackLinks(string? partitionKey, string? rowKey)
 	{
 		if (string.IsNullOrWhiteSpace(partitionKey) || string.IsNullOrWhiteSpace(rowKey))
-			return string.Empty;
+			return $"<p><a href=\"{AppSettings.SiteEnUrl}share.html\" target=\"_blank\" rel=\"noopener noreferrer\">Recommend the service</a></p>";
 		var positive = BuildFeedbackUrl("positive", partitionKey, rowKey);
 		var negative = BuildFeedbackUrl("negative", partitionKey, rowKey);
-		return $"<p>Was this alert useful? <a href=\"{positive}\" target=\"_blank\" rel=\"noopener noreferrer\">👍 Yes</a> · <a href=\"{negative}\" target=\"_blank\" rel=\"noopener noreferrer\">👎 No</a></p>";
+		return $"<p>Was this alert useful? <a href=\"{positive}\" target=\"_blank\" rel=\"noopener noreferrer\">👍 Yes</a> · <a href=\"{negative}\" target=\"_blank\" rel=\"noopener noreferrer\">👎 No</a> · <a href=\"{AppSettings.SiteEnUrl}share.html\" target=\"_blank\" rel=\"noopener noreferrer\">Recommend the service</a></p>";
 	}
 
 	private static string BuildFeedbackUrl(string sentiment, string partitionKey, string rowKey)
@@ -212,10 +212,10 @@ Weather data is provided by Open-Meteo.com -- Weather data by Open-Meteo.com";
 	public static string FormatFeedbackLinks(string? partitionKey, string? rowKey)
 	{
 		if (string.IsNullOrWhiteSpace(partitionKey) || string.IsNullOrWhiteSpace(rowKey))
-			return string.Empty;
+			return $"Recommend the service: {AppSettings.SiteEnUrl}share.html";
 		var positive = BuildFeedbackUrl("positive", partitionKey, rowKey);
 		var negative = BuildFeedbackUrl("negative", partitionKey, rowKey);
-		return $"Was this alert useful? 👍 Yes: {positive} · 👎 No: {negative}";
+		return $"Was this alert useful? 👍 Yes: {positive} · 👎 No: {negative} · Recommend the service: {AppSettings.SiteEnUrl}share.html";
 	}
 
 	private static string BuildFeedbackUrl(string sentiment, string partitionKey, string rowKey)

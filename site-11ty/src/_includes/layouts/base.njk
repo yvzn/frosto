@@ -46,6 +46,16 @@
 	<title>{{ title }}</title>
 {%- endif %}
 {%- block head %}{% endblock %}
+	<meta property="og:type" content="website" />
+	<meta property="og:title" content="{{ title }}" />
+	<meta property="og:description" content="{{ ogDescription or description or site.ogDescription }}" />
+	<meta property="og:url" content="{{ site.domain }}{{ pagePath }}" />
+	<meta property="og:image" content="{{ site.ogImage }}" />
+	<meta property="og:locale" content="{{ 'fr_FR' if site.lang == 'fr' else 'en_US' }}" />
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:title" content="{{ title }}" />
+	<meta name="twitter:description" content="{{ ogDescription or description or site.ogDescription }}" />
+	<meta name="twitter:image" content="{{ site.ogImage }}" />
 </head>
 
 <body>

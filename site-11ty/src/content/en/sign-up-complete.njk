@@ -23,6 +23,14 @@ script: sign-up-complete
 					<p>
 						<a href="./" class="btn btn-outline-success my-2">Return</a>
 					</p>
+					<div class="border-top pt-4 mt-4" data-share-url="{{ site.domain }}/">
+						<h2 class="h5">Know someone who would like to receive these alerts?</h2>
+						<button type="button" class="btn btn-primary me-2 mb-2" data-native-share hidden>Share</button>
+						<a class="btn btn-primary me-2 mb-2"
+							href="mailto:?subject=Discover%20Frost%20Alerts&amp;body=Hello%2C%0A%0AI%20recommend%20Frost%20Alerts%3A%20https%3A%2F%2Fwww.frostalert.net%2F%0A%0AThis%20free%20service%20warns%20you%20before%20temperatures%20fall%20below%20freezing.">E-mail</a>
+						<button type="button" class="btn btn-outline-secondary me-2 mb-2" data-copy-share>Copy link</button>
+						<p class="text-success mb-0" data-copy-status hidden>Link copied.</p>
+					</div>
 					<p class="text-muted">We will perform the necessary configuration so that you can receive your
 						alerts soon.</p>
 					<p class="text-muted my-4">If you need to customize your subscription (temperature threshold,
