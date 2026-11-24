@@ -80,6 +80,8 @@ internal static class EnglishHtmlFormatter
 <p>Best regards,
 <br>Yvan from FrostAlert.net
 
+<hr>
+
 <p>To stop receiving these messages,
 <|unsubscribe_link|>
 reply ""STOP"" to this e-mail.
@@ -87,8 +89,6 @@ reply ""STOP"" to this e-mail.
 <p>To change the temperature unit, reply with ""CELSIUS"" or ""FAHRENHEIT"" to this e-mail.
 
 <|feedback_links|>
-
-<hr>
 
 <p>Weather data is provided by <em>Open-Meteo.com</em> &mdash;
 <a href=""{4}"" target=""_blank"" rel=""noopener noreferrer"">Weather data by Open-Meteo.com</a>";
@@ -195,14 +195,14 @@ The temperature forecast for the coming days ({0}, {1}):
 Best regards,
 Yvan from FrostAlert.net
 
-To change the temperature unit, reply with ""CELSIUS"" or ""FAHRENHEIT"" to this e-mail.
+__________
 
 To stop receiving these messages, <|unsubscribe_link|>
 reply ""STOP"" to this e-mail.
 
-<|feedback_links|>
+To change the temperature unit, reply with ""CELSIUS"" or ""FAHRENHEIT"" to this e-mail.
 
-__________
+<|feedback_links|>
 
 Weather data is provided by Open-Meteo.com -- Weather data by Open-Meteo.com";
 

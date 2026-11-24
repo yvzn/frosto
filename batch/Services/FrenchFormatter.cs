@@ -66,13 +66,13 @@ internal static class FrenchHtmlFormatter
 <p>Cordialement,
 <br>Yvan de Alertegelee.fr
 
+<hr>
+
 <p>Pour ne plus recevoir ces messages,
 <|unsubscribe_link|>
 répondez ""STOP"" à ce message.
 
 <|feedback_links|>
-
-<hr>
 
 <p>Les données météo sont fournies par <em>Open-Meteo.com</em> &mdash;
 <a href=""{4}"" target=""_blank"" rel=""noopener noreferrer"">Weather data by Open-Meteo.com</a>";
@@ -175,12 +175,12 @@ Les prévisions de température des prochains jours ({0}, {1}):
 Cordialement,
 Yvan de Alertegelee.fr
 
+__________
+
 Pour vous désinscrire, <|unsubscribe_link|>
 répondez ""STOP"" à ce message.
 
 <|feedback_links|>
-
-__________
 
 Les données météo sont fournies par Open-Meteo.com -- Weather data by Open-Meteo.com";
 
