@@ -55,7 +55,7 @@ public class Feedback
 
 		var lang = entity.lang == "en" ? "en" : "fr";
 		var siteUrl = lang == "en" ? AppSettings.SiteEnUrl : AppSettings.SiteFrUrl;
-		request.HttpContext.Response.Headers.Append("Location", siteUrl + "feedback.html?thanks=1");
+		request.HttpContext.Response.Headers.Append("Location", siteUrl + "feedback-thank-you.html");
 		return new StatusCodeResult(StatusCodes.Status303SeeOther);
 	}
 

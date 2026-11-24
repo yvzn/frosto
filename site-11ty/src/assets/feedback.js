@@ -8,11 +8,6 @@ if (feedbackForm) {
 	recordDuration(feedbackForm);
 
 	var parameters = new URLSearchParams(location.search);
-	if (parameters.get('thanks') === '1') {
-		document.querySelector('#feedback-form-section')?.setAttribute('hidden', '');
-		document.querySelector('#feedback-thanks')?.removeAttribute('hidden');
-	}
-
 	var sentiment = parameters.get('s');
 	if (sentiment === 'positive' || sentiment === 'negative') {
 		var radio = feedbackForm.querySelector('[name="sentiment"][value="' + sentiment + '"]');
