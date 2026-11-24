@@ -28,18 +28,5 @@ if (feedbackForm) {
 		feedbackForm.elements.namedItem('locationRowKey').value = parameters.get('r') || '';
 	}
 
-	var email = feedbackForm.elements.namedItem('email');
-	var consentContainer = document.querySelector('#feedback-consent');
-	var consent = feedbackForm.elements.namedItem('consent');
-
-	function updateConsent() {
-		var visible = email.value.trim().length > 0;
-		consentContainer.hidden = !visible;
-		consent.required = visible;
-		if (!visible) consent.checked = false;
-	}
-
-	email.addEventListener('input', updateConsent);
-	updateConsent();
 	warmUp(import.meta.env.VITE_SUPPORT_URL, feedbackForm);
 }
