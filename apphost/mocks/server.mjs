@@ -1,7 +1,6 @@
 // Mock external services for local runs (started by the apphost when MOCKS is set).
 //   GET  /open-meteo   fixed forecast, frost in the next 2-3 days (any coordinates)
 //   POST /scaleway     Scaleway TEM stand-in: stores the mail, answers 200
-//   POST /send-mail    custom mail API stand-in: stores the mail, answers 200
 //   GET  /geocode, /timezone/byCoordinates/json   Azure Maps stand-ins (same place for any address)
 //   SMTP on 465 (implicit TLS, any login)   stores the mail (only when MOCK_SMTP_PFX is set)
 //   GET  /             inbox of the stored mails;  GET /mail/<id> shows headers + body (/raw: smtp raw message);  GET /healthz
@@ -94,7 +93,7 @@ const send = (res, status, type, body) => {
 };
 
 // headers: text shown in the mail page. smtp: the real header block of the message received;
-// scaleway / send-mail: rebuilt from the API request (headersNote says so).
+// scaleway: rebuilt from the API request (headersNote says so).
 function addMail(via, { to, subject, html, text, headers, headersNote, raw }) {
   const mail = { id: mails.length + 1, via, at: new Date().toISOString(), to, subject, html, text, headers, headersNote, raw };
   mails.push(mail);
@@ -105,7 +104,7 @@ function addMail(via, { to, subject, html, text, headers, headersNote, raw }) {
 async function storeMail(req, res, via) {
   let body = {};
   try { body = JSON.parse(await readBody(req)); } catch { /* keep empty */ }
-  // Scaleway: { to: [{email}], subject, html, text }; custom API: { to, subject, body }
+  // Scaleway: { to: [{email}], subject, html, text }
   const to = Array.isArray(body.to) ? body.to.map((t) => t.email ?? t).join(', ') : body.to;
   // Scaleway also carries from, project_id and additional_headers [{key, value}] (List-Unsubscribe...)
   const identity = (i) => (i ? (i.name ? `${i.name} <${i.email}>` : i.email) : undefined);
@@ -119,7 +118,7 @@ async function storeMail(req, res, via) {
   const mail = addMail(via, {
     to,
     subject: body.subject,
-    html: body.html ?? body.body,
+    html: body.html,
     text: body.text,
     headers: lines.join('\n'),
     headersNote: `rebuilt from the ${via} API request (the real provider builds the final message headers)`,
@@ -179,7 +178,6 @@ createServer(async (req, res) => {
     if (req.method === 'GET' && pathname === '/geocode') return send(res, 200, 'application/json', JSON.stringify(geocode(url.searchParams.get('query'))));
     if (req.method === 'GET' && pathname.startsWith('/timezone/byCoordinates')) return send(res, 200, 'application/json', JSON.stringify(timezone()));
     if (req.method === 'POST' && pathname === '/scaleway') return await storeMail(req, res, 'scaleway');
-    if (req.method === 'POST' && pathname === '/send-mail') return await storeMail(req, res, 'send-mail');
     if (pathname === '/api/mails') {
       if (req.method === 'DELETE') {
         mails.length = 0;

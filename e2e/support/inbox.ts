@@ -5,14 +5,14 @@ import { urls } from './local';
 
 export type Mail = {
 	id: number;
-	/** How the mail reached the mock: smtp (admin), scaleway (batch default channel), send-mail. */
-	via: 'smtp' | 'scaleway' | 'send-mail';
+	/** How the mail reached the mock: smtp (admin), scaleway (batch default channel). */
+	via: 'smtp' | 'scaleway';
 	at: string;
 	to: string;
 	subject: string;
 	html?: string;
 	text?: string;
-	/** Header block: received as is (smtp) or rebuilt from the API request (scaleway, send-mail). */
+	/** Header block: received as is (smtp) or rebuilt from the API request (scaleway). */
 	headers?: string;
 };
 
