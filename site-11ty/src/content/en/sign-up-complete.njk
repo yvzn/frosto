@@ -36,7 +36,12 @@ script: sign-up-complete
 							<button class="btn btn-outline-secondary d-none" type="button" data-share-copy>Copy link</button>
 							<span class="align-self-center text-success d-none" role="status" data-share-status>Link copied</span>
 						</div>
-						<p class="mb-0" data-share-fallback><a href="./share.html">More ways to share</a></p>
+						<nav aria-label="Share on a social network" data-share-fallback>
+							<a class="link-dark me-3" href="https://wa.me/?text=Free%20frost%20alerts%20{{ site.domain }}/">WhatsApp</a>
+							<a class="link-dark me-3" href="https://www.facebook.com/sharer/sharer.php?u={{ site.domain }}/">Facebook</a>
+							<a class="link-dark me-3" href="https://twitter.com/intent/tweet?text=Free%20frost%20alerts&amp;url={{ site.domain }}/">X</a>
+							<a class="link-dark" href="https://bsky.app/intent/compose?text=Free%20frost%20alerts%20{{ site.domain }}/">Bluesky</a>
+						</nav>
 					</aside>
 				</article>
 			</div>
