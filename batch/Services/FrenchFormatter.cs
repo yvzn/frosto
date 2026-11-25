@@ -72,9 +72,7 @@ internal static class FrenchHtmlFormatter
 <|unsubscribe_link|>
 répondez ""STOP"" à ce message.
 
-<|feedback_links|>
-
-<p><a href=""{5}share.html"" target=""_blank"">Recommander le service</a>.</p>
+<p><|feedback_links|><a href=""{5}share.html"" target=""_blank"">Recommander le service</a></p>
 
 <p>Les données météo sont fournies par <em>Open-Meteo.com</em> &mdash;
 <a href=""{4}"" target=""_blank"" rel=""noopener noreferrer"">Weather data by Open-Meteo.com</a>";
@@ -149,7 +147,7 @@ répondez ""STOP"" à ce message.
 			return string.Empty;
 		var positive = BuildFeedbackUrl("positive", partitionKey, rowKey);
 		var negative = BuildFeedbackUrl("negative", partitionKey, rowKey);
-		return $"<p>Cette alerte vous a-t-elle été utile ? <a href=\"{positive}\" target=\"_blank\" rel=\"noopener noreferrer\">👍 Oui</a> · <a href=\"{negative}\" target=\"_blank\" rel=\"noopener noreferrer\">👎 Non</a></p>";
+		return $"Cette alerte vous a-t-elle été utile ? <a href=\"{positive}\" target=\"_blank\" rel=\"noopener noreferrer\">👍 Oui</a> / <a href=\"{negative}\" target=\"_blank\" rel=\"noopener noreferrer\">👎 Non</a> • ";
 	}
 
 	private static string BuildFeedbackUrl(string sentiment, string partitionKey, string rowKey)
@@ -183,9 +181,7 @@ __________
 Pour vous désinscrire, <|unsubscribe_link|>
 répondez ""STOP"" à ce message.
 
-<|feedback_links|>
-
-Recommander le service : {4}share.html
+<|feedback_links|>Recommander le service : {4}share.html
 
 Les données météo sont fournies par Open-Meteo.com -- Weather data by Open-Meteo.com";
 
@@ -198,7 +194,7 @@ Les données météo sont fournies par Open-Meteo.com -- Weather data by Open-Me
 			return string.Empty;
 		var positive = BuildFeedbackUrl("positive", partitionKey, rowKey);
 		var negative = BuildFeedbackUrl("negative", partitionKey, rowKey);
-		return $"Cette alerte vous a-t-elle été utile ? 👍 Oui : {positive} · 👎 Non : {negative}";
+		return $"Cette alerte vous a-t-elle été utile ? 👍 Oui : {positive} / 👎 Non : {negative} • ";
 	}
 
 	private static string BuildFeedbackUrl(string sentiment, string partitionKey, string rowKey)

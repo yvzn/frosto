@@ -88,9 +88,7 @@ reply ""STOP"" to this e-mail.
 
 <p>To change the temperature unit, reply with ""CELSIUS"" or ""FAHRENHEIT"" to this e-mail.
 
-<|feedback_links|>
-
-<p><a href=""{5}share.html"" target=""_blank"">Recommend the service</a>.</p>
+<p><|feedback_links|><a href=""{5}share.html"" target=""_blank"">Recommend the service</a></p>
 
 <p>Weather data is provided by <em>Open-Meteo.com</em> &mdash;
 <a href=""{4}"" target=""_blank"" rel=""noopener noreferrer"">Weather data by Open-Meteo.com</a>";
@@ -169,7 +167,7 @@ reply ""STOP"" to this e-mail.
 			return string.Empty;
 		var positive = BuildFeedbackUrl("positive", partitionKey, rowKey);
 		var negative = BuildFeedbackUrl("negative", partitionKey, rowKey);
-		return $"<p>Was this alert useful? <a href=\"{positive}\" target=\"_blank\" rel=\"noopener noreferrer\">👍 Yes</a> · <a href=\"{negative}\" target=\"_blank\" rel=\"noopener noreferrer\">👎 No</a></p>";
+		return $"Was this alert useful? <a href=\"{positive}\" target=\"_blank\" rel=\"noopener noreferrer\">👍 Yes</a> / <a href=\"{negative}\" target=\"_blank\" rel=\"noopener noreferrer\">👎 No</a> • ";
 	}
 
 	private static string BuildFeedbackUrl(string sentiment, string partitionKey, string rowKey)
@@ -205,9 +203,7 @@ reply ""STOP"" to this e-mail.
 
 To change the temperature unit, reply with ""CELSIUS"" or ""FAHRENHEIT"" to this e-mail.
 
-<|feedback_links|>
-
-Recommend the service: {4}share.html
+<|feedback_links|>Recommend the service: {4}share.html
 
 Weather data is provided by Open-Meteo.com -- Weather data by Open-Meteo.com";
 
@@ -220,7 +216,7 @@ Weather data is provided by Open-Meteo.com -- Weather data by Open-Meteo.com";
 			return string.Empty;
 		var positive = BuildFeedbackUrl("positive", partitionKey, rowKey);
 		var negative = BuildFeedbackUrl("negative", partitionKey, rowKey);
-		return $"Was this alert useful? 👍 Yes: {positive} · 👎 No: {negative}";
+		return $"Was this alert useful? 👍 Yes: {positive} / 👎 No: {negative} • ";
 	}
 
 	private static string BuildFeedbackUrl(string sentiment, string partitionKey, string rowKey)
