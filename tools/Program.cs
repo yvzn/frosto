@@ -27,11 +27,11 @@ if (string.IsNullOrWhiteSpace(connectionString))
 if (args.Any(argument =>
 	string.Equals(argument, "--migrate-api-channels", StringComparison.OrdinalIgnoreCase)))
 {
-	var tableService = new TableServiceClient(connectionString);
+	var channelTableService = new TableServiceClient(connectionString);
 
-	foreach (var tableName in new[] { "validlocation", "location" })
+	foreach (var channelTableName in new[] { "validlocation", "location" })
 	{
-		var table = tableService.GetTableClient(tableName);
+		var table = channelTableService.GetTableClient(channelTableName);
 		var updated = 0;
 
 		await foreach (var entity in table.QueryAsync<TableEntity>())
@@ -56,7 +56,7 @@ if (args.Any(argument =>
 			updated++;
 		}
 
-		Console.WriteLine($"{(dryRun ? "Would update" : "Updated")} {updated} {tableName} rows.");
+		Console.WriteLine($"{(dryRun ? "Would update" : "Updated")} {updated} {channelTableName} rows.");
 	}
 
 	return 0;
