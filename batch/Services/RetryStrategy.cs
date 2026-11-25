@@ -15,8 +15,6 @@ internal class RetryStrategy
 
 	public ResiliencePipeline DataAccess { get; }
 
-	public ResiliencePipeline<HttpResponseMessage> MailApi { get; }
-
 	public ResiliencePipeline<string?> Smtp { get; }
 
 	// singleton
@@ -72,19 +70,6 @@ internal class RetryStrategy
 				BackoffType = DelayBackoffType.Constant
 			})
 			.AddTimeout(defaultTimeout)
-			.Build();
-
-		MailApi = new ResiliencePipelineBuilder<HttpResponseMessage>()
-			.AddRetry(new()
-			{
-				ShouldHandle = new PredicateBuilder<HttpResponseMessage>()
-					.Handle<Exception>(IsHttpException)
-					.HandleResult(r => !r.IsSuccessStatusCode),
-				Delay = TimeSpan.FromSeconds(1),
-				MaxRetryAttempts = maxRetries,
-				BackoffType = DelayBackoffType.Exponential,
-				UseJitter = true,
-			})
 			.Build();
 
 		Smtp = new ResiliencePipelineBuilder<string?>()
