@@ -80,25 +80,19 @@ internal static class EnglishHtmlFormatter
 <p>Best regards,
 <br>Yvan from FrostAlert.net
 
+<p><|feedback_links|><a href=""{5}share.html"" target=""_blank"">Recommend the service</a>
+
 <hr>
 
-<p>To stop receiving these messages,
-<|unsubscribe_link|>
-reply ""STOP"" to this e-mail.
-
-<p>To change the temperature unit, reply with ""CELSIUS"" or ""FAHRENHEIT"" to this e-mail.
-
-<p><|feedback_links|><a href=""{5}share.html"" target=""_blank"">Recommend the service</a></p>
-
-<p>Weather data is provided by <em>Open-Meteo.com</em> &mdash;
-<a href=""{4}"" target=""_blank"" rel=""noopener noreferrer"">Weather data by Open-Meteo.com</a>";
+<p style=""font-size:12px""><|unsubscribe_link|> or reply STOP • Reply CELSIUS or FAHRENHEIT to change units
+<br><a href=""{4}"" target=""_blank"" rel=""noopener noreferrer"">Weather data by Open-Meteo.com</a>";
 
 	private static readonly string applicationInviteTemplate =
 	@"
 
 <p>You can also visit our application to <a href=""{0}"" target=""_blank"">add the alerts to your calendar</a>.";
 
-	private static readonly string unsubscribeLinkTemplate = @"use this <a href=""{0}"" target=""_blank"">unsubscribe link</a> or";
+	private static readonly string unsubscribeLinkTemplate = @"<a href=""{0}"" target=""_blank"" rel=""noopener noreferrer"">Unsubscribe</a>";
 
 	public static string FormatBody(List<weather.Forecast> forecasts, LocationEntity location)
 	{
@@ -196,19 +190,15 @@ The temperature forecast for the coming days ({0}, {1}):
 Best regards,
 Yvan from FrostAlert.net
 
-__________
-
-To stop receiving these messages, <|unsubscribe_link|>
-reply ""STOP"" to this e-mail.
-
-To change the temperature unit, reply with ""CELSIUS"" or ""FAHRENHEIT"" to this e-mail.
-
 <|feedback_links|>Recommend the service: {4}share.html
 
-Weather data is provided by Open-Meteo.com -- Weather data by Open-Meteo.com";
+__________
+
+<|unsubscribe_link|> or reply STOP • Reply CELSIUS or FAHRENHEIT to change units
+Weather data by Open-Meteo.com";
 
 	public static string FormatUnsubscribeLink(string unsubscribeUrl)
-		=> $"visit {unsubscribeUrl} or";
+		=> $"Unsubscribe: {unsubscribeUrl}";
 
 	public static string FormatFeedbackLinks(string? partitionKey, string? rowKey)
 	{
