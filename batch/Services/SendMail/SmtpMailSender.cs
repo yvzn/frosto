@@ -63,10 +63,17 @@ internal class SmtpMailSender(
 			_ => TextFormatter.FormatUnsubscribeLink(unsubscribeUrl),
 		};
 
+		var htmlFeedbackLinks = notification.lang == "en"
+			? EnglishHtmlFormatter.FormatFeedbackLinks(notification.partitionKey, notification.rowKey)
+			: FrenchHtmlFormatter.FormatFeedbackLinks(notification.partitionKey, notification.rowKey);
+		var textFeedbackLinks = notification.lang == "en"
+			? EnglishTextFormatter.FormatFeedbackLinks(notification.partitionKey, notification.rowKey)
+			: TextFormatter.FormatFeedbackLinks(notification.partitionKey, notification.rowKey);
+
 		var builder = new BodyBuilder
 		{
-			TextBody = notification.raw?.Replace(FrenchHtmlFormatter.unsubscribeLinkPlaceholder, textUnsubscribeLink),
-			HtmlBody = notification.body?.Replace(FrenchHtmlFormatter.unsubscribeLinkPlaceholder, unsubscribeLink)
+			TextBody = notification.raw?.Replace(FrenchHtmlFormatter.unsubscribeLinkPlaceholder, textUnsubscribeLink).Replace("<|feedback_links|>", textFeedbackLinks),
+			HtmlBody = notification.body?.Replace(FrenchHtmlFormatter.unsubscribeLinkPlaceholder, unsubscribeLink).Replace("<|feedback_links|>", htmlFeedbackLinks)
 		};
 
 		message.Body = builder.ToMessageBody();

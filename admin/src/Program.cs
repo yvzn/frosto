@@ -8,7 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddMemoryCache();
 
-string[] azureStorageTableNames = ["location", "validlocation", "batch", "locationbatch", "signup", "user", "checksubscription", "unsubscribe", "monitoring"];
+string[] azureStorageTableNames = ["location", "validlocation", "batch", "locationbatch", "signup", "user", "checksubscription", "unsubscribe", "monitoring", "feedback"];
 
 builder.Services.AddAzureClients(clientBuilder =>
 {
@@ -34,6 +34,7 @@ builder.Services.AddScoped<UnsubscribeEmailService>();
 builder.Services.AddScoped<UnsubscribeRequestService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<MonitoringService>();
+builder.Services.AddScoped<FeedbackService>();
 builder.Services.AddSingleton<JwtValidationService>();
 builder.Services.AddScoped<SmtpMailSender>();
 builder.Services.AddScoped<MailTemplates>();

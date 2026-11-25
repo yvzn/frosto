@@ -16,7 +16,9 @@ internal class ApiMailSender(IHttpClientFactory httpClientFactory) : IBatchMailS
 		var message = new
 		{
 			notification.subject,
-			body = notification.body?.Replace(FrenchHtmlFormatter.unsubscribeLinkPlaceholder, string.Empty),
+			body = notification.body?
+				.Replace(FrenchHtmlFormatter.unsubscribeLinkPlaceholder, string.Empty)
+				.Replace("<|feedback_links|>", string.Empty),
 			notification.to,
 		};
 

@@ -40,6 +40,13 @@ internal class ScalewayMailSender(
 			_ => TextFormatter.FormatUnsubscribeLink(unsubscribeUrl),
 		};
 
+		var htmlFeedbackLinks = notification.lang == "en"
+			? EnglishHtmlFormatter.FormatFeedbackLinks(notification.partitionKey, notification.rowKey)
+			: FrenchHtmlFormatter.FormatFeedbackLinks(notification.partitionKey, notification.rowKey);
+		var textFeedbackLinks = notification.lang == "en"
+			? EnglishTextFormatter.FormatFeedbackLinks(notification.partitionKey, notification.rowKey)
+			: TextFormatter.FormatFeedbackLinks(notification.partitionKey, notification.rowKey);
+
 		var message = new ScalewayApiEmailRequest
 		{
 			from = new()
@@ -50,8 +57,8 @@ internal class ScalewayMailSender(
 			to = [new ScalewayApiIdentity { name = notification.to, email = notification.to }],
 			subject = notification.subject,
 			project_id = AppSettings.ScalewayProjectId,
-			text = notification.raw?.Replace(FrenchHtmlFormatter.unsubscribeLinkPlaceholder, textUnsubscribeLink),
-			html = notification.body?.Replace(FrenchHtmlFormatter.unsubscribeLinkPlaceholder, unsubscribeLink),
+			text = notification.raw?.Replace(FrenchHtmlFormatter.unsubscribeLinkPlaceholder, textUnsubscribeLink).Replace("<|feedback_links|>", textFeedbackLinks),
+			html = notification.body?.Replace(FrenchHtmlFormatter.unsubscribeLinkPlaceholder, unsubscribeLink).Replace("<|feedback_links|>", htmlFeedbackLinks),
 			attachments = [],
 			additional_headers = [.. BuildScalewayHeaders(unsubscribeToken, notification)]
 		};

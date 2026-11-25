@@ -187,6 +187,7 @@ public class NotifyAtLocation2(IHttpClientFactory httpClientFactory, IAzureClien
 			body = body,
 			raw = text,
 			lang = language,
+			partitionKey = location.PartitionKey,
 			rowKey = location.RowKey,
 			from = new()
 			{

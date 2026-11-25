@@ -236,7 +236,8 @@ await builder
   .withEnvironment('VITE_CHECKSUBSCRIPTION_URL', `${url.support}/api/subscription/check`)
   .withEnvironment('VITE_WEATHERFORECAST_URL', `${url.api}/api/weather-forecast`)
   .withEnvironment('VITE_SITE_FR_URL', url.siteFr)
-  .withEnvironment('VITE_SITE_EN_URL', url.siteEn);
+  .withEnvironment('VITE_SITE_EN_URL', url.siteEn)
+  .withExplicitStart();
 
 // --- site (Eleventy + Vite; `npm run dev` serves fr on 5180 and en on 5181) ----------------
 // Real env vars override site-11ty/env/<site>/.env.
@@ -249,6 +250,7 @@ await builder
   .withEnvironment('VITE_HEALTHCHECK_URL', `${url.api}/api/healthz`)
   .withEnvironment('VITE_SUPPORT_URL', `${url.support}/api/healthz`)
   .withEnvironment('VITE_CHECKSUBSCRIPTION_URL', `${url.support}/api/subscription/check`)
-  .withEnvironment('VITE_UNSUBSCRIBE_URL', `${url.support}/api/unsubscribe`);
+  .withEnvironment('VITE_UNSUBSCRIBE_URL', `${url.support}/api/unsubscribe`)
+  .withEnvironment('VITE_FEEDBACK_URL', `${url.support}/api/feedback`);
 
 await builder.build().run();
