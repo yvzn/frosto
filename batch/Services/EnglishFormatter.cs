@@ -90,7 +90,7 @@ reply ""STOP"" to this e-mail.
 
 <|feedback_links|>
 
-<p>Useful alert? <a href=""{5}share.html"" target=""_blank"">Recommend the service</a>.</p>
+<p><a href=""{5}share.html"" target=""_blank"">Recommend the service</a>.</p>
 
 <p>Weather data is provided by <em>Open-Meteo.com</em> &mdash;
 <a href=""{4}"" target=""_blank"" rel=""noopener noreferrer"">Weather data by Open-Meteo.com</a>";
@@ -207,7 +207,7 @@ To change the temperature unit, reply with ""CELSIUS"" or ""FAHRENHEIT"" to this
 
 <|feedback_links|>
 
-Useful alert? Recommend the service: {4}share.html
+Recommend the service: {4}share.html
 
 Weather data is provided by Open-Meteo.com -- Weather data by Open-Meteo.com";
 
