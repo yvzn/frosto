@@ -1,5 +1,6 @@
 using admin.Services;
 using Azure.Data.Tables;
+using Frosto.Entities;
 using Microsoft.Extensions.Azure;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,11 +11,12 @@ builder.Services.AddMemoryCache();
 
 string[] azureStorageTableNames = ["location", "validlocation", "batch", "locationbatch", "signup", "user", "checksubscription", "unsubscribe", "monitoring", "feedback"];
 
+builder.Services.AddAlertsTableServiceClient(
+	builder.Configuration["Alerts:TableEndpoint"],
+	builder.Configuration.GetConnectionString("Alerts"));
+
 builder.Services.AddAzureClients(clientBuilder =>
 {
-	clientBuilder
-		.AddTableServiceClient(builder.Configuration.GetConnectionString("Alerts"));
-
 	foreach (var tableName in azureStorageTableNames)
 	{
 		clientBuilder
