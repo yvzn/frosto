@@ -45,6 +45,17 @@
 	{%- endif %}
 	<title>{{ title }}</title>
 {%- endif %}
+	<meta property="og:type" content="website" />
+	<meta property="og:title" content="{{ socialTitle if socialTitle else title }}" />
+	<meta property="og:description" content="{{ socialDescription if socialDescription else (description if description else site.shareDescription) }}" />
+	<meta property="og:url" content="{{ site.domain }}{{ pagePath }}" />
+	<meta property="og:image" content="{{ site.domain }}/asset/share-{{ site.lang }}.png" />
+	<meta property="og:image:width" content="1200" />
+	<meta property="og:image:height" content="630" />
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:title" content="{{ socialTitle if socialTitle else title }}" />
+	<meta name="twitter:description" content="{{ socialDescription if socialDescription else (description if description else site.shareDescription) }}" />
+	<meta name="twitter:image" content="{{ site.domain }}/asset/share-{{ site.lang }}.png" />
 {%- block head %}{% endblock %}
 </head>
 

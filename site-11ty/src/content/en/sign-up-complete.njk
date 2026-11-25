@@ -28,6 +28,16 @@ script: sign-up-complete
 					<p class="text-muted my-4">If you need to customize your subscription (temperature threshold,
 						altitude, ...) or to cancel your subscription, feel free to <a href="./contact.html">contact
 							us</a>.</p>
+					<aside class="mt-5">
+						<h2 class="h4">Know someone who would like this?</h2>
+						<div class="d-flex flex-wrap gap-2 my-3" data-share-url="{{ site.domain }}/">
+							<button class="btn btn-success d-none" type="button" data-share-native>Share</button>
+							<a class="btn btn-success" href="mailto:?subject=Free%20frost%20alerts&amp;body=I%20recommend%20this%20free%20frost%20alert%20service:%20{{ site.domain }}/">By email</a>
+							<button class="btn btn-outline-secondary d-none" type="button" data-share-copy>Copy link</button>
+							<span class="align-self-center text-success d-none" role="status" data-share-status>Link copied</span>
+						</div>
+						<p class="mb-0" data-share-fallback><a href="./share.html">More ways to share</a></p>
+					</aside>
 				</article>
 			</div>
 		</section>

@@ -74,6 +74,8 @@ répondez ""STOP"" à ce message.
 
 <|feedback_links|>
 
+<p>Cette alerte est utile ? <a href=""{5}share.html"" target=""_blank"">Recommander le service</a>.</p>
+
 <p>Les données météo sont fournies par <em>Open-Meteo.com</em> &mdash;
 <a href=""{4}"" target=""_blank"" rel=""noopener noreferrer"">Weather data by Open-Meteo.com</a>";
 
@@ -128,7 +130,8 @@ répondez ""STOP"" à ce message.
 				location.country,
 				table.ToString(),
 				applicationInvite,
-				$"{AppSettings.SiteFrUrl}open-meteo.html"
+				$"{AppSettings.SiteFrUrl}open-meteo.html",
+				AppSettings.SiteFrUrl
 			);
 	}
 
@@ -181,6 +184,8 @@ Pour vous désinscrire, <|unsubscribe_link|>
 répondez ""STOP"" à ce message.
 
 <|feedback_links|>
+
+Cette alerte est utile ? Recommander le service : {4}share.html
 
 Les données météo sont fournies par Open-Meteo.com -- Weather data by Open-Meteo.com";
 
@@ -246,7 +251,8 @@ Les données météo sont fournies par Open-Meteo.com -- Weather data by Open-Me
 				location.city,
 				location.country,
 				table.ToString(),
-				applicationInvite.ToString()
+				applicationInvite.ToString(),
+				AppSettings.SiteFrUrl
 			);
 	}
 }

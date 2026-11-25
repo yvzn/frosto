@@ -90,6 +90,8 @@ reply ""STOP"" to this e-mail.
 
 <|feedback_links|>
 
+<p>Useful alert? <a href=""{5}share.html"" target=""_blank"">Recommend the service</a>.</p>
+
 <p>Weather data is provided by <em>Open-Meteo.com</em> &mdash;
 <a href=""{4}"" target=""_blank"" rel=""noopener noreferrer"">Weather data by Open-Meteo.com</a>";
 
@@ -148,7 +150,8 @@ reply ""STOP"" to this e-mail.
 				location.country,
 				table.ToString(),
 				applicationInvite,
-				$"{AppSettings.SiteEnUrl}open-meteo.html"
+				$"{AppSettings.SiteEnUrl}open-meteo.html",
+				AppSettings.SiteEnUrl
 			);
 	}
 
@@ -203,6 +206,8 @@ reply ""STOP"" to this e-mail.
 To change the temperature unit, reply with ""CELSIUS"" or ""FAHRENHEIT"" to this e-mail.
 
 <|feedback_links|>
+
+Useful alert? Recommend the service: {4}share.html
 
 Weather data is provided by Open-Meteo.com -- Weather data by Open-Meteo.com";
 
@@ -274,7 +279,8 @@ Weather data is provided by Open-Meteo.com -- Weather data by Open-Meteo.com";
 				location.city,
 				location.country,
 				table.ToString(),
-				applicationInvite.ToString()
+				applicationInvite.ToString(),
+				AppSettings.SiteEnUrl
 			);
 	}
 }

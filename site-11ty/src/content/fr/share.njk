@@ -1,0 +1,44 @@
+---
+title: Recommander le service - Alerte gelées
+description: Recommandez gratuitement Alerte gelées à un proche, un voisin ou une association.
+homeLabel: Revenir à l'accueil
+script: share
+---
+{% extends "layouts/base.njk" %}
+
+{% block main %}
+	<main>
+		<section class="container py-5">
+			<div class="row justify-content-center py-lg-5">
+				<article class="col-lg-8 p-4 p-md-5">
+					<h1 class="fw-light">Recommander le service</h1>
+					<p class="lead text-muted">Un voisin, un proche ou un jardinage entre amis&nbsp;? Faites connaître les
+						alertes gel gratuites.</p>
+
+					<div class="d-flex flex-wrap gap-2 my-4" data-share-url="{{ site.domain }}/">
+						<button class="btn btn-primary d-none" type="button" data-share-native>Partager</button>
+						<a class="btn btn-primary"
+							href="mailto:?subject=Alerte%20gel%C3%A9es%20gratuite&amp;body=Je%20te%20recommande%20ce%20service%20gratuit%20d%27alerte%20gel%20:%20{{ site.domain }}/">Par
+							e-mail</a>
+						<button class="btn btn-outline-secondary d-none" type="button" data-share-copy>Copier le lien</button>
+						<span class="align-self-center text-success d-none" role="status" data-share-status>Lien copié</span>
+					</div>
+
+					<p class="mb-2">Ou partager avec&nbsp;:</p>
+					<nav aria-label="Partager sur un réseau" data-share-fallback>
+						<a class="link-dark me-3" href="https://wa.me/?text=Alerte%20gel%C3%A9es%20gratuite%20{{ site.domain }}/">WhatsApp</a>
+						<a class="link-dark me-3" href="https://www.facebook.com/sharer/sharer.php?u={{ site.domain }}/">Facebook</a>
+						<a class="link-dark me-3" href="https://twitter.com/intent/tweet?text=Alerte%20gel%C3%A9es%20gratuite&amp;url={{ site.domain }}/">X</a>
+						<a class="link-dark" href="https://bsky.app/intent/compose?text=Alerte%20gel%C3%A9es%20gratuite%20{{ site.domain }}/">Bluesky</a>
+					</nav>
+
+					<hr class="my-5" />
+					<h2 class="h3">Un flyer pour le voisinage</h2>
+					<p>À imprimer pour une association, des jardins partagés ou un panneau d'affichage.</p>
+					<p><a class="btn btn-outline-primary" href="./asset/flyer-Partager-Alerte-Gelees.pdf" download>Télécharger le flyer PDF</a></p>
+				</article>
+			</div>
+		</section>
+	</main>
+	{% include "partials/fr/footer.njk" %}
+{%- endblock %}
