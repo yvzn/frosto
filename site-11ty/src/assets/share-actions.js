@@ -11,7 +11,6 @@ export function initShareActions({
 
 	if (typeof navigator.share === 'function' && nativeButton) {
 		nativeButton.classList.remove('d-none');
-		document.querySelector('[data-share-fallback]')?.classList.add('d-none');
 		nativeButton.addEventListener('click', async () => {
 			try {
 				await navigator.share({ title, text, url });
