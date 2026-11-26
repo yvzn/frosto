@@ -1,14 +1,16 @@
 {#-
   Layout of every page except open-meteo.html (a bare redirect).
   Pages extend it ({% extends "layouts/base.njk" %}) and fill two blocks:
-    head  extra head tags, after everything below (Open Graph, Twitter)
+    head  extra head tags, after everything below
     main  everything between the header and the page script, <main> included
   Front matter (defaults in src/content/content.11tydata.js):
     title         full <title> (the site name is not appended: titles vary too much)
     description   optional <meta name="description">
     preloadImage  optional, image preloaded with high priority
     canonical     true: canonical + hreflang links after the description
-    noindex       true: <meta name="robots" content="noindex" />
+    noindex       true: <meta name="robots" content="noindex" />, and no Open Graph / Twitter tags (page not meant to be shared)
+    socialTitle   optional, Open Graph / Twitter title (default: title)
+    socialDescription  optional, Open Graph / Twitter description (default: description, then site.shareDescription)
     header        'full' or 'simple'
     homeLabel     aria-label of the link to the home page in the header
     brand         optional, site name shown in the header (default: site.name)
@@ -45,6 +47,7 @@
 	{%- endif %}
 	<title>{{ title }}</title>
 {%- endif %}
+{%- if not noindex %}
 	<meta property="og:type" content="website" />
 	<meta property="og:title" content="{{ socialTitle if socialTitle else title }}" />
 	<meta property="og:description" content="{{ socialDescription if socialDescription else (description if description else site.shareDescription) }}" />
@@ -56,6 +59,7 @@
 	<meta name="twitter:title" content="{{ socialTitle if socialTitle else title }}" />
 	<meta name="twitter:description" content="{{ socialDescription if socialDescription else (description if description else site.shareDescription) }}" />
 	<meta name="twitter:image" content="{{ site.domain }}/asset/share-{{ site.lang }}.png" />
+{%- endif %}
 {%- block head %}{% endblock %}
 </head>
 
