@@ -13,9 +13,16 @@ export const SITES = {
 	en: { devPort: 5181, previewPort: 4181 },
 };
 
-/** Eleventy writes here; Vite then uses it as its root. */
+/**
+ * Eleventy writes here; Vite then uses it as its root.
+ * npm run build (SITE_BUILD set by scripts/build.mjs) uses .11ty/build/<site>/, apart from the
+ * .11ty/<site>/ of npm run dev: a build wipes its folder first, which would leave a running dev
+ * server serving stale files.
+ */
 export function eleventyOutDir(site) {
-	return path.join(PROJECT_ROOT, '.11ty', site);
+	return process.env.SITE_BUILD
+		? path.join(PROJECT_ROOT, '.11ty', 'build', site)
+		: path.join(PROJECT_ROOT, '.11ty', site);
 }
 
 export function distDir(site) {
