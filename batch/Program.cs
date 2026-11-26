@@ -38,9 +38,8 @@ var host = new HostBuilder()
 
 		services.AddSingleton<Unsubscribe>();
 		services.AddKeyedScoped<IMailSender, SmtpMailSender>("smtp");
-		services.AddKeyedScoped<IMailSender, ApiMailSender>("api");
 		services.AddKeyedScoped<IMailSender, ScalewayMailSender>("scaleway");
-		services.AddKeyedScoped<IMailSender, ApiMailSender>("default");
+		services.AddKeyedScoped<IMailSender, ScalewayMailSender>("default");
 	})
 	.ConfigureLogging(logging =>
 	{

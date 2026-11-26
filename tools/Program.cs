@@ -24,6 +24,44 @@ if (string.IsNullOrWhiteSpace(connectionString))
 	return 1;
 }
 
+if (args.Any(argument =>
+	string.Equals(argument, "--migrate-api-channels", StringComparison.OrdinalIgnoreCase)))
+{
+	var channelTableService = new TableServiceClient(connectionString);
+
+	foreach (var channelTableName in new[] { "validlocation", "location" })
+	{
+		var table = channelTableService.GetTableClient(channelTableName);
+		var updated = 0;
+
+		await foreach (var entity in table.QueryAsync<TableEntity>())
+		{
+			if (!entity.TryGetValue("channel", out var value) ||
+				value is not string channel ||
+				!string.Equals(channel, "api", StringComparison.OrdinalIgnoreCase))
+			{
+				continue;
+			}
+
+			if (!dryRun)
+			{
+				entity["channel"] = "scaleway";
+				await table.UpdateEntityAsync(
+					entity,
+					entity.ETag,
+					TableUpdateMode.Merge,
+					cancellationToken: CancellationToken.None);
+			}
+
+			updated++;
+		}
+
+		Console.WriteLine($"{(dryRun ? "Would update" : "Updated")} {updated} {channelTableName} rows.");
+	}
+
+	return 0;
+}
+
 const string tableName = "user";
 var tableService = new TableServiceClient(connectionString);
 var userTable = tableService.GetTableClient(tableName);

@@ -15,17 +15,15 @@ namespace batch;
 
 public class SendNotification2(
 	[FromKeyedServices("smtp")] IMailSender smtpMailSender,
-	[FromKeyedServices("api")] IMailSender apiMailSender,
 	[FromKeyedServices("scaleway")] IMailSender scalewayMailSender,
 	[FromKeyedServices("default")] IMailSender defaultMailSender,
 	ILogger<SendNotification2> logger)
 {
-	internal static ISet<string> channels = new HashSet<string>() { "default", "api", "smtp", "scaleway" };
+	internal static ISet<string> channels = new HashSet<string>() { "default", "smtp", "scaleway" };
 
 	private readonly Dictionary<string, IMailSender> mailSenders = new()
 	{
 		{ "smtp", smtpMailSender },
-		{ "api", apiMailSender },
 		{ "scaleway", scalewayMailSender },
 		{ "default", defaultMailSender }
 	};
@@ -119,4 +117,3 @@ public class SendNotification2(
 	private IMailSender BuildMailSender(string channel)
 		=> mailSenders.TryGetValue(channel, out var mailSender) ? mailSender : mailSenders["default"];
 }
-
