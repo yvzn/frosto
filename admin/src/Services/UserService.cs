@@ -1,4 +1,3 @@
-using System.Security.Cryptography;
 using admin.Models;
 using Azure.Data.Tables;
 using Microsoft.Extensions.Azure;
@@ -41,14 +40,7 @@ public class UserService(IAzureClientFactory<TableClient> azureClientFactory)
 		var entity = response.Value;
 
 		var timestamp = entity.Timestamp ?? DateTimeOffset.UtcNow;
-		if (string.IsNullOrEmpty(entity.email))
-		{
-			entity.email = "disabled";
-		}
-		else
-		{
-			entity.email = Convert.ToHexString(SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(entity.email))).ToLowerInvariant();
-		}
+		entity.email = "disabled";
 		entity.disabled = true;
 		if (string.IsNullOrEmpty(entity.created))
 		{

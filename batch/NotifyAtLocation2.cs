@@ -231,9 +231,10 @@ public class NotifyAtLocation2(IHttpClientFactory httpClientFactory, IAzureClien
 
 	private async Task ScheduleNotificationAsync(Notification notification, string channel)
 	{
-		var users = string.Join(" ", notification.to);
+		var locationId = notification.rowKey;
+		var recipientCount = notification.to.Count;
 
-		logger.LogInformation("Scheduling notification to <{Users}> on {ChannelName} channel", users, channel);
+		logger.LogInformation("Scheduling notification for location {LocationId} ({RecipientCount} recipients) on {ChannelName} channel", locationId, recipientCount, channel);
 
 		var requestUri = new InternalRequestUri("SendNotification2", new() { { "c", channel } });
 
@@ -247,13 +248,13 @@ public class NotifyAtLocation2(IHttpClientFactory httpClientFactory, IAzureClien
 			if (!response.IsSuccessStatusCode && response.StatusCode != HttpStatusCode.BadGateway)
 			{
 				var responseContent = response is null ? "<empty response>" : await response.Content.ReadAsStringAsync();
-				logger.LogError("Failed to schedule notification to {Users}: HTTP {StatusCode} {RequestUri} [{ResponseContent}]", users, response?.StatusCode, requestUri.AbsoluteUri, responseContent);
-				throw new Exception(string.Format("Failed to schedule notification to {0}: HTTP {1} {2} [{3}]", users, response?.StatusCode, requestUri.AbsoluteUri, responseContent));
+				logger.LogError("Failed to schedule notification for location {LocationId}: HTTP {StatusCode} {RequestUri} [{ResponseContent}]", locationId, response?.StatusCode, requestUri.AbsoluteUri, responseContent);
+				throw new Exception(string.Format("Failed to schedule notification for location {0}: HTTP {1} {2} [{3}]", locationId, response?.StatusCode, requestUri.AbsoluteUri, responseContent));
 			}
 		}
 		catch (Exception ex)
 		{
-			logger.LogError(ex, "Failed to schedule notification to {Users}: HTTP {StatusCode} {RequestUri}", users, response?.StatusCode, requestUri.AbsoluteUri);
+			logger.LogError(ex, "Failed to schedule notification for location {LocationId}: HTTP {StatusCode} {RequestUri}", locationId, response?.StatusCode, requestUri.AbsoluteUri);
 			throw;
 		}
 	}

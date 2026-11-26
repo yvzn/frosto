@@ -39,20 +39,20 @@ public class SendNotification2(
 			notification = await DecodeAsync(req);
 			if (notification is null || !IsValid(notification))
 			{
-				logger.LogWarning("Skip sending notification {NotificationSubject} to <{Users}> : invalid", notification?.subject, string.Join(" ", notification?.to ?? Array.Empty<string>()));
+				logger.LogWarning("Skip sending notification {NotificationSubject} for location {LocationId} : invalid", notification?.subject, notification?.rowKey);
 				return new BadRequestResult();
 			}
 		}
 		catch (Exception ex)
 		{
-			logger.LogWarning(ex, "Skip sending notification {NotificationSubject} to <{Users}> : invalid", notification?.subject, string.Join(" ", notification?.to ?? Array.Empty<string>()));
+			logger.LogWarning(ex, "Skip sending notification {NotificationSubject} for location {LocationId} : invalid", notification?.subject, notification?.rowKey);
 			return new BadRequestResult();
 		}
 
 		var channel = Decode(req);
 		if (channel is null)
 		{
-			logger.LogWarning("Skip sending notification {NotificationSubject} to <{Users}> on {ChannelName} channel : invalid channel", notification?.subject, string.Join(" ", notification?.to ?? Array.Empty<string>()), channel);
+			logger.LogWarning("Skip sending notification {NotificationSubject} for location {LocationId} on {ChannelName} channel : invalid channel", notification?.subject, notification?.rowKey, channel);
 			return new BadRequestResult();
 		}
 
@@ -88,9 +88,9 @@ public class SendNotification2(
 
 	private async Task<bool> SendNotificationAsync(Notification notification, string channel)
 	{
-		var users = string.Join(" ", notification.to);
+		var locationId = notification.rowKey;
 
-		logger.LogInformation("Sending notification to <{Users}> on {ChannelName} channel", users, channel);
+		logger.LogInformation("Sending notification for location {LocationId} ({RecipientCount} recipients) on {ChannelName} channel", locationId, notification.to.Count, channel);
 
 		var success = true;
 		var error = default(string);
@@ -102,13 +102,13 @@ public class SendNotification2(
 		}
 		catch (Exception ex)
 		{
-			logger.LogError(ex, "Failed to send notification to <{Users}>: {StatusMessage}", users, error);
+			logger.LogError(ex, "Failed to send notification for location {LocationId}: {StatusMessage}", locationId, error);
 			throw;
 		}
 
 		if (!success)
 		{
-			throw new Exception(string.Format("Failed to send notification to <{0}>: {1}", users, error));
+			throw new Exception(string.Format("Failed to send notification for location {0}: {1}", locationId, error));
 		}
 
 		return success;

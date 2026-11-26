@@ -1,6 +1,10 @@
+using System.Text.RegularExpressions;
 using Azure;
 using Azure.Data.Tables;
 using Microsoft.Extensions.Configuration;
+
+// One-time migration: replace the unsalted SHA-256 email hashes left on
+// unsubscribed users by the previous DisableUserAsync with "disabled".
 
 var dryRun = args.Any(argument =>
 	string.Equals(argument, "--dry-run", StringComparison.OrdinalIgnoreCase));
@@ -24,103 +28,61 @@ if (string.IsNullOrWhiteSpace(connectionString))
 	return 1;
 }
 
-if (args.Any(argument =>
-	string.Equals(argument, "--migrate-api-channels", StringComparison.OrdinalIgnoreCase)))
-{
-	var channelTableService = new TableServiceClient(connectionString);
+const string disabledEmail = "disabled";
+var sha256Hex = new Regex("^[0-9a-f]{64}$", RegexOptions.CultureInvariant);
 
-	foreach (var channelTableName in new[] { "validlocation", "location" })
-	{
-		var table = channelTableService.GetTableClient(channelTableName);
-		var updated = 0;
-
-		await foreach (var entity in table.QueryAsync<TableEntity>())
-		{
-			if (!entity.TryGetValue("channel", out var value) ||
-				value is not string channel ||
-				!string.Equals(channel, "api", StringComparison.OrdinalIgnoreCase))
-			{
-				continue;
-			}
-
-			if (!dryRun)
-			{
-				entity["channel"] = "scaleway";
-				await table.UpdateEntityAsync(
-					entity,
-					entity.ETag,
-					TableUpdateMode.Merge,
-					cancellationToken: CancellationToken.None);
-			}
-
-			updated++;
-		}
-
-		Console.WriteLine($"{(dryRun ? "Would update" : "Updated")} {updated} {channelTableName} rows.");
-	}
-
-	return 0;
-}
-
-const string tableName = "user";
 var tableService = new TableServiceClient(connectionString);
-var userTable = tableService.GetTableClient(tableName);
+var userTable = tableService.GetTableClient(TableNames.User);
 
 var scanned = 0;
-var converted = 0;
-var alreadyBoolean = 0;
-var invalid = 0;
+var replaced = 0;
+var hashedButActive = 0;
 
 await foreach (var entity in userTable.QueryAsync<TableEntity>())
 {
 	scanned++;
 
-	if (!entity.TryGetValue("disabled", out var value))
+	if (entity.GetString("email") is not { } email || !sha256Hex.IsMatch(email))
 	{
 		continue;
 	}
 
-	if (value is bool)
+	// Never print the hash itself: it can be matched against a known address.
+	if (entity.GetBoolean("disabled") is not true)
 	{
-		alreadyBoolean++;
-		continue;
-	}
-
-	if (value is not string disabledText ||
-		!bool.TryParse(disabledText.Trim(), out var disabled))
-	{
-		invalid++;
+		hashedButActive++;
 		Console.Error.WriteLine(
-			$"Skipped {entity.PartitionKey}|{entity.RowKey}: disabled={value ?? "<null>"} ({value?.GetType().Name ?? "null"})");
+			$"Skipped {entity.PartitionKey}|{entity.RowKey}: hashed email but user is not disabled");
 		continue;
 	}
 
 	Console.WriteLine(
-		$"{(dryRun ? "Would convert" : "Converting")} " +
-		$"{entity.PartitionKey}|{entity.RowKey}: \"{disabledText}\" -> {disabled.ToString().ToLowerInvariant()}");
+		$"{(dryRun ? "Would replace" : "Replacing")} hashed email on {entity.PartitionKey}|{entity.RowKey}");
 
 	if (dryRun)
 	{
-		converted++;
+		replaced++;
 		continue;
 	}
 
-	entity["disabled"] = disabled;
+	var patch = new TableEntity(entity.PartitionKey, entity.RowKey)
+	{
+		["email"] = disabledEmail,
+	};
 
 	await userTable.UpdateEntityAsync(
-		entity,
+		patch,
 		entity.ETag,
 		TableUpdateMode.Merge,
 		cancellationToken: CancellationToken.None);
 
-	converted++;
+	replaced++;
 }
 
 Console.WriteLine();
 Console.WriteLine(dryRun ? "Dry run complete." : "Migration complete.");
 Console.WriteLine($"Scanned: {scanned}");
-Console.WriteLine($"Converted: {converted}");
-Console.WriteLine($"Already boolean: {alreadyBoolean}");
-Console.WriteLine($"Invalid or unsupported: {invalid}");
+Console.WriteLine($"{(dryRun ? "Would replace" : "Replaced")}: {replaced}");
+Console.WriteLine($"Hashed but not disabled (skipped): {hashedButActive}");
 
 return 0;
