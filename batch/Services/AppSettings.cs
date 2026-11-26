@@ -7,9 +7,6 @@ internal static class AppSettings
 	private static readonly string weatherApiUrl = TryGetEnvironmentVariable("OPEN_METEO_API_URL");
 	public static string WeatherApiUrl => weatherApiUrl;
 
-	private static readonly string sendMailApiUrl = TryGetEnvironmentVariable("SEND_MAIL_API_URL");
-	public static string SendMailApiUrl => sendMailApiUrl;
-
 	private static readonly string smtpUrl = TryGetEnvironmentVariable("SMTP_URL");
 	public static string SmtpUrl => smtpUrl;
 	private static readonly string smtpLogin = TryGetEnvironmentVariable("SMTP_LOGIN");

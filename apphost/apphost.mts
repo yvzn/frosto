@@ -32,12 +32,12 @@ const devStorage = 'UseDevelopmentStorage=true'; // Azurite
 const builder = await createBuilder();
 
 // --- Mocks of external services (optional) -------------------------------------------------
-// MOCKS=all | comma list of: weather, scaleway, mail, maps   (unset = real services, as before)
-//   weather  Open-Meteo forecast   scaleway  Scaleway TEM   mail  custom send-mail API   maps  Azure Maps (admin)
+// MOCKS=all | comma list of: weather, scaleway, maps   (unset = real services, as before)
+//   weather  Open-Meteo forecast   scaleway  Scaleway TEM   maps  Azure Maps (admin)
 // A mocked service needs no parameter: its URL/credentials are set here.
 //   smtp  fake SMTP server on localhost:465 (implicit TLS) for batch's "smtp" channel and admin;
 //         needs the ASP.NET dev certificate to exist and be trusted (checked below)
-const allMocks = ['weather', 'scaleway', 'mail', 'maps', 'smtp'];
+const allMocks = ['weather', 'scaleway', 'maps', 'smtp'];
 const requested = (process.env.MOCKS ?? '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
 const mocked = new Set(requested.includes('all') ? allMocks : requested);
 for (const m of mocked) {
@@ -94,7 +94,7 @@ function dkimKeyPair(): { privateKey: string; publicKey: string } {
   }
   return { privateKey, publicKey };
 }
-// Mails signed with DKIM / unsubscribe tokens: the smtp and scaleway channels (api mail does not sign).
+// Mails signed with DKIM / unsubscribe tokens: the smtp and scaleway channels.
 const dkim = mocked.has('smtp') || mocked.has('scaleway') ? dkimKeyPair() : undefined;
 
 const mockPort = 7090;
@@ -113,8 +113,6 @@ const descriptions: Record<string, string> = {
     'Length in days of the notification cycle of **batch** (`PERIOD_IN_DAYS`): locations are spread over this many days. Gets a local value with any mock on.',
   'internal-api-key':
     'Function key **batch** appends (`code=`) when it calls its own functions (`INTERNAL_API_KEY`). Gets a local value with any mock on.',
-  'send-mail-api-url':
-    'URL of the custom send-mail API, the default mail channel of **batch** (`SEND_MAIL_API_URL`). Not needed with `MOCKS=mail`.',
   'smtp-url':
     'SMTP host for the `smtp` mail channel of **batch** (`SMTP_URL`). Port 465 with implicit TLS is fixed in the code. Gets `localhost` with any mock on.',
   'smtp-login': 'SMTP login for the `smtp` mail channel of **batch** (`SMTP_LOGIN`). Gets a placeholder with any mock on.',
@@ -196,7 +194,6 @@ const batch = await common(builder.addExecutable('batch', 'func', at('batch'), [
   .withEnvironment('INTERNAL_API_KEY', mocked.size ? 'mock' : await param('internal-api-key', true))
   .withEnvironment('PERIOD_IN_DAYS', mocked.size ? '1' : await param('period-in-days'))
   .withEnvironment('OPEN_METEO_API_URL', openMeteoApiUrl)
-  .withEnvironment('SEND_MAIL_API_URL', await setting('mail', 'send-mail-api-url', `${mockUrl}/send-mail`))
   .withEnvironment('SMTP_URL', mocked.size ? 'localhost' : await param('smtp-url'))
   .withEnvironment('SMTP_LOGIN', mocked.size ? 'mock' : await param('smtp-login'))
   .withEnvironment('SMTP_PASSWORD', mocked.size ? 'mock' : await param('smtp-password', true))
