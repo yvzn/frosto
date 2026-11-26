@@ -20,14 +20,14 @@ script: share
 
 					<div class="d-flex flex-wrap gap-2 my-4" data-share-url="{{ site.domain }}/">
 						<button class="btn btn-primary d-none" type="button" data-share-native>Share</button>
-						<a class="btn btn-primary"
+						<a class="btn btn-primary" data-share-email
 							href="mailto:?subject=Free%20frost%20alerts&amp;body=I%20recommend%20this%20free%20frost%20alert%20service:%20{{ site.domain }}/">By
 							email</a>
 						<button class="btn btn-outline-secondary d-none" type="button" data-share-copy>Copy link</button>
 						<span class="align-self-center text-success d-none" role="status" data-share-status>Link copied</span>
 					</div>
 
-					<p class="mb-2">Or share with:</p>
+					<p class="mb-2">Or with:</p>
 					<nav aria-label="Share on a social network">
 						<a class="link-dark me-3" href="https://wa.me/?text=Free%20frost%20alerts%20{{ site.domain }}/">WhatsApp</a>
 						<a class="link-dark me-3" href="https://www.facebook.com/sharer/sharer.php?u={{ site.domain }}/">Facebook</a>
@@ -36,7 +36,6 @@ script: share
 					</nav>
 
 					<h2 class="h3 mt-5">A flyer to print</h2>
-					<p>For a notice board at work, in your building or at the town hall.</p>
 					<p><a class="btn btn-outline-primary" href="./asset/flyer-Share-Frost-Alerts.pdf" download>Download the PDF flyer</a></p>
 				</article>
 			</div>

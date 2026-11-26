@@ -11,6 +11,8 @@ export function initShareActions({
 
 	if (typeof navigator.share === 'function' && nativeButton) {
 		nativeButton.classList.remove('d-none');
+		// One primary action: the native Share button takes over from the email one.
+		document.querySelector('[data-share-email]')?.classList.replace('btn-primary', 'btn-outline-secondary');
 		nativeButton.addEventListener('click', async () => {
 			try {
 				await navigator.share({ title, text, url });

@@ -20,14 +20,14 @@ script: share
 
 					<div class="d-flex flex-wrap gap-2 my-4" data-share-url="{{ site.domain }}/">
 						<button class="btn btn-primary d-none" type="button" data-share-native>Partager</button>
-						<a class="btn btn-primary"
+						<a class="btn btn-primary" data-share-email
 							href="mailto:?subject=Alerte%20gel%C3%A9es%20gratuite&amp;body=Je%20te%20recommande%20ce%20service%20gratuit%20d%27alerte%20gel%20:%20{{ site.domain }}/">Par
 							e-mail</a>
 						<button class="btn btn-outline-secondary d-none" type="button" data-share-copy>Copier le lien</button>
 						<span class="align-self-center text-success d-none" role="status" data-share-status>Lien copié</span>
 					</div>
 
-					<p class="mb-2">Ou partager avec&nbsp;:</p>
+					<p class="mb-2">Ou avec&nbsp;:</p>
 					<nav aria-label="Partager sur un réseau">
 						<a class="link-dark me-3" href="https://wa.me/?text=Alerte%20gel%C3%A9es%20gratuite%20{{ site.domain }}/">WhatsApp</a>
 						<a class="link-dark me-3" href="https://www.facebook.com/sharer/sharer.php?u={{ site.domain }}/">Facebook</a>
@@ -36,7 +36,6 @@ script: share
 					</nav>
 
 					<h2 class="h3 mt-5">Un flyer à imprimer</h2>
-					<p>Pour un panneau d'affichage au travail, dans votre immeuble ou en mairie.</p>
 					<p><a class="btn btn-outline-primary" href="./asset/flyer-Partager-Alerte-Gelees.pdf" download>Télécharger le flyer PDF</a></p>
 				</article>
 			</div>
