@@ -7,7 +7,7 @@
 		"dev": "node scripts/dev.mjs",
 		"preview": "node scripts/preview.mjs",
 		"build": "node scripts/build.mjs",
-		"flyers": "node scripts/flyers.mjs",
+		"share-assets": "node scripts/share-assets.mjs",
 		"test": "node --test scripts/*.test.mjs"
 	},
 	"devDependencies": {
