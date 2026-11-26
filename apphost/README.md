@@ -34,6 +34,7 @@ What `apphost.mts` wires:
 
 - **Cross-service URLs** (fixed local ports): `SITE_URL`, `SITE_FR_URL`, `SITE_EN_URL`, `SiteFrUrl`, `SiteEnUrl`,
   `UNSUBSCRIBE_URL`, `WEBSITE_HOSTNAME`, `INTERNAL_PROTOCOL`, and all `VITE_*_URL` of `app` and `site`.
+- **CORS**: `api` and `support` start with `func host start --cors <site fr, site en, app origins>` (the browser calls them cross-origin; in production CORS is an Azure setting). Add a new browser origin to `corsOrigins`.
 - **Storage**: `ALERTS_CONNECTION_STRING`, `AzureWebJobsStorage`, `ConnectionStrings__Alerts` -> `UseDevelopmentStorage=true` (Azurite).
 - **Functions runtime**: `FUNCTIONS_WORKER_RUNTIME=dotnet-isolated`.
 - **Aspire parameters** for everything environment-specific or secret (below).
