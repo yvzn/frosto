@@ -29,6 +29,7 @@ export default function (eleventyConfig) {
 	eleventyConfig.addPassthroughCopy({ 'src/assets': '.' });
 	eleventyConfig.addPassthroughCopy({ [`src/scripts/${site}`]: '.' });
 	eleventyConfig.addPassthroughCopy({ 'src/public/.htaccess': 'public/.htaccess' });
+	eleventyConfig.addPassthroughCopy({ 'src/public/asset': 'public/asset' });
 
 	// Permalinks: see src/content/content.11tydata.js.
 

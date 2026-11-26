@@ -1,24 +1,11 @@
 ---
 title: Alerte gelées
 description: Le service alerte gel météo vous envoie gratuitement une notification si des températures négatives sont prévues dans les jours suivants
+socialDescription: Recevez gratuitement une alerte lorsque la météo prévoit des températures négatives dans votre ville.
 preloadImage: ./asset/frost-alert-hero.svg
 homeLabel: Accueil du site
 ---
 {% extends "layouts/base.njk" %}
-
-{% block head %}
-
-	<meta property="og:type" content="website" />
-	<meta property="og:title" content="{{ title }}" />
-	<meta property="og:description"
-		content="Recevez gratuitement une alerte lorsque la météo prévoit des températures négatives dans votre ville." />
-	<meta property="og:url" content="{{ site.domain }}{{ pagePath }}" />
-
-	<meta name="twitter:card" content="summary" />
-	<meta name="twitter:title" content="{{ title }}" />
-	<meta name="twitter:description"
-		content="Service gratuit d'alerte gel. Soyez notifié avant que les températures chutent sous zéro." />
-{%- endblock %}
 
 {% block main %}
 	<main>

@@ -1,18 +1,11 @@
 ---
 title: Nous contacter - Alerte gelées
 description: Contacter le service alerte gel météo
+socialDescription: Des questions sur les alertes gel près de vous ? Contactez-nous.
 homeLabel: Revenir à l'accueil
 script: contact
 ---
 {% extends "layouts/base.njk" %}
-
-{% block head %}
-	<meta property="og:type" content="website" />
-	<meta property="og:title" content="{{ title }}" />
-	<meta property="og:description" content="Des questions sur les alertes gel près de vous ? Contactez-nous." />
-	<meta property="og:url" content="{{ site.domain }}{{ pagePath }}" />
-	<meta name="twitter:card" content="summary" />
-{%- endblock %}
 
 {#- No <main> on this page (known quirk, see README). #}
 {% block main %}
