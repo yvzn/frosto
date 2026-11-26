@@ -27,6 +27,10 @@ const url = {
   siteEn: `${origin(ports.siteEn)}/`,
 };
 
+// Browser origins allowed to call the functions (CORS). In production CORS is an Azure platform setting;
+// locally `func host start --cors` does it (local.settings.json is ignored with Aspire).
+const corsOrigins = [ports.siteFr, ports.siteEn, ports.app].map(origin).join(',');
+
 const devStorage = 'UseDevelopmentStorage=true'; // Azurite
 
 const builder = await createBuilder();
@@ -172,14 +176,14 @@ const common = (r: ReturnType<typeof builder.addExecutable>, port: number) =>
     .withEnvironment('AzureWebJobsStorage', devStorage)
     .withEnvironment('ALERTS_CONNECTION_STRING', devStorage);
 
-const api = await common(builder.addExecutable('api', 'func', at('api'), ['host', 'start', '--port', String(ports.api)]), ports.api)
+const api = await common(builder.addExecutable('api', 'func', at('api'), ['host', 'start', '--port', String(ports.api), '--cors', corsOrigins]), ports.api)
   .withEnvironment('SITE_URL', url.siteFr)
   .withEnvironment('SITE_EN_URL', url.siteEn)
   .withEnvironment('OPEN_METEO_API_URL', openMeteoApiUrl)
   .waitFor(db);
 if (mocks) await api.waitFor(mocks);
 
-const support = await common(builder.addExecutable('support', 'func', at('support'), ['host', 'start', '--port', String(ports.support)]), ports.support)
+const support = await common(builder.addExecutable('support', 'func', at('support'), ['host', 'start', '--port', String(ports.support), '--cors', corsOrigins]), ports.support)
   .withEnvironment('SITE_FR_URL', url.siteFr)
   .withEnvironment('SITE_EN_URL', url.siteEn)
   .waitFor(api);
