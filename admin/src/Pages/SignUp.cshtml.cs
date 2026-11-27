@@ -25,6 +25,8 @@ public class SignUpModel(
 
 	public string? ValidLocationExists { get; set; }
 
+	public bool ScrollToConfirmDuplicate { get; set; }
+
 	public SelectList ChannelOptions { get; set; } = new(ChannelService.GetChannelList());
 
 	public ICollection<string> CountryList { get; set; } = [];
@@ -85,6 +87,7 @@ public class SignUpModel(
 				ModelState.AddModelError(nameof(ValidLocation),
 					LocationDuplicateValidator.GetDuplicateMessage(ValidLocation, existingLocation.Id));
 				ValidLocationExists = existingLocation.Id;
+				ScrollToConfirmDuplicate = true;
 				await PopulateReferenceDataAsync(HttpContext.RequestAborted);
 				return Page();
 			}
