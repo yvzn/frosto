@@ -1,4 +1,5 @@
 using Azure.Data.Tables;
+using Frosto.Entities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.Azure;
@@ -12,11 +13,11 @@ builder.ConfigureFunctionsWebApplication();
 builder.Services
 	.AddApplicationInsightsTelemetryWorkerService()
 	.ConfigureFunctionsApplicationInsights()
+	.AddAlertsTableServiceClient(
+		Environment.GetEnvironmentVariable("ALERTS_TABLE_ENDPOINT"),
+		Environment.GetEnvironmentVariable("ALERTS_CONNECTION_STRING"))
 	.AddAzureClients(clientBuilder =>
 		{
-			clientBuilder
-				.AddTableServiceClient(Environment.GetEnvironmentVariable("ALERTS_CONNECTION_STRING"));
-
 			string[] tableNames = ["checksubscription", "unsubscribe", "feedback"];
 			foreach (var tableName in tableNames)
 			{

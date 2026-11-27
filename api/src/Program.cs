@@ -1,6 +1,7 @@
 using System;
 using System.Reflection;
 using Azure.Data.Tables;
+using Frosto.Entities;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -10,11 +11,12 @@ var host = new HostBuilder()
 	.ConfigureFunctionsWebApplication()
 	.ConfigureServices(services =>
 	{
+		services.AddAlertsTableServiceClient(
+			Environment.GetEnvironmentVariable("ALERTS_TABLE_ENDPOINT"),
+			Environment.GetEnvironmentVariable("ALERTS_CONNECTION_STRING"));
+
 		services.AddAzureClients(clientBuilder =>
 		{
-			clientBuilder
-				.AddTableServiceClient(Environment.GetEnvironmentVariable("ALERTS_CONNECTION_STRING"));
-
 			string[] tableNames = ["location", "validlocation", "user", "signup"];
 			foreach (var tableName in tableNames)
 			{

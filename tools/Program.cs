@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using Azure;
 using Azure.Data.Tables;
+using Frosto.Entities;
 using Microsoft.Extensions.Configuration;
 
 // One-time migration: replace the unsalted SHA-256 email hashes left on
@@ -14,25 +15,27 @@ var configuration = new ConfigurationBuilder()
 	.AddJsonFile("appsettings.Development.json", optional: true)
 	.Build();
 
+var tableEndpoint = Environment.GetEnvironmentVariable("ALERTS_TABLE_ENDPOINT");
 var connectionString =
 	Environment.GetEnvironmentVariable("ALERTS_CONNECTION_STRING")
 	?? Environment.GetEnvironmentVariable("AZURE_STORAGE_CONNECTION_STRING")
 	?? configuration.GetConnectionString("TableStorage")
 	?? configuration["ConnectionStrings:TableStorage"];
 
-if (string.IsNullOrWhiteSpace(connectionString))
+if (string.IsNullOrWhiteSpace(tableEndpoint) && string.IsNullOrWhiteSpace(connectionString))
 {
 	Console.Error.WriteLine(
-		"Table storage connection string not found. Set ALERTS_CONNECTION_STRING or " +
-		"ConnectionStrings:TableStorage.");
+		"Table storage configuration not found. Set ALERTS_TABLE_ENDPOINT for managed identity, " +
+		"or ALERTS_CONNECTION_STRING or ConnectionStrings:TableStorage for key authentication.");
 	return 1;
 }
 
+const string tableName = "user";
+var tableService = TableServiceClientFactory.Create(tableEndpoint, connectionString);
+var userTable = tableService.GetTableClient(tableName);
+
 const string disabledEmail = "disabled";
 var sha256Hex = new Regex("^[0-9a-f]{64}$", RegexOptions.CultureInvariant);
-
-var tableService = new TableServiceClient(connectionString);
-var userTable = tableService.GetTableClient(TableNames.User);
 
 var scanned = 0;
 var replaced = 0;

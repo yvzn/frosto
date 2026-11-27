@@ -2,6 +2,7 @@ using System.Reflection;
 using Azure.Data.Tables;
 using batch.Services;
 using batch.Services.SendMail;
+using Frosto.Entities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,10 +22,12 @@ var host = new HostBuilder()
 		services.AddApplicationInsightsTelemetryWorkerService();
 		services.ConfigureFunctionsApplicationInsights();
 
+		services.AddAlertsTableServiceClient(
+			AppSettings.AlertsTableEndpoint,
+			AppSettings.AlertsConnectionString);
+
 		services.AddAzureClients(clientBuilder =>
 		{
-			clientBuilder.AddTableServiceClient(AppSettings.AlertsConnectionString);
-
 			string[] tableNames = ["validlocation", "batch", "locationbatch", "monitoring", "feedback"];
       
 			foreach (var tableName in tableNames)

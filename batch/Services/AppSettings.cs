@@ -30,8 +30,8 @@ internal static class AppSettings
 	private static readonly string internalProtocol = TryGetEnvironmentVariable("INTERNAL_PROTOCOL");
 	public static string InternalProtocol => internalProtocol;
 
-	private static readonly string alertsConnectionString = TryGetEnvironmentVariable("ALERTS_CONNECTION_STRING");
-	public static string AlertsConnectionString => alertsConnectionString;
+	public static string? AlertsConnectionString => Environment.GetEnvironmentVariable("ALERTS_CONNECTION_STRING");
+	public static string? AlertsTableEndpoint => Environment.GetEnvironmentVariable("ALERTS_TABLE_ENDPOINT");
 
 	private static readonly int periodInDays = int.Parse(TryGetEnvironmentVariable("PERIOD_IN_DAYS"));
 	public static int PeriodInDays => periodInDays;
