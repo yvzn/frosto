@@ -45,13 +45,15 @@
 				@if (hasLocid)
 				{
 					<a asp-page="./UnsubscribeEmail" asp-route-q='@Model.CurrentRequest?.email'
-						asp-route-id='@Model.CurrentRequest?.locid' target="_blank" class="btn btn-success mt-3">Proceed to
+						asp-route-id='@Model.CurrentRequest?.locid'
+						asp-route-requestId='@Model.CurrentRequest?.Id' class="btn btn-success mt-3">Proceed to
 						Unsubscribe</a>
 				}
 				else
 				{
 					<a asp-page="./UnsubscribeEmail" asp-route-q='@Model.CurrentRequest?.email'
-						target="_blank" class="btn btn-success mt-3">Proceed to Unsubscribe</a>
+						asp-route-requestId='@Model.CurrentRequest?.Id' class="btn btn-success mt-3">Proceed to
+						Unsubscribe</a>
 				}
 			}
 			else
@@ -107,7 +109,8 @@
 				@if (string.IsNullOrEmpty(Model.ErrorMessage) && Model.SignatureValid)
 				{
 					<a asp-page="./UnsubscribeEmail" asp-route-q='@Model.TokenClaims["sub"]'
-						asp-route-id='@Model.TokenClaims["sub_id"]' target="_blank" class="btn btn-success mt-3">Proceed to
+						asp-route-id='@Model.TokenClaims["sub_id"]'
+						asp-route-requestId='@Model.CurrentRequest?.Id' class="btn btn-success mt-3">Proceed to
 						Unsubscribe</a>
 				}
 			}
