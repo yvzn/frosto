@@ -1,5 +1,6 @@
-// Eleventy renders the pages of ONE site (selected with SITE=fr|en) into .11ty/<site>/.
-// Vite then builds .11ty/<site>/ into dist/<site>/ (see vite.config.js and scripts/build.mjs).
+// Eleventy renders the pages of ONE site (selected with SITE=fr|en) into .11ty/<site>/
+// (.11ty/build/<site>/ for npm run build, see scripts/lib/sites.mjs).
+// Vite then builds it into dist/<site>/ (see vite.config.js and scripts/build.mjs).
 //
 // .11ty/<site>/ is laid out as a Vite project:
 //   *.html            pages (from src/content/<site>/)

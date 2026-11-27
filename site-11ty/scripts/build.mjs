@@ -1,8 +1,10 @@
 // Builds the websites into dist/fr/ and dist/en/:
-//   1. Eleventy  src/            -> .11ty/<site>/
-//   2. Vite      .11ty/<site>/   -> dist/<site>/   (bundles JS and Bootstrap CSS, hashes file names)
-//   3. PurgeCSS  dist/<site>/assets/*.css          (unused CSS removed)
+//   1. Eleventy  src/                  -> .11ty/build/<site>/
+//   2. Vite      .11ty/build/<site>/   -> dist/<site>/   (bundles JS and Bootstrap CSS, hashes file names)
+//   3. PurgeCSS  dist/<site>/assets/*.css                (unused CSS removed)
 //   4. Check     no plain email address in dist/<site>/ (see lib/email-guard.mjs)
+//
+// .11ty/build/ is not the .11ty/<site>/ of npm run dev: a build can run while the dev server is up.
 //
 //   node scripts/build.mjs                       both sites
 //   node scripts/build.mjs --site fr             one site
@@ -16,9 +18,10 @@ import { PROJECT_ROOT, currentSite, distDir, eleventyOutDir, parseSiteArgs } fro
 const argv = process.argv.slice(2);
 
 if (!process.env.SITE) {
-	// Each site is built in its own process: the Eleventy and Vite configs read SITE when they load.
+	// Each site is built in its own process: the Eleventy and Vite configs read SITE (and SITE_BUILD,
+	// see lib/sites.mjs) when they load.
 	for (const site of parseSiteArgs(argv)) {
-		const env = { ...process.env, SITE: site };
+		const env = { ...process.env, SITE: site, SITE_BUILD: '1' };
 		const result = spawnSync(process.execPath, [fileURLToPath(import.meta.url)], { stdio: 'inherit', env, cwd: PROJECT_ROOT });
 		if (result.status !== 0) process.exit(result.status ?? 1);
 	}
