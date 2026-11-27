@@ -17,6 +17,14 @@ public class SignUpModel(
 	IConfiguration configuration,
 	ILogger<SignUpModel> logger) : PageModel
 {
+	public static IReadOnlyDictionary<string, string> GeocodingCountryTranslations { get; } =
+		new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+		{
+			["united states"] = "United states of america",
+			["belgium"] = "Belgique",
+			["germany"] = "Deutschland"
+		};
+
 	[BindProperty]
 	public Location ValidLocation { get; set; } = new();
 
