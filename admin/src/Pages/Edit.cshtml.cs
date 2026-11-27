@@ -29,10 +29,13 @@ public class EditModel(
 
 	public string AzureMapsSubscriptionKey => _azureMapsSubscriptionKey;
 
+	public string? Message { get; private set; }
+
 	private readonly string _azureMapsSubscriptionKey = configuration.GetConnectionString("AzureMaps") ?? string.Empty;
 
 	public async Task OnGetAsync(string id)
 	{
+		Message = Request.Query["m"];
 		ValidLocation = await _locationService.GetValidLocationAsync(id, HttpContext.RequestAborted) ?? new();
 		CountryList = await geographicalDataService.GetCountryListAsync(HttpContext.RequestAborted);
 		TimezoneList = await geographicalDataService.GetCommonTimezonesAsync(HttpContext.RequestAborted);

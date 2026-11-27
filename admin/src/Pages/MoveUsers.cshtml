@@ -1,0 +1,39 @@
+@page "{id}"
+@model admin.Pages.MoveUsersModel
+@{
+	ViewData["Title"] = "Move users to a separate location";
+}
+
+<div class="row justify-content-center">
+	<section class="col-lg-7 p-5 mb-5 border rounded-3 bg-light">
+		<h1 class="h2 text-muted mb-3">Move users to a separate location</h1>
+		<p>
+			Select the users to move from <strong>@Model.SourceId</strong>.
+			The new location inherits the persisted location settings and remains unscheduled until the batch update task is run.
+		</p>
+
+		<form method="post">
+			<input asp-for="ExpectedETag" type="hidden" />
+			<div class="mb-3">
+				<span class="form-label fw-semibold">Users</span>
+				@for (var index = 0; index < Model.Users.Count; index++)
+				{
+					var email = Model.Users[index];
+					<div class="form-check">
+						<input class="form-check-input" type="checkbox" name="SelectedEmails" value="@email"
+							id="user-@index" />
+						<label class="form-check-label" for="user-@index">@email</label>
+					</div>
+				}
+				<span asp-validation-for="SelectedEmails" class="text-danger d-block"></span>
+			</div>
+
+			<div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+			<div class="d-flex justify-content-between">
+				<a asp-page="./Edit" asp-route-id="@Model.SourceId" class="btn btn-outline-secondary">Cancel</a>
+				<button type="submit" class="btn btn-primary">Create separate location</button>
+			</div>
+		</form>
+	</section>
+</div>
