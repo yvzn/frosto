@@ -2,6 +2,7 @@ using admin.Models;
 using Azure.Data.Tables;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 
 namespace admin.Services;
 
@@ -24,15 +25,45 @@ public class BatchService(
 
 	internal async Task<int> CreateBatches(int periodInDays, double capacityGuardMultiplier, CancellationToken cancellationToken)
 	{
+		return (await BuildBatches(
+			periodInDays,
+			capacityGuardMultiplier,
+			rebuildAllBatches: false,
+			cancellationToken)).AssignedCount;
+	}
+
+	internal async Task<BatchBuildResult> BuildBatches(
+		int periodInDays,
+		double capacityGuardMultiplier,
+		bool rebuildAllBatches,
+		CancellationToken cancellationToken)
+	{
+		var totalStopwatch = Stopwatch.StartNew();
+		List<BatchBuildStepTiming> timings = [];
+
+		if (rebuildAllBatches)
+		{
+			var stopwatch = Stopwatch.StartNew();
+			await DeleteAllBatches(cancellationToken);
+			stopwatch.Stop();
+			timings.Add(new("Delete existing batches", stopwatch.Elapsed.TotalMilliseconds));
+		}
+
+		var locationsStopwatch = Stopwatch.StartNew();
 		var allLocations = await GetValidLocationsAsync(cancellationToken);
+		locationsStopwatch.Stop();
+		timings.Add(new("Load valid locations", locationsStopwatch.Elapsed.TotalMilliseconds));
 		var totalLocations = allLocations.Count;
 
 		if (totalLocations == 0)
 		{
-			return 0;
+			return CompleteBatchBuildResult(0, rebuildAllBatches, timings, totalStopwatch);
 		}
 
+		var assignedStopwatch = Stopwatch.StartNew();
 		var assignedIds = await GetAssignedLocationIdsAsync(cancellationToken);
+		assignedStopwatch.Stop();
+		timings.Add(new("Load existing assignments", assignedStopwatch.Elapsed.TotalMilliseconds));
 
 		var unassigned = allLocations
 			.Where(l => !assignedIds.Contains(l.Id))
@@ -46,6 +77,7 @@ public class BatchService(
 			bucketLoads[d] = new int[SlotsPerDay];
 		}
 
+		var loadsStopwatch = Stopwatch.StartNew();
 		await foreach (var row in _locationBatchTableClient.QueryAsync<LocationBatchEntity>(
 			select: ["PartitionKey", "RowKey", "slot_index", "day_index"],
 			cancellationToken: cancellationToken))
@@ -56,9 +88,12 @@ public class BatchService(
 				bucketLoads[row.day_index][row.slot_index]++;
 			}
 		}
+		loadsStopwatch.Stop();
+		timings.Add(new("Calculate existing batch loads", loadsStopwatch.Elapsed.TotalMilliseconds));
 
 		int capacityLimit = (int)Math.Ceiling((double)totalLocations / (SlotsPerDay * (double)periodInDays));
 
+		var assignmentStopwatch = Stopwatch.StartNew();
 		int assigned = 0;
 		foreach (var location in unassigned)
 		{
@@ -114,8 +149,25 @@ public class BatchService(
 			bucketLoads[dayIndex][bestSlot.Value]++;
 			assigned++;
 		}
+		assignmentStopwatch.Stop();
+		timings.Add(new("Assign locations to batches", assignmentStopwatch.Elapsed.TotalMilliseconds));
 
-		return assigned;
+		return CompleteBatchBuildResult(assigned, rebuildAllBatches, timings, totalStopwatch);
+	}
+
+	private static BatchBuildResult CompleteBatchBuildResult(
+		int assignedCount,
+		bool rebuildAllBatches,
+		List<BatchBuildStepTiming> timings,
+		Stopwatch totalStopwatch)
+	{
+		totalStopwatch.Stop();
+		return new(assignedCount, new()
+		{
+			RebuildAllBatches = rebuildAllBatches,
+			Steps = timings,
+			TotalMilliseconds = totalStopwatch.Elapsed.TotalMilliseconds,
+		});
 	}
 
 	private async Task<List<LocationWithBatchInfo>> GetValidLocationsAsync(CancellationToken cancellationToken)
@@ -249,3 +301,5 @@ public class BatchService(
 
 	private record LocationWithBatchInfo(string Id, int? UtcOffsetMinutes, int? PreferredLocalTimeMinutes);
 }
+
+internal sealed record BatchBuildResult(int AssignedCount, BatchBuildDiagnostics Diagnostics);

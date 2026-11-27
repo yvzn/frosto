@@ -2,6 +2,7 @@ using admin.Models;
 using admin.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.Text.Json;
 
 namespace admin.Pages;
 
@@ -20,6 +21,9 @@ public class BatchModel : PageModel
 	[BindProperty]
 	public bool RebuildAllBatches { get; set; } = true;
 
+	[TempData]
+	public string? BatchBuildDiagnosticsJson { get; set; }
+
 	public async Task<IActionResult> OnPostAsync()
 	{
 		if (!ModelState.IsValid)
@@ -27,12 +31,12 @@ public class BatchModel : PageModel
 			return Page();
 		}
 
-		if (RebuildAllBatches)
-		{
-			await _batchService.DeleteAllBatches(HttpContext.RequestAborted);
-		}
-
-		await _batchService.CreateBatches(BatchConfig.periodInDays, BatchConfig.capacityGuardMultiplier, HttpContext.RequestAborted);
+		var result = await _batchService.BuildBatches(
+			BatchConfig.periodInDays,
+			BatchConfig.capacityGuardMultiplier,
+			RebuildAllBatches,
+			HttpContext.RequestAborted);
+		BatchBuildDiagnosticsJson = JsonSerializer.Serialize(result.Diagnostics);
 		return RedirectToPage("./BatchResult");
 	}
 }
