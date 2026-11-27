@@ -80,7 +80,7 @@ internal static class EnglishHtmlFormatter
 <p>Best regards,
 <br>Yvan from FrostAlert.net
 
-<p><|feedback_links|><a href=""{5}share.html"" target=""_blank"">Recommend the service</a>
+<p><|feedback_links|><a href=""{5}share.html"" target=""_blank"">Recommend the service</a> • <a href=""{5}help.html"" target=""_blank"">Help &amp; feedback</a>
 
 <hr>
 
@@ -190,7 +190,7 @@ The temperature forecast for the coming days ({0}, {1}):
 Best regards,
 Yvan from FrostAlert.net
 
-<|feedback_links|>Recommend the service: {4}share.html
+<|feedback_links|>Recommend the service: {4}share.html • Help & feedback: {4}help.html
 
 __________
 

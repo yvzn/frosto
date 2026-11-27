@@ -70,6 +70,7 @@
 	{% include "partials/header.njk" %}
 {%- endif %}
 {%- block main %}{% endblock %}
+	{% include "partials/" + site.lang + "/footer.njk" %}
 
 	<script type="module" src="./{{ script }}.js"></script>
 </body>

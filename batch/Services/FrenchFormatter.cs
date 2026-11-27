@@ -66,7 +66,7 @@ internal static class FrenchHtmlFormatter
 <p>Cordialement,
 <br>Yvan de Alertegelee.fr
 
-<p><|feedback_links|><a href=""{5}share.html"" target=""_blank"">Recommander le service</a>
+<p><|feedback_links|><a href=""{5}share.html"" target=""_blank"">Recommander le service</a> • <a href=""{5}help.html"" target=""_blank"">Aide et avis</a>
 
 <hr>
 
@@ -172,7 +172,7 @@ Les prévisions de température des prochains jours ({0}, {1}):
 Cordialement,
 Yvan de Alertegelee.fr
 
-<|feedback_links|>Recommander le service : {4}share.html
+<|feedback_links|>Recommander le service : {4}share.html • Aide et avis : {4}help.html
 
 __________
 
