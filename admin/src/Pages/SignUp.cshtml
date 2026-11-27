@@ -638,9 +638,14 @@
 
 	const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+	@if (Model.ScrollToConfirmDuplicate)
+	{
+		<text>
 	const confirmDuplicate = document.getElementById('confirm-duplicate');
 	if (confirmDuplicate) {
 		confirmDuplicate.scrollIntoView({ behavior: prefersReducedMotion ? 'instant' : 'smooth' });
+	}
+		</text>
 	}
 </script>
 }
