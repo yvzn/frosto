@@ -27,7 +27,6 @@ The application consists in the following components:
 - **site-11ty**: landing pages with subscription form, in French (alertegelee.fr) and English (frostalert.net), built with Eleventy and Vite
 - **api**: _Azure Function App_ that receives the subscription form data
 - **batch**: _Azure Function App_ that fetches weather forecasts and sends notifications
-- **logic-app**: _Azure Logic App_ that sends notifications
 - **admin**: _ASP.NET_ webapp with admin tools
 - **e2e**: _Playwright_ end-to-end tests, on the deployed sites and on the local stack (see [e2e/README.md](e2e/README.md))
 

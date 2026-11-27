@@ -26,17 +26,17 @@ npm test                    # self-tests (email guard, local server headers)
 
 For each site, in its own process (`SITE=fr` or `SITE=en`):
 
-1. **Eleventy** renders `src/` into `.11ty/<site>/`, a folder laid out as a Vite project:
+1. **Eleventy** renders `src/` into `.11ty/build/<site>/`, a folder laid out as a Vite project:
    pages as `*.html`, `main.js`, `main.css`, page scripts, `asset/`, and `public/` (`.htaccess`, `robots.txt`,
    `sitemap.xml`, see [Server files](#server-files)).
-2. **Vite** builds `.11ty/<site>/` into `dist/<site>/`: bundles JS and Bootstrap CSS, hashes file names,
+2. **Vite** builds `.11ty/build/<site>/` into `dist/<site>/`: bundles JS and Bootstrap CSS, hashes file names,
    copies `public/` to the output root. Every `.html` file Eleventy produced is a Vite input: there is no page list to maintain.
 3. **PurgeCSS** removes unused CSS.
 4. **Email check**: the build fails if the contact address appears unobfuscated in the output
    (see [Email obfuscation](#email-obfuscation)).
 
 In dev, Eleventy watches `src/` and a Vite dev server serves `.11ty/<site>/`. Any edit re-renders the site
-and Vite reloads the page. The dev server sends the production security headers (see [Local servers and CSP](#local-servers-and-csp)).
+and Vite reloads the page. The build uses its own folder (`.11ty/build/`), so it can run while the dev server is up. The dev server sends the production security headers (see [Local servers and CSP](#local-servers-and-csp)).
 
 | Path | What |
 |---|---|

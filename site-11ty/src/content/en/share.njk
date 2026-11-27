@@ -1,0 +1,44 @@
+---
+title: Recommend the service - Frost Alerts
+description: Recommend the free Frost Alerts service to friends, neighbours or colleagues.
+homeLabel: Back to home
+script: share
+---
+{% extends "layouts/base.njk" %}
+
+{% block main %}
+	<main>
+		<section class="container py-5">
+			<div class="row flex-lg-row-reverse py-lg-5">
+				<article class="col-10 col-sm-8 col-lg-6 p-4 p-md-5">
+					<img src="./asset/undraw_social-dashboard_81sv.svg" class="d-block mx-lg-auto img-fluid"
+						alt="Two people holding social network icons" width="645" height="439" />
+				</article>
+				<article class="col-lg-6 p-4 p-md-5">
+					<h1 class="fw-light">Recommend the service</h1>
+					<p class="lead text-muted">Share free frost alerts with friends, neighbours or colleagues.</p>
+
+					<div class="d-flex flex-wrap gap-2 my-4" data-share-url="{{ site.domain }}/">
+						<button class="btn btn-primary d-none" type="button" data-share-native>Share</button>
+						<a class="btn btn-primary" data-share-email
+							href="mailto:?subject=Free%20frost%20alerts&amp;body=I%20recommend%20this%20free%20frost%20alert%20service:%20{{ site.domain }}/">By
+							email</a>
+						<button class="btn btn-outline-secondary d-none" type="button" data-share-copy>Copy link</button>
+						<span class="align-self-center text-success d-none" role="status" data-share-status>Link copied</span>
+					</div>
+
+					<p class="mb-2">Or with:</p>
+					<nav aria-label="Share on a social network">
+						<a class="link-dark me-3" href="https://wa.me/?text=Free%20frost%20alerts%20{{ site.domain }}/">WhatsApp</a>
+						<a class="link-dark me-3" href="https://www.facebook.com/sharer/sharer.php?u={{ site.domain }}/">Facebook</a>
+						<a class="link-dark me-3" href="https://twitter.com/intent/tweet?text=Free%20frost%20alerts&amp;url={{ site.domain }}/">X</a>
+						<a class="link-dark" href="https://bsky.app/intent/compose?text=Free%20frost%20alerts%20{{ site.domain }}/">Bluesky</a>
+					</nav>
+
+					<h2 class="h3 mt-5 pt-4">A flyer to print</h2>
+					<p><a class="btn btn-outline-primary" href="./asset/flyer-Share-Frost-Alerts.pdf" download>Download the PDF flyer</a></p>
+				</article>
+			</div>
+		</section>
+	</main>
+{%- endblock %}

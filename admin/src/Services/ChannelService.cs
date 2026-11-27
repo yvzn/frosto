@@ -6,6 +6,6 @@ public class ChannelService()
 
 	public static string[] GetChannelList()
 	{
-		return ["", "api", "smtp", "default", "scaleway"];
+		return ["", "smtp", "default", "scaleway"];
 	}
 }

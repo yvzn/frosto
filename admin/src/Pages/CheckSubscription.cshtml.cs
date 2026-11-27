@@ -102,12 +102,12 @@ public class CheckSubscriptionModel(
 			}
 
 			ShowResults = true;
-			logger.LogInformation("Searched locations for email {Email}, found {Count} locations", SelectedRequest.email, FoundLocations.Count);
+			logger.LogInformation("Searched locations for check subscription request {RequestId}, found {Count} locations", SelectedRequest.Id, FoundLocations.Count);
 		}
 		catch (Exception ex)
 		{
 			SearchError = $"An error occurred while searching: {ex.Message}";
-			logger.LogError(ex, "Error searching locations for email {Email}", SelectedRequest.email);
+			logger.LogError(ex, "Error searching locations for check subscription request {RequestId}", SelectedRequest.Id);
 			ShowResults = true;
 		}
 
@@ -152,7 +152,7 @@ public class CheckSubscriptionModel(
 			ContactEmail,
 			addLinkToApp: "app".Equals(SelectedRequestSource, StringComparison.OrdinalIgnoreCase));
 
-		logger.LogInformation("Sending confirmation mail to {Email}", SelectedRequest.email);
+		logger.LogInformation("Sending confirmation mail for check subscription request {RequestId}", SelectedRequest.Id);
 		var (success, error) = await mailSender.SendMailAsync(SelectedRequest.email, subject, textBody, htmlBody, HttpContext.RequestAborted);
 
 		if (success)
@@ -162,7 +162,7 @@ public class CheckSubscriptionModel(
 		else
 		{
 			MailError = error ?? "Failed to send mail.";
-			logger.LogWarning("Failed to send confirmation mail to {Email}: {Error}", SelectedRequest.email, error);
+			logger.LogWarning("Failed to send confirmation mail for check subscription request {RequestId}: {Error}", SelectedRequest.Id, error);
 		}
 
 		return Page();

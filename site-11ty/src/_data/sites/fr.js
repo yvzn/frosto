@@ -6,6 +6,7 @@ export default {
 	alternateLang: 'en',
 	alternateDomain: 'https://www.frostalert.net',
 	alternateLabel: 'English version',
+	shareDescription: 'Recevez gratuitement une alerte lorsque la météo prévoit des températures négatives dans votre ville.',
 	// hreflang="x-default" (home page only) points to the English site, on both sites.
 	xDefaultDomain: 'https://www.frostalert.net',
 	// Consent checkbox of the forms (src/_includes/partials/consent.njk).

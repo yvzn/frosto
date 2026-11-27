@@ -1,0 +1,44 @@
+---
+title: Recommander le service - Alerte gelées
+description: Recommandez le service gratuit Alerte gelées à vos amis, voisins ou collègues.
+homeLabel: Revenir à l'accueil
+script: share
+---
+{% extends "layouts/base.njk" %}
+
+{% block main %}
+	<main>
+		<section class="container py-5">
+			<div class="row flex-lg-row-reverse py-lg-5">
+				<article class="col-10 col-sm-8 col-lg-6 p-4 p-md-5">
+					<img src="./asset/undraw_social-dashboard_81sv.svg" class="d-block mx-lg-auto img-fluid"
+						alt="Deux personnes tenant des icônes de réseaux sociaux" width="645" height="439" />
+				</article>
+				<article class="col-lg-6 p-4 p-md-5">
+					<h1 class="fw-light">Recommander le service</h1>
+					<p class="lead text-muted">Faites connaître les alertes gel gratuites à vos amis, voisins ou collègues.</p>
+
+					<div class="d-flex flex-wrap gap-2 my-4" data-share-url="{{ site.domain }}/">
+						<button class="btn btn-primary d-none" type="button" data-share-native>Partager</button>
+						<a class="btn btn-primary" data-share-email
+							href="mailto:?subject=Alerte%20gel%C3%A9es%20gratuite&amp;body=Je%20te%20recommande%20ce%20service%20gratuit%20d%27alerte%20gel%20:%20{{ site.domain }}/">Par
+							e-mail</a>
+						<button class="btn btn-outline-secondary d-none" type="button" data-share-copy>Copier le lien</button>
+						<span class="align-self-center text-success d-none" role="status" data-share-status>Lien copié</span>
+					</div>
+
+					<p class="mb-2">Ou avec&nbsp;:</p>
+					<nav aria-label="Partager sur un réseau">
+						<a class="link-dark me-3" href="https://wa.me/?text=Alerte%20gel%C3%A9es%20gratuite%20{{ site.domain }}/">WhatsApp</a>
+						<a class="link-dark me-3" href="https://www.facebook.com/sharer/sharer.php?u={{ site.domain }}/">Facebook</a>
+						<a class="link-dark me-3" href="https://twitter.com/intent/tweet?text=Alerte%20gel%C3%A9es%20gratuite&amp;url={{ site.domain }}/">X</a>
+						<a class="link-dark" href="https://bsky.app/intent/compose?text=Alerte%20gel%C3%A9es%20gratuite%20{{ site.domain }}/">Bluesky</a>
+					</nav>
+
+					<h2 class="h3 mt-5 pt-4">Un flyer à imprimer</h2>
+					<p><a class="btn btn-outline-primary" href="./asset/flyer-Partager-Alerte-Gelees.pdf" download>Télécharger le flyer PDF</a></p>
+				</article>
+			</div>
+		</section>
+	</main>
+{%- endblock %}

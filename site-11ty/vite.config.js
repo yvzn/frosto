@@ -1,4 +1,5 @@
-// Vite builds the Eleventy output of ONE site (SITE=fr|en): .11ty/<site>/ -> dist/<site>/.
+// Vite builds the Eleventy output of ONE site (SITE=fr|en): .11ty/build/<site>/ -> dist/<site>/,
+// or serves .11ty/<site>/ in dev (see scripts/lib/sites.mjs).
 // The page list is discovered from Eleventy's output: every .html file is an entry point.
 //
 // Form endpoints: Vite is the ONLY place that substitutes them:

@@ -35,6 +35,7 @@ What `apphost.mts` wires:
 - **Cross-service URLs** (fixed local ports): `SITE_URL`, `SITE_FR_URL`, `SITE_EN_URL`, `SiteFrUrl`, `SiteEnUrl`,
   `UNSUBSCRIBE_URL`, `WEBSITE_HOSTNAME`, `INTERNAL_PROTOCOL`, and all `VITE_*_URL` of `app` and `site`.
 - **Storage**: `ALERTS_CONNECTION_STRING`, `AzureWebJobsStorage`, `ConnectionStrings__Alerts` -> `UseDevelopmentStorage=true` (Azurite). To use managed identity instead, set `ALERTS_TABLE_ENDPOINT` for `api`, `support`, and `batch`, or `Alerts__TableEndpoint` for `admin`; the endpoint takes precedence over the connection string. `tools` also supports `ALERTS_TABLE_ENDPOINT` with the developer identity from `az login`.
+- **CORS**: `api` and `support` start with `func host start --cors <site fr, site en, app origins>` (the browser calls them cross-origin; in production CORS is an Azure setting). Add a new browser origin to `corsOrigins`.
 - **Functions runtime**: `FUNCTIONS_WORKER_RUNTIME=dotnet-isolated`.
 - **Aspire parameters** for everything environment-specific or secret (below).
 
@@ -52,7 +53,6 @@ aspire secret set Parameters:smtp-password "..."
 | `open-meteo-api-url` | | api, batch | `OPEN_METEO_API_URL` (format string `{0}` lat, `{1}` lon, `{2}` timezone) |
 | `period-in-days` | | batch | `PERIOD_IN_DAYS` |
 | `internal-api-key` | yes | batch | `INTERNAL_API_KEY` |
-| `send-mail-api-url` | | batch | `SEND_MAIL_API_URL` |
 | `smtp-url`, `smtp-login` | | batch | `SMTP_URL`, `SMTP_LOGIN` |
 | `smtp-password` | yes | batch | `SMTP_PASSWORD` |
 | `scaleway-api-url`, `scaleway-project-id` | | batch | `SCALEWAY_API_URL`, `SCALEWAY_PROJECT_ID` |
@@ -85,11 +85,10 @@ $env:MOCKS = 'all'; aspire run       # PowerShell
 |---|---|---|
 | `weather` | Open-Meteo (`api`, `batch`) | one fixed forecast, same for any coordinates: frost on the next 3 days (about -2 / -4 / -1 °C minimum), mild otherwise |
 | `scaleway` | Scaleway TEM (`batch`) | stores the mail, answers 200 |
-| `mail` | custom send-mail API (`batch`) | stores the mail, answers 200 |
 | `maps` | Azure Maps geocoding and time zone (`admin`, server side) | same place (Paris, `Europe/Paris`) for any address or coordinates |
 | `smtp` | SMTP (`batch` "smtp" channel, `admin`) | fake SMTP server on `localhost:465` (implicit TLS, any login accepted), mails shown in the inbox as `smtp` |
 
-Sent mails are listed at http://localhost:7090/ (link in the dashboard); open one to see its headers and body. `smtp` mails show the real headers received (DKIM-Signature, List-Unsubscribe...) plus a raw message link; `scaleway` and `send-mail` mails show headers rebuilt from the API request (the real provider builds the final ones; `send-mail` carries none beyond to/subject). A mocked service needs no parameter: its URL and
+Sent mails are listed at http://localhost:7090/ (link in the dashboard); open one to see its headers and body. `smtp` mails show the real headers received (DKIM-Signature, List-Unsubscribe...) plus a raw message link; `scaleway` mails show headers rebuilt from the API request (the real provider builds the final ones). A mocked service needs no parameter: its URL and
 credentials are set by the AppHost. With any mock on, `INTERNAL_API_KEY` and `PERIOD_IN_DAYS` also get local values.
 `batch` starts automatically (its mails go to the mock inbox). The same mails are available as JSON at
 http://localhost:7090/api/mails (`?to=<address>` to filter, `DELETE` to clear): the e2e happy path (`e2e/`, `npm run test:local`) reads them there.

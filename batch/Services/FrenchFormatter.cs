@@ -66,16 +66,12 @@ internal static class FrenchHtmlFormatter
 <p>Cordialement,
 <br>Yvan de Alertegelee.fr
 
+<p><|feedback_links|><a href=""{5}share.html"" target=""_blank"">Recommander le service</a>
+
 <hr>
 
-<p>Pour ne plus recevoir ces messages,
-<|unsubscribe_link|>
-répondez ""STOP"" à ce message.
-
-<|feedback_links|>
-
-<p>Les données météo sont fournies par <em>Open-Meteo.com</em> &mdash;
-<a href=""{4}"" target=""_blank"" rel=""noopener noreferrer"">Weather data by Open-Meteo.com</a>";
+<p style=""font-size:12px""><|unsubscribe_link|> ou répondez STOP
+<br><a href=""{4}"" target=""_blank"" rel=""noopener noreferrer"">Weather data by Open-Meteo.com</a>";
 
 	private static readonly string applicationInviteTemplate =
 	@"
@@ -84,7 +80,7 @@ répondez ""STOP"" à ce message.
 
 	internal static readonly string unsubscribeLinkPlaceholder = "<|unsubscribe_link|>";
 
-	private static readonly string unsubscribeLinkTemplate = @"utilisez ce <a href=""{0}"" target=""_blank"">lien de désinscription</a> ou";
+	private static readonly string unsubscribeLinkTemplate = @"<a href=""{0}"" target=""_blank"" rel=""noopener noreferrer"">Se désinscrire</a>";
 
 	public static string FormatBody(List<weather.Forecast> forecasts, LocationEntity location)
 	{
@@ -128,7 +124,8 @@ répondez ""STOP"" à ce message.
 				location.country,
 				table.ToString(),
 				applicationInvite,
-				$"{AppSettings.SiteFrUrl}open-meteo.html"
+				$"{AppSettings.SiteFrUrl}open-meteo.html",
+				AppSettings.SiteFrUrl
 			);
 	}
 
@@ -146,7 +143,7 @@ répondez ""STOP"" à ce message.
 			return string.Empty;
 		var positive = BuildFeedbackUrl("positive", partitionKey, rowKey);
 		var negative = BuildFeedbackUrl("negative", partitionKey, rowKey);
-		return $"<p>Cette alerte vous a-t-elle été utile ? <a href=\"{positive}\" target=\"_blank\" rel=\"noopener noreferrer\">👍 Oui</a> · <a href=\"{negative}\" target=\"_blank\" rel=\"noopener noreferrer\">👎 Non</a></p>";
+		return $"Cette alerte vous a-t-elle été utile ? <a href=\"{positive}\" target=\"_blank\" rel=\"noopener noreferrer\">👍 Oui</a> / <a href=\"{negative}\" target=\"_blank\" rel=\"noopener noreferrer\">👎 Non</a> • ";
 	}
 
 	private static string BuildFeedbackUrl(string sentiment, string partitionKey, string rowKey)
@@ -175,17 +172,15 @@ Les prévisions de température des prochains jours ({0}, {1}):
 Cordialement,
 Yvan de Alertegelee.fr
 
+<|feedback_links|>Recommander le service : {4}share.html
+
 __________
 
-Pour vous désinscrire, <|unsubscribe_link|>
-répondez ""STOP"" à ce message.
-
-<|feedback_links|>
-
-Les données météo sont fournies par Open-Meteo.com -- Weather data by Open-Meteo.com";
+<|unsubscribe_link|> ou répondez STOP
+Weather data by Open-Meteo.com";
 
 	public static string FormatUnsubscribeLink(string unsubscribeUrl)
-		=> $"rendez-vous sur {unsubscribeUrl} ou";
+		=> $"Se désinscrire : {unsubscribeUrl}";
 
 	public static string FormatFeedbackLinks(string? partitionKey, string? rowKey)
 	{
@@ -193,7 +188,7 @@ Les données météo sont fournies par Open-Meteo.com -- Weather data by Open-Me
 			return string.Empty;
 		var positive = BuildFeedbackUrl("positive", partitionKey, rowKey);
 		var negative = BuildFeedbackUrl("negative", partitionKey, rowKey);
-		return $"Cette alerte vous a-t-elle été utile ? 👍 Oui : {positive} · 👎 Non : {negative}";
+		return $"Cette alerte vous a-t-elle été utile ? 👍 Oui : {positive} / 👎 Non : {negative} • ";
 	}
 
 	private static string BuildFeedbackUrl(string sentiment, string partitionKey, string rowKey)
@@ -246,7 +241,8 @@ Les données météo sont fournies par Open-Meteo.com -- Weather data by Open-Me
 				location.city,
 				location.country,
 				table.ToString(),
-				applicationInvite.ToString()
+				applicationInvite.ToString(),
+				AppSettings.SiteFrUrl
 			);
 	}
 }

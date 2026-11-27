@@ -6,6 +6,7 @@ export default {
 	alternateLang: 'fr',
 	alternateDomain: 'https://www.alertegelee.fr',
 	alternateLabel: 'Version française',
+	shareDescription: 'Get free alerts when the weather forecast predicts frost in your area.',
 	// hreflang="x-default" (home page only) points to the English site, on both sites.
 	xDefaultDomain: 'https://www.frostalert.net',
 	// Consent checkbox of the forms (src/_includes/partials/consent.njk).

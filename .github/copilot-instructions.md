@@ -56,7 +56,6 @@ frosto/
 │   ├── playwright.config.ts
 │   └── tests/
 ├── db/                   # Database / storage scripts
-├── logic-app/            # Azure Logic App definition
 ├── tools/                # Miscellaneous tooling scripts
 ├── support/              # Support / contact tooling
 └── .editorconfig         # Root editor config (tabs, UTF-8)
