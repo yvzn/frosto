@@ -380,6 +380,7 @@
 	var geocodingOptionInputs = Array.from(document.querySelectorAll('.geocoding-option-input'));
 	var geocodingApplyButton = document.getElementById('geocoding-apply-selection');
 	var geocodingApplyPlaceholder = document.getElementById('geocoding-apply-selection-placeholder');
+	var geocodingCountryTranslations = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(SignUpModel.GeocodingCountryTranslations));
 	var selectedGeocodingCoordinates = null;
 	var customCoordinatePopup;
 
@@ -631,7 +632,9 @@
 			}
 
 			if (selectedGeocodingCoordinates.country && countryInput) {
-				setInputValue(countryInput, selectedGeocodingCoordinates.country);
+				var translatedCountry = geocodingCountryTranslations[selectedGeocodingCoordinates.country.toLowerCase()]
+					|| selectedGeocodingCoordinates.country;
+				setInputValue(countryInput, translatedCountry);
 			}
 		});
 	}
