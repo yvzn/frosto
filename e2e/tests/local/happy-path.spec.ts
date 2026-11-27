@@ -146,20 +146,20 @@ test('happy path: sign-up, alert, unsubscribe', async ({ page, request, lang, he
 		await requests.getByRole('link', { name: 'Process' }).click();
 		const processUrl = page.url();
 
-		// "Proceed to Unsubscribe" opens a new tab: follow its link in this one
-		const proceed = await page.getByRole('link', { name: 'Proceed to Unsubscribe' }).getAttribute('href');
-		await page.goto(new URL(proceed!, urls.admin).toString());
+		// The request context follows the operator to UnsubscribeEmail in the same tab.
+		await page.getByRole('link', { name: 'Proceed to Unsubscribe' }).click();
+		await expect(page).toHaveURL(/\/UnsubscribeEmail\?.*requestId=/);
 
 		for (const choice of ['SelectedValidLocationId', 'SelectedLocationId', 'SelectedUserId']) {
 			const options = page.locator(`input[type=radio][name=${choice}]`);
 			if (await options.count()) await options.first().check();
 		}
 		await page.getByRole('button', { name: 'Unsubscribe', exact: true }).click();
-		await expect(page.getByRole('heading', { name: 'Unsubscribe completed' })).toBeVisible();
-		await page.getByRole('button', { name: 'Send confirmation mail' }).click();
-		await expect(page.locator('#send-mail-result')).toContainText('Confirmation mail sent successfully');
+		await expect(page).toHaveURL(/\/UnsubscribeRequest\?.*handler=Process/);
 
-		// the request is handled: mark it completed
+		// The unsubscribe is complete, but the request remains pending until explicitly discarded.
+		await page.goto(`${urls.admin}/UnsubscribeRequest`);
+		await expect(requests).toHaveCount(1);
 		await page.goto(processUrl);
 		await completeRequest(page);
 		await expect(page.getByRole('heading', { name: 'Request Deleted Successfully' })).toBeVisible();

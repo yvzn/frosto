@@ -36,6 +36,9 @@ public class UnsubscribeEmailModel(
 	[BindProperty]
 	public string? SelectedUserId { get; set; }
 
+	[BindProperty]
+	public string? RequestId { get; set; }
+
 	public bool EmailSubmitted { get; private set; }
 	public IList<Location> MatchingValidLocations { get; private set; } = [];
 	public IList<Location> MatchingLocations { get; private set; } = [];
@@ -43,9 +46,11 @@ public class UnsubscribeEmailModel(
 	public string? ErrorMessage { get; private set; }
 	public string? HighlightId { get; private set; }
 
-	public async Task OnGetAsync([FromQuery] string? q, [FromQuery] string? id)
+	public async Task OnGetAsync([FromQuery] string? q, [FromQuery] string? id, [FromQuery] string? requestId = null)
 	{
 		ResetSummary();
+
+		RequestId = string.IsNullOrWhiteSpace(requestId) ? null : requestId.Trim();
 
 		if (!string.IsNullOrWhiteSpace(q))
 		{
@@ -110,6 +115,11 @@ public class UnsubscribeEmailModel(
 		var result = await unsubscribeService.UnsubscribeAsync(Email, confirmedValidLocation, confirmedLocation, confirmedUser, HttpContext.RequestAborted);
 		if (result.Success)
 		{
+			if (!string.IsNullOrWhiteSpace(RequestId))
+			{
+				return RedirectToPage("/UnsubscribeRequest", "Process", new { id = RequestId.Trim() });
+			}
+
 			ShowDeletionSummary = true;
 			SuccessMessage = result.Message;
 			DeletionSummary = [.. result.Changes];
