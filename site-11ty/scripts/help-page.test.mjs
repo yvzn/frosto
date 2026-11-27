@@ -5,8 +5,6 @@ import { test } from 'node:test';
 const root = new URL('../src/', import.meta.url);
 const read = (path) => readFile(new URL(path, root), 'utf8');
 
-test.each = undefined;
-
 for (const [lang, heading, providers, footerLabel] of [
 	['en', 'Help &amp; feedback', ['Gmail', 'Outlook', 'Apple Mail'], 'Help &amp; feedback'],
 	['fr', 'Aide et avis', ['Gmail', 'Outlook', 'Apple Mail', 'Orange', 'Free', 'SFR'], 'Aide et avis'],
