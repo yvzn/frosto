@@ -1,0 +1,80 @@
+---
+title: Help & feedback - Frost Alerts
+description: Find out what to do if frost alerts land in spam, how to keep receiving them, unsubscribe or give feedback.
+socialDescription: Help with your frost alerts, from spam folders to unsubscribing, sharing and feedback.
+homeLabel: Home page
+script: sign-up-complete
+---
+{% extends "layouts/base.njk" %}
+
+{% block main %}
+	<main>
+		<section class="container py-4">
+			<div class="row flex-lg-row-reverse align-items-center py-lg-4">
+				<article class="col-6 col-sm-6 col-lg-5 p-3 p-md-5">
+					<img src="./asset/undraw_help-and-feedback_9y6n.svg" class="d-block mx-lg-auto img-fluid"
+						alt="A person checking messages beside a phone with help information" width="803" height="800" />
+				</article>
+				<article class="col-lg-7 p-4 p-md-5">
+					<h1 class="fw-light">Help &amp; feedback</h1>
+					<h2 class="h3 mt-5">Alerts in your spam folder?</h2>
+					<p>Mark them as “Not spam”: reports damage our sender reputation and can hide alerts for every subscriber.</p>
+					<details class="border rounded-3 p-3 mb-2">
+						<summary class="fw-semibold">Gmail</summary>
+						<ol class="mb-0 mt-3">
+							<li>Open Spam.</li>
+							<li>Open a Frost Alerts email.</li>
+							<li>Select “Not spam”.</li>
+						</ol>
+					</details>
+					<details class="border rounded-3 p-3 mb-2">
+						<summary class="fw-semibold">Outlook</summary>
+						<ol class="mb-0 mt-3">
+							<li>Open Junk Email.</li>
+							<li>Open a Frost Alerts email.</li>
+							<li>Select “Not junk” and confirm.</li>
+						</ol>
+					</details>
+					<details class="border rounded-3 p-3">
+						<summary class="fw-semibold">Apple Mail</summary>
+						<ol class="mb-0 mt-3">
+							<li>Open Junk.</li>
+							<li>Open a Frost Alerts email.</li>
+							<li>Select “Move to” and choose Inbox.</li>
+						</ol>
+					</details>
+				</article>
+			</div>
+		</section>
+
+		<section class="container pb-5">
+			<div class="col-lg-8 mx-auto">
+				<article class="mb-5">
+					<h2 class="h3">Want to be sure you get the alerts?</h2>
+					<p>Add <span id="ademl">[our email address]</span> to your contacts.</p>
+				</article>
+
+				<article class="mb-5">
+					<h2 class="h3">No longer want alerts?</h2>
+					<p><a href="./unsubscribe.html">Unsubscribe</a> or reply “STOP” to any alert instead of reporting it as spam; if that fails,
+						<a href="./contact.html">write to us</a>.</p>
+				</article>
+
+				<article class="mb-5">
+					<h2 class="h3">Something to tell us?</h2>
+					<p><a href="./feedback.html">Give us your feedback</a> about the alerts or the service.</p>
+				</article>
+
+				<article class="mb-5">
+					<h2 class="h3">Spread the word</h2>
+					<p><a href="./share.html">Recommend the service</a> to friends, neighbours or colleagues.</p>
+				</article>
+
+				<article>
+					<h2 class="h3">Support the project</h2>
+					<p><a href="./donate.html">Make an optional donation</a> to help keep the service running.</p>
+				</article>
+			</div>
+		</section>
+	</main>
+{%- endblock %}

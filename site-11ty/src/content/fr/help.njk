@@ -1,0 +1,104 @@
+---
+title: Aide et avis - Alerte gelées
+description: Que faire si les alertes arrivent dans les indésirables, comment bien les recevoir, se désinscrire ou donner son avis.
+socialDescription: De l'aide pour vos alertes gel, des indésirables à la désinscription, au partage et aux avis.
+homeLabel: Accueil
+script: sign-up-complete
+---
+{% extends "layouts/base.njk" %}
+
+{% block main %}
+	<main>
+		<section class="container py-4">
+			<div class="row flex-lg-row-reverse align-items-center py-lg-4">
+				<article class="col-6 col-sm-6 col-lg-5 p-3 p-md-5">
+					<img src="./asset/undraw_help-and-feedback_9y6n.svg" class="d-block mx-lg-auto img-fluid"
+						alt="Une personne consulte des messages près d'un téléphone présentant des informations d'aide" width="803" height="800" />
+				</article>
+				<article class="col-lg-7 p-4 p-md-5">
+					<h1 class="fw-light">Aide et avis</h1>
+					<h2 class="h3 mt-5">Les alertes sont dans vos indésirables&nbsp;?</h2>
+					<p>Marquez-les comme «&nbsp;non indésirables&nbsp;»&nbsp;: les signalements de spam nuisent à notre réputation et peuvent masquer les alertes pour tous les abonnés.</p>
+					<details class="border rounded-3 p-3 mb-2">
+						<summary class="fw-semibold">Gmail</summary>
+						<ol class="mb-0 mt-3">
+							<li>Ouvrez les Spams.</li>
+							<li>Ouvrez un e-mail Alerte gelées.</li>
+							<li>Sélectionnez «&nbsp;Non spam&nbsp;».</li>
+						</ol>
+					</details>
+					<details class="border rounded-3 p-3 mb-2">
+						<summary class="fw-semibold">Outlook</summary>
+						<ol class="mb-0 mt-3">
+							<li>Ouvrez les Courriers indésirables.</li>
+							<li>Ouvrez un e-mail Alerte gelées.</li>
+							<li>Sélectionnez «&nbsp;Il ne s'agit pas de courrier indésirable&nbsp;».</li>
+						</ol>
+					</details>
+					<details class="border rounded-3 p-3 mb-2">
+						<summary class="fw-semibold">Apple Mail</summary>
+						<ol class="mb-0 mt-3">
+							<li>Ouvrez Indésirables.</li>
+							<li>Ouvrez un e-mail Alerte gelées.</li>
+							<li>Sélectionnez «&nbsp;Placer dans&nbsp;» puis «&nbsp;Boîte de réception&nbsp;».</li>
+						</ol>
+					</details>
+					<details class="border rounded-3 p-3 mb-2">
+						<summary class="fw-semibold">Orange</summary>
+						<ol class="mb-0 mt-3">
+							<li>Ouvrez Indésirables.</li>
+							<li>Cochez un e-mail Alerte gelées.</li>
+							<li>Sélectionnez «&nbsp;Non indésirable&nbsp;».</li>
+						</ol>
+					</details>
+					<details class="border rounded-3 p-3 mb-2">
+						<summary class="fw-semibold">Free</summary>
+						<ol class="mb-0 mt-3">
+							<li>Ouvrez Spam.</li>
+							<li>Cochez un e-mail Alerte gelées.</li>
+							<li>Sélectionnez «&nbsp;Marquer comme non spam&nbsp;».</li>
+						</ol>
+					</details>
+					<details class="border rounded-3 p-3">
+						<summary class="fw-semibold">SFR</summary>
+						<ol class="mb-0 mt-3">
+							<li>Ouvrez Indésirables.</li>
+							<li>Cochez un e-mail Alerte gelées.</li>
+							<li>Sélectionnez «&nbsp;Déplacer vers&nbsp;» puis «&nbsp;Boîte de réception&nbsp;».</li>
+						</ol>
+					</details>
+				</article>
+			</div>
+		</section>
+
+		<section class="container pb-5">
+			<div class="col-lg-8 mx-auto">
+				<article class="mb-5">
+					<h2 class="h3">Vous voulez être sûr de recevoir les alertes&nbsp;?</h2>
+					<p>Ajoutez <span id="ademl">[notre adresse e-mail]</span> à vos contacts.</p>
+				</article>
+
+				<article class="mb-5">
+					<h2 class="h3">Vous ne souhaitez plus recevoir d'alertes&nbsp;?</h2>
+					<p><a href="./unsubscribe.html">Désinscrivez-vous</a> ou répondez STOP à une alerte au lieu de la signaler comme spam&nbsp;; si cela ne fonctionne
+						pas, <a href="./contact.html">écrivez-nous</a>.</p>
+				</article>
+
+				<article class="mb-5">
+					<h2 class="h3">Quelque chose à nous dire&nbsp;?</h2>
+					<p><a href="./feedback.html">Donnez-nous votre avis</a> sur les alertes ou le service.</p>
+				</article>
+
+				<article class="mb-5">
+					<h2 class="h3">Faites connaître le service</h2>
+					<p><a href="./share.html">Recommandez le service</a> à vos amis, voisins ou collègues.</p>
+				</article>
+
+				<article>
+					<h2 class="h3">Soutenir le projet</h2>
+					<p><a href="./donate.html">Faites un don facultatif</a> pour aider le service à continuer.</p>
+				</article>
+			</div>
+		</section>
+	</main>
+{%- endblock %}
