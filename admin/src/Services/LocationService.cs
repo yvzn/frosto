@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using admin.Models;
+using Azure;
 using Azure.Data.Tables;
 using Microsoft.Extensions.Azure;
 
@@ -12,6 +13,85 @@ public partial class LocationService(IAzureClientFactory<TableClient> azureClien
 {
 	private readonly TableClient _validLocationTableClient = azureClientFactory.CreateClient("validlocationTableClient");
 	private readonly TableClient _locationTableClient = azureClientFactory.CreateClient("locationTableClient");
+	private readonly TableClient _userTableClient = azureClientFactory.CreateClient("userTableClient");
+
+	public async Task<ValidLocationMoveSource> GetValidLocationMoveSourceAsync(string id, CancellationToken cancellationToken)
+	{
+		var (partitionKey, rowKey) = id.ToKeys();
+		if (string.IsNullOrWhiteSpace(partitionKey) || string.IsNullOrWhiteSpace(rowKey))
+		{
+			throw new ArgumentException("The location ID is invalid.", nameof(id));
+		}
+
+		var response = await _validLocationTableClient.GetEntityAsync<TableEntity>(partitionKey, rowKey, cancellationToken: cancellationToken);
+		var entity = response.Value;
+		return new(entity.PartitionKey, entity.RowKey, entity.ETag, ParseUsers(GetProperty<string>(entity, "users")));
+	}
+
+	public async Task<string> MoveValidLocationUsersAsync(
+		string id,
+		string expectedETag,
+		IEnumerable<string> selectedEmails,
+		CancellationToken cancellationToken)
+	{
+		var (partitionKey, rowKey) = id.ToKeys();
+		ArgumentException.ThrowIfNullOrWhiteSpace(partitionKey);
+		ArgumentException.ThrowIfNullOrWhiteSpace(rowKey);
+		ArgumentException.ThrowIfNullOrWhiteSpace(expectedETag);
+		ArgumentNullException.ThrowIfNull(selectedEmails);
+
+		var response = await _validLocationTableClient.GetEntityAsync<TableEntity>(partitionKey, rowKey, cancellationToken: cancellationToken);
+		var source = response.Value;
+		if (!string.Equals(source.ETag.ToString(), expectedETag, StringComparison.Ordinal))
+		{
+			throw new InvalidOperationException("This location changed after the page was loaded. Reload it and review the current users before trying again.");
+		}
+
+		var sourceUsers = ParseUsers(GetProperty<string>(source, "users"));
+		var selected = selectedEmails
+			.Select(email => email.Trim())
+			.Where(email => email.Length > 0)
+			.Distinct(StringComparer.OrdinalIgnoreCase)
+			.ToList();
+		ValidateSelectedUsers(sourceUsers, selected);
+
+		var selectedSet = new HashSet<string>(selected, StringComparer.OrdinalIgnoreCase);
+		var selectedInSourceOrder = sourceUsers.Where(selectedSet.Contains).ToList();
+		var remainingUsers = sourceUsers.Where(email => !selectedSet.Contains(email)).ToList();
+
+		var candidateRowKey = await FindCandidateRowKeyAsync(selectedInSourceOrder, cancellationToken);
+		if (string.IsNullOrWhiteSpace(candidateRowKey)
+			|| await ValidLocationExistsAsync(partitionKey, candidateRowKey, cancellationToken))
+		{
+			candidateRowKey = Guid.NewGuid().ToString();
+		}
+
+		for (var attempt = 0; attempt < 5; attempt++)
+		{
+			var destination = CloneEntity(source);
+			destination.PartitionKey = source.PartitionKey;
+			destination.RowKey = candidateRowKey;
+			destination["users"] = string.Join(',', selectedInSourceOrder);
+			source["users"] = string.Join(',', remainingUsers);
+
+			try
+			{
+				await _validLocationTableClient.SubmitTransactionAsync(
+					[
+						new(TableTransactionActionType.UpdateReplace, source, source.ETag),
+						new(TableTransactionActionType.Add, destination)
+					],
+					cancellationToken);
+				return $"{partitionKey}|{candidateRowKey}";
+			}
+			catch (RequestFailedException ex) when (ex.Status == 409 && attempt < 4)
+			{
+				candidateRowKey = Guid.NewGuid().ToString();
+			}
+		}
+
+		throw new InvalidOperationException("A separate location could not be created because the destination key is repeatedly in use. Reload the page and try again.");
+	}
 
 	public async Task<Location?> GetLocationAsync(string id, CancellationToken cancellationToken)
 	{
@@ -290,6 +370,88 @@ public partial class LocationService(IAzureClientFactory<TableClient> azureClien
 		return true;
 	}
 
+	internal static IReadOnlyList<string> ParseUsers(string? users)
+	{
+		var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+		return (users ?? string.Empty)
+			.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+			.Where(email => seen.Add(email))
+			.ToList();
+	}
+
+	internal static void ValidateSelectedUsers(IReadOnlyList<string> sourceUsers, IReadOnlyList<string> selectedUsers)
+	{
+		if (selectedUsers.Count == 0)
+		{
+			throw new ArgumentException("Select at least one user to move.");
+		}
+
+		var sourceSet = sourceUsers.ToHashSet(StringComparer.OrdinalIgnoreCase);
+		if (selectedUsers.Any(email => !sourceSet.Contains(email)))
+		{
+			throw new ArgumentException("The user list changed. Reload this page and review the available users.");
+		}
+
+		if (selectedUsers.Count == sourceUsers.Count)
+		{
+			throw new ArgumentException("At least one user must remain on the source location.");
+		}
+	}
+
+	internal static TableEntity CloneEntity(TableEntity source)
+	{
+		var clone = new TableEntity(source.PartitionKey, source.RowKey);
+		foreach (var property in source)
+		{
+			clone[property.Key] = property.Value;
+		}
+		return clone;
+	}
+
+	private async Task<string?> FindCandidateRowKeyAsync(
+		IEnumerable<string> selectedEmails,
+		CancellationToken cancellationToken)
+	{
+		foreach (var selectedEmail in selectedEmails)
+		{
+			await foreach (var user in _userTableClient.QueryAsync<UserEntity>(_ => true, cancellationToken: cancellationToken))
+			{
+				if (string.Equals(user.email?.Trim(), selectedEmail.Trim(), StringComparison.OrdinalIgnoreCase))
+				{
+					return string.IsNullOrWhiteSpace(user.PartitionKey) ? null : user.PartitionKey;
+				}
+			}
+		}
+
+		return null;
+	}
+
+	private async Task<bool> ValidLocationExistsAsync(
+		string partitionKey,
+		string rowKey,
+		CancellationToken cancellationToken)
+	{
+		try
+		{
+			await _validLocationTableClient.GetEntityAsync<TableEntity>(
+				partitionKey,
+				rowKey,
+				cancellationToken: cancellationToken);
+			return true;
+		}
+		catch (RequestFailedException ex) when (ex.Status == 404)
+		{
+			return false;
+		}
+	}
+
+	private static T? GetProperty<T>(TableEntity entity, string name)
+	{
+		return entity.TryGetValue(name, out var value) && value is T typedValue
+			? typedValue
+			: default;
+	}
+
 	private static Location EntityToModel(LocationEntity locationEntity)
 	{
 		return new()
@@ -405,3 +567,9 @@ public partial class LocationService(IAzureClientFactory<TableClient> azureClien
 		return null;
 	}
 }
+
+public sealed record ValidLocationMoveSource(
+	string PartitionKey,
+	string RowKey,
+	ETag ETag,
+	IReadOnlyList<string> Users);
